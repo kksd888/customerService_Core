@@ -12,8 +12,8 @@ func main() {
 	// 处理轮询
 	r.GET("/listen", Listen)
 
-	// TODO 处理长连接
-	r.GET("/ws")
+	// 长连接
+	r.GET("/ws", LongConn)
 
 	r.Run(":5000")
 }
