@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 // 消息模型
 type Message struct {
@@ -14,6 +16,6 @@ type Message struct {
 	UpdateTime time.Time
 }
 
-func (m *Message) insertOrUpdate(message Message) error {
+func (m Message) InsertOrUpdate() error {
 	return nil
 }

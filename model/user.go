@@ -13,6 +13,6 @@ type User struct {
 	UpdateTime   time.Time
 }
 
-func (u *User) insertOrUpdate(user User) error {
+func (u User) InsertOrUpdate() error {
 	return nil
 }

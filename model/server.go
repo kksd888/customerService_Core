@@ -13,6 +13,6 @@ type Server struct {
 	UpdateTime time.Time
 }
 
-func (s *Server) insertOrUpdate(server Server) error {
+func (s Server) InsertOrUpdate() error {
 	return nil
 }
