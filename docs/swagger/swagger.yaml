@@ -1,0 +1,253 @@
+info:
+  contact: {}
+  license: {}
+paths:
+  /v1/dialog/create:
+    post:
+      consumes:
+      - application/json
+      description: 客服接入用户，创建一个会话房间
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 客服接入用户
+      tags:
+      - Dialog
+  /v1/dialog/customer/{id}/message:
+    delete:
+      consumes:
+      - application/json
+      description: 客服撤回发送的消息
+      parameters:
+      - description: 客户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 客服撤回发送的消息
+      tags:
+      - Dialog
+    get:
+      consumes:
+      - application/json
+      description: 获取一个用户的聊天记录
+      parameters:
+      - description: 客户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 获取一个用户的聊天记录
+      tags:
+      - Dialog
+    post:
+      consumes:
+      - application/json
+      description: 客服发送消息给客户
+      parameters:
+      - description: 客户 ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 客服发送消息给客户
+      tags:
+      - Dialog
+  /v1/dialog/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取待回复消息列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 获取待回复消息列表
+      tags:
+      - Dialog
+  /v1/health:
+    get:
+      consumes:
+      - application/json
+      description: 应用程序健康检查接口
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 健康检查
+      tags:
+      - Default
+  /v1/init:
+    get:
+      consumes:
+      - application/json
+      description: 在线客服系统进行初始化
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 系统初始化
+      tags:
+      - Default
+  /v1/server/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取客服信息
+      parameters:
+      - description: 客服的ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 获取客服信息
+      tags:
+      - server
+  /v1/server/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 客服修改在线状态
+      parameters:
+      - description: 客服的ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 客服修改在线状态
+      tags:
+      - server
+  /v1/setting/offline_reply:
+    get:
+      consumes:
+      - application/json
+      description: 获取自动回复列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 获取自动回复列表
+      tags:
+      - OfflineReply
+    post:
+      consumes:
+      - application/json
+      description: 新增一条离线自动回复语句
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 新增一条离线自动回复语句
+      tags:
+      - OfflineReply
+  /v1/setting/offline_reply/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除一条离线自动回复语句
+      parameters:
+      - description: 自动回复语句的ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 删除一条离线自动回复语句
+      tags:
+      - OfflineReply
+    put:
+      consumes:
+      - application/json
+      description: 更新一条离线自动回复语句
+      parameters:
+      - description: 自动回复语句的ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 更新一条离线自动回复语句
+      tags:
+      - OfflineReply
+  /v1/ws:
+    get:
+      consumes:
+      - application/json
+      description: 长连接监听，支持和游览器通过WebSocket通信
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 长连接监听
+      tags:
+      - Default
+swagger: "2.0"
