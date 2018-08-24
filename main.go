@@ -1,19 +1,55 @@
 package main
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/controller"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-
 	r := gin.Default()
 
-	// 数据输出：计划支持轮询和长连接两种，轮询用于低版本游览器，高版本游览器使用长连接来提高性能
-	// 处理轮询
-	r.GET("/listen", Listen)
+	healthController := controller.InitHealth()
+	dialogController := controller.InitDialog()
+	serverController := controller.InitServer()
+	offlineReplyController := controller.InitOfflineReply()
 
-	// 长连接
-	r.GET("/ws", LongConn)
+	// 定义路由
+	v1 := r.Group("/v1")
+	{
+		// 健康检查
+		v1.GET("/health", healthController.Health)
+
+		// 会话操作
+		dialog := v1.Group("/dialog")
+		{
+			dialog.GET("init", dialogController.DialogInit)
+			dialog.GET("list", dialogController.List)
+			dialog.POST("create", dialogController.Create)
+			dialog.GET("user/:id/history", dialogController.History)
+			dialog.POST("user/:id/message", dialogController.SendMessage)
+			dialog.DELETE("user/:id/message", dialogController.RecallMessage)
+		}
+
+		// 客服操作
+		server := v1.Group("/server")
+		{
+			server.GET(":id", serverController.Get)
+			server.POST(":id/status", serverController.ChangeStatus)
+		}
+
+		// 设置操作
+		setting := v1.Group("/setting")
+		{
+			// 离线自动回复设置
+			offlineReply := setting.Group("offline_reply")
+			{
+				offlineReply.GET("", offlineReplyController.Get)
+				offlineReply.POST("", offlineReplyController.Create)
+				offlineReply.PUT(":id", offlineReplyController.Update)
+				offlineReply.DELETE(":id", offlineReplyController.Delete)
+			}
+		}
+	}
 
 	r.Run(":5000")
 }
