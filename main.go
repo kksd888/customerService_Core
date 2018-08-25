@@ -9,14 +9,15 @@ import (
 )
 
 func main() {
-	r := gin.Default()
 
+	r := gin.Default()
+	weiXinController := controller.InitWeiXin()
 	defaultController := controller.InitHealth()
 	dialogController := controller.InitDialog()
 	serverController := controller.InitServer()
 	offlineReplyController := controller.InitOfflineReply()
 
-	// 定义路由
+	// API路由
 	v1 := r.Group("/v1")
 	{
 		// 健康检查
@@ -54,6 +55,11 @@ func main() {
 		}
 	}
 
+	// API文档地址
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// 微信通信地址
+	r.POST("/listen", weiXinController.Listen)
+
+	// GO GO GO!!!
 	r.Run(":5000")
 }

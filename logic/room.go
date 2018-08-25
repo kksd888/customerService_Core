@@ -1,4 +1,4 @@
-package main
+package logic
 
 import (
 	"github.com/satori/go.uuid"
