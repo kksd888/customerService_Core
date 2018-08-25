@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"log"
 )
 
 func main() {
@@ -58,7 +59,17 @@ func main() {
 	// API文档地址
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址
-	r.POST("/listen", weiXinController.Listen)
+	r.Any("/listen", weiXinController.Listen)
+
+	go func() {
+		for {
+			wxMsg := <-controller.WxMsgQueue
+			kf := controller.Wc.GetKf()
+			if msgResponse, err := kf.SendTextMsg(wxMsg.FromUserName, "主动发送消息测试"); err != nil {
+				log.Printf("%#v", msgResponse)
+			}
+		}
+	}()
 
 	// GO GO GO!!!
 	r.Run(":5000")
