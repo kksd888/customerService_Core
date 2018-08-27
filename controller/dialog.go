@@ -6,7 +6,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 type DialogController struct {
@@ -26,12 +25,6 @@ func InitDialog(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *DialogC
 // @Success 200 {string} json ""
 // @Router /v1/dialog/list [get]
 func (c *DialogController) List(context *gin.Context) {
-	customerId := context.GetInt("customerId")
-
-	for _, wxReceive := range c.rooms {
-		log.Println(customerId, wxReceive)
-	}
-
 }
 
 // @Summary 客服接入用户
