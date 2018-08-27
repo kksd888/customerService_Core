@@ -3,6 +3,7 @@ package main
 import (
 	"git.jsjit.cn/customerService/customerService_Core/controller"
 	_ "git.jsjit.cn/customerService/customerService_Core/docs"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
@@ -11,18 +12,20 @@ import (
 
 func main() {
 
-	r := gin.Default()
+	router := gin.Default()
+	router.Use(cors.Default())
+
 	weiXinController := controller.InitWeiXin()
 	defaultController := controller.InitHealth()
 	dialogController := controller.InitDialog()
-	serverController := controller.InitServer()
+	serverController := controller.InitKfServer()
 	offlineReplyController := controller.InitOfflineReply()
 
 	// API路由
-	v1 := r.Group("/v1")
+	v1 := router.Group("/v1")
 	{
 		// 健康检查
-		v1.GET("/health", defaultController.Health)
+		v1.Any("/health", defaultController.Health)
 		v1.GET("/init", defaultController.Init)
 
 		// 会话操作
@@ -57,9 +60,9 @@ func main() {
 	}
 
 	// API文档地址
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址
-	r.Any("/listen", weiXinController.Listen)
+	router.Any("/listen", weiXinController.Listen)
 
 	go func() {
 		for {
@@ -72,5 +75,5 @@ func main() {
 	}()
 
 	// GO GO GO!!!
-	r.Run(":5000")
+	router.Run(":5000")
 }

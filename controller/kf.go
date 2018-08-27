@@ -4,11 +4,11 @@ package controller
 
 import "github.com/gin-gonic/gin"
 
-type ServerController struct {
+type KfServerController struct {
 }
 
-func InitServer() *ServerController {
-	return &ServerController{}
+func InitKfServer() *KfServerController {
+	return &KfServerController{}
 }
 
 // @Summary 获取客服信息
@@ -19,7 +19,7 @@ func InitServer() *ServerController {
 // @Param id path int true "客服的ID"
 // @Success 200 {string} json ""
 // @Router /v1/server/{id} [get]
-func (c *ServerController) Get(context *gin.Context) {
+func (c *KfServerController) Get(context *gin.Context) {
 }
 
 // @Summary 客服修改在线状态
@@ -30,5 +30,5 @@ func (c *ServerController) Get(context *gin.Context) {
 // @Param id path int true "客服的ID"
 // @Success 200 {string} json ""
 // @Router /v1/server/{id}/status [put]
-func (c *ServerController) ChangeStatus(context *gin.Context) {
+func (c *KfServerController) ChangeStatus(context *gin.Context) {
 }
