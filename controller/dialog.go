@@ -2,13 +2,20 @@
 
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/wechat"
+	"github.com/gin-gonic/gin"
+	"log"
+)
 
 type DialogController struct {
+	wxContext *wechat.Wechat
+	rooms     map[string]*logic.Room
 }
 
-func InitDialog() *DialogController {
-	return &DialogController{}
+func InitDialog(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *DialogController {
+	return &DialogController{wxContext, rooms}
 }
 
 // @Summary 获取待回复消息列表
@@ -19,6 +26,12 @@ func InitDialog() *DialogController {
 // @Success 200 {string} json ""
 // @Router /v1/dialog/list [get]
 func (c *DialogController) List(context *gin.Context) {
+	customerId := context.GetInt("customerId")
+
+	for _, wxReceive := range c.rooms {
+		log.Println(customerId, wxReceive)
+	}
+
 }
 
 // @Summary 客服接入用户

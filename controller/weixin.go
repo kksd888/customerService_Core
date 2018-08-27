@@ -2,49 +2,41 @@ package controller
 
 import (
 	"fmt"
+	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/cache"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"log"
 )
 
 type WeiXinController struct {
+	wxContext *wechat.Wechat
+	rooms     map[string]*logic.Room
 }
 
-func InitWeiXin() *WeiXinController {
-	return &WeiXinController{}
+func InitWeiXin(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *WeiXinController {
+	return &WeiXinController{wxContext, rooms}
 }
 
-var (
-	Wc         *wechat.Wechat
-	WxMsgQueue = make(chan *message.MixMessage, 10)
-)
-
-func init() {
-	redis := cache.NewRedis(&cache.RedisOpts{
-		Host: "localhost:32768",
-	})
-
-	//配置微信参数
-	config := &wechat.Config{
-		AppID:          "wx6cfceff5167a6007",
-		AppSecret:      "1c1a365155e23b491f4878afbb87b918",
-		Token:          "1603411701",
-		EncodingAESKey: "fTrvMnac80fBHFP63KTLFZAhfxdSq7c126yftPw3HO1",
-		Cache:          redis,
-	}
-	Wc = wechat.NewWechat(config)
-}
+//func listenSendSqueue() {
+//	for {
+//		wxMsg := <-WxSend
+//		kf := WxContext.GetKf()
+//		if msgResponse, err := kf.SendTextMsg(wxMsg.ToUser, kf.Context); err != nil {
+//			log.Printf("%#v", msgResponse)
+//		}
+//	}
+//}
 
 // 微信通信接口
 func (c *WeiXinController) Listen(context *gin.Context) {
 
-	wcServer := Wc.GetServer(context.Request, context.Writer)
+	wcServer := c.wxContext.GetServer(context.Request, context.Writer)
 
 	//设置接收消息的处理方法
 	wcServer.SetMessageHandler(func(msg message.MixMessage) *message.Reply {
-		WxMsgQueue <- &msg
+		room := logic.InitRoom(msg.FromUserName)
+		room.Register()
 
 		//回复消息：演示回复用户发送的消息
 		text := message.NewText(msg.Content)

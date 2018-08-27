@@ -3,23 +3,45 @@ package main
 import (
 	"git.jsjit.cn/customerService/customerService_Core/controller"
 	_ "git.jsjit.cn/customerService/customerService_Core/docs"
+	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/wechat"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/cache"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	"log"
 )
+
+var (
+	wxContext *wechat.Wechat
+)
+
+func init() {
+	redis := cache.NewRedis(&cache.RedisOpts{
+		Host: "localhost:32768",
+	})
+
+	//配置微信参数
+	config := &wechat.Config{
+		AppID:          "wx6cfceff5167a6007",
+		AppSecret:      "1c1a365155e23b491f4878afbb87b918",
+		Token:          "1603411701",
+		EncodingAESKey: "fTrvMnac80fBHFP63KTLFZAhfxdSq7c126yftPw3HO1",
+		Cache:          redis,
+	}
+	wxContext = wechat.NewWechat(config)
+}
 
 func main() {
 
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	weiXinController := controller.InitWeiXin()
 	defaultController := controller.InitHealth()
-	dialogController := controller.InitDialog()
-	serverController := controller.InitKfServer()
 	offlineReplyController := controller.InitOfflineReply()
+	serverController := controller.InitKfServer()
+	weiXinController := controller.InitWeiXin(wxContext, logic.RoomMap)
+	dialogController := controller.InitDialog(wxContext, logic.RoomMap)
 
 	// API路由
 	v1 := router.Group("/v1")
@@ -63,16 +85,6 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
-
-	go func() {
-		for {
-			wxMsg := <-controller.WxMsgQueue
-			kf := controller.Wc.GetKf()
-			if msgResponse, err := kf.SendTextMsg(wxMsg.FromUserName, "主动发送消息测试"); err != nil {
-				log.Printf("%#v", msgResponse)
-			}
-		}
-	}()
 
 	// GO GO GO!!!
 	router.Run(":5000")
