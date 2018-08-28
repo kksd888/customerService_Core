@@ -18,7 +18,7 @@ var (
 
 func init() {
 	redis := cache.NewRedis(&cache.RedisOpts{
-		Host: "localhost:32768",
+		Host: "localhost:6379",
 	})
 
 	//配置微信参数
@@ -53,11 +53,16 @@ func main() {
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
-			dialog.GET("list", dialogController.List)
+			dialog.GET(":dialogId/list", dialogController.List)
 			dialog.POST("create", dialogController.Create)
-			dialog.GET("customer/:id/history", dialogController.History)
-			dialog.POST("customer/:id/message", dialogController.SendMessage)
-			dialog.DELETE("customer/:id/message", dialogController.RecallMessage)
+		}
+
+		// 访客数据操作
+		customer := v1.Group("customer")
+		{
+			customer.GET(":id/history", dialogController.History)
+			customer.POST(":id/message", dialogController.SendMessage)
+			customer.DELETE(":id/message", dialogController.RecallMessage)
 		}
 
 		// 客服操作

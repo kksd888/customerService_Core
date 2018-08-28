@@ -3,7 +3,7 @@ package model
 import "time"
 
 // 客服模型
-type Server struct {
+type Kf struct {
 	Id         int
 	TokenId    string
 	NickName   string
@@ -13,6 +13,6 @@ type Server struct {
 	UpdateTime time.Time
 }
 
-func (s Server) InsertOrUpdate() error {
+func (kf Kf) InsertOrUpdate() error {
 	return nil
 }

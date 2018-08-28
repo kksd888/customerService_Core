@@ -4,6 +4,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"time"
 )
 
@@ -22,7 +23,7 @@ func InitHealth() *DefaultController {
 // @Success 200 {string} json ""
 // @Router /v1/health [get]
 func (c *DefaultController) Health(context *gin.Context) {
-	context.JSON(200, gin.H{"status": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
+	context.JSON(http.StatusOK, gin.H{"status": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
 }
 
 // @Summary 长连接监听

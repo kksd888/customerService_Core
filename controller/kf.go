@@ -22,7 +22,6 @@ func InitKfServer() *KfServerController {
 // @Success 200 {string} json ""
 // @Router /v1/server/{id} [get]
 func (c *KfServerController) Get(context *gin.Context) {
-
 }
 
 // @Summary 客服修改在线状态
