@@ -3,7 +3,11 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
 )
 
 type KfServerController struct {
@@ -15,7 +19,7 @@ func InitKfServer() *KfServerController {
 
 // @Summary 获取客服信息
 // @Description 获取客服信息
-// @Tags Server
+// @Tags Kf
 // @Accept  json
 // @Produce  json
 // @Param id path int true "客服的ID"
@@ -26,11 +30,53 @@ func (c *KfServerController) Get(context *gin.Context) {
 
 // @Summary 客服修改在线状态
 // @Description 客服修改在线状态
-// @Tags Server
+// @Tags Kf
 // @Accept  json
 // @Produce  json
 // @Param id path int true "客服的ID"
 // @Success 200 {string} json ""
 // @Router /v1/server/{id}/status [put]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
+}
+
+// @Summary 客服登入
+// @Description 客服登入
+// @Tags Kf
+// @Accept  json
+// @Produce  json
+// @Param tokenId path int true "客服的授权TokenId"
+// @Success 200 {string} json ""
+// @Router /v1/login/:tokenId [post]
+func (c *KfServerController) LoginIn(context *gin.Context) {
+	param := context.Param("tokenId")
+	if param == "" {
+		context.JSON(http.StatusOK, gin.H{"code": 1000, "msg": "请传入授权客服的token"})
+		return
+	}
+
+	kf := model.Kf{}
+	if err := kf.GetByTokenId(param); err != nil {
+		log.Fatalf("LoginIn error：%#v", err)
+	} else {
+		// todo 向内存写入登录的客服
+		s, _ := logic.RoomKf{
+			KfId: string(kf.Id),
+		}.Make2Auth()
+		context.JSON(http.StatusOK, LoginInResponse{
+			BaseResponse: BaseResponse{
+				Code: 0,
+			},
+			Authentication: s,
+		})
+	}
+}
+
+// 客服登出
+func (c *KfServerController) LoginOut(context *gin.Context) {
+
+}
+
+type LoginInResponse struct {
+	BaseResponse
+	Authentication string
 }

@@ -1,6 +1,12 @@
 package logic
 
 import (
+	"encoding/base64"
+	"errors"
+	"git.jsjit.cn/customerService/customerService_Core/common"
+	"github.com/gin-gonic/gin/json"
+	"github.com/satori/go.uuid"
+	"log"
 	"time"
 )
 
@@ -13,11 +19,28 @@ var RoomMap = make(map[string]*Room)
 // * 客户和客服都可以更改各自对象中的在线状态
 // * 由用户离线、客服终止来销毁Room对象
 type Room struct {
-	CustomerId  string
-	KfId        string
-	KfStatus    int
-	CustomerMsg []string
-	CreateTime  time.Time
+	RoomCustomer
+	RoomKf
+	CreateTime time.Time
+}
+type RoomCustomer struct {
+	CustomerId           string
+	CustomerNickName     string
+	CustomerHeadImgUrl   string
+	CustomerPreviousKfId string
+	CustomerMsgs         []*RoomMessage
+}
+type RoomKf struct {
+	KfId         string
+	KfName       string
+	KfHeadImgUrl string
+	KfStatus     int
+}
+
+type RoomMessage struct {
+	Uuid       uuid.UUID
+	Content    string
+	CreateTime time.Time
 }
 
 func InitRoom(customerId string) (*Room, bool) {
@@ -26,10 +49,9 @@ func InitRoom(customerId string) (*Room, bool) {
 		return r, false
 	} else {
 		newRoom := &Room{
-			CustomerId: customerId,
-			CreateTime: time.Time{},
+			RoomCustomer: RoomCustomer{CustomerId: customerId},
+			CreateTime:   time.Now(),
 		}
-
 		RoomMap[customerId] = newRoom
 		return newRoom, true
 	}
@@ -42,11 +64,52 @@ func (r *Room) UnRegister(customerId string) {
 }
 
 func (r *Room) AddMessage(msg string) {
-	r.CustomerMsg = append(r.CustomerMsg, msg)
+	uuids, _ := uuid.NewV4()
+	r.CustomerMsgs = append(r.CustomerMsgs, &RoomMessage{
+		Uuid:       uuids,
+		Content:    msg,
+		CreateTime: time.Now(),
+	})
 }
 
 func (r *Room) ChangeServerStatus(status int) {
 	r.KfStatus = status
+}
+
+func (r RoomKf) Make2Auth() (string, error) {
+	bytes, err := json.Marshal(r)
+	if err != nil {
+		log.Printf("Make2Auth JSON序列化err：%v", err)
+	}
+
+	encrypt := common.AesEncrypt{}
+	byteInfo, err := encrypt.Encrypt(bytes)
+	if err != nil {
+		log.Printf("common.NewGoAES() err：%v", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(byteInfo), err
+}
+
+func KfAccess(customerIds []string, kfId RoomKf) {
+	for roomKey, room := range RoomMap {
+		for _, cIds := range customerIds {
+			if cIds == roomKey {
+				room.RoomKf = kfId
+			}
+		}
+	}
+}
+
+func UpdateRoom(r *Room) (err error) {
+	_, ok := RoomMap[r.CustomerId]
+	if ok {
+		RoomMap[r.CustomerId] = r
+	} else {
+		err = errors.New("查询的会话房间不存在")
+	}
+
+	return
 }
 
 func getRoomFromMaps(customerId string) *Room {
@@ -55,5 +118,20 @@ func getRoomFromMaps(customerId string) *Room {
 		return r
 	} else {
 		return nil
+	}
+}
+
+func GetWaitQueue() (waitQueueRooms []*Room, err error) {
+	for _, value := range RoomMap {
+		if value.KfId == "" {
+			waitQueueRooms = append(waitQueueRooms, value)
+		}
+	}
+	return
+}
+
+func PrintRoomMap() {
+	for key, value := range RoomMap {
+		log.Printf("RoomMap Key: %s ; Value : %#v", key, value)
 	}
 }

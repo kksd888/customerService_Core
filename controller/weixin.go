@@ -26,11 +26,10 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 
 	//设置接收消息的处理方法
 	wcServer.SetMessageHandler(func(msg message.MixMessage) (reply *message.Reply) {
-		//回复消息：演示回复用户发送的消息
 		text := message.NewText(msg.Content)
-
 		log.Printf("用户[%s]发来信息：%s \n", msg.FromUserName, text.Content)
 
+		// 通信注册
 		room, isNew := logic.InitRoom(msg.FromUserName)
 		room.AddMessage(text.Content)
 
@@ -39,6 +38,23 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			if err != nil {
 				log.Fatalf("WeiXinController.wxContext.GetUser().GetUserInfo() is err：%v", err.Error())
 			}
+
+			// 填充附属数据
+			logic.UpdateRoom(&logic.Room{
+				RoomCustomer: logic.RoomCustomer{
+					CustomerId:         room.CustomerId,
+					CustomerNickName:   userInfo.Nickname,
+					CustomerHeadImgUrl: userInfo.Headimgurl,
+					CustomerMsgs:       room.CustomerMsgs,
+				},
+				RoomKf: logic.RoomKf{
+					KfId:         room.KfId,
+					KfName:       room.KfName,
+					KfHeadImgUrl: room.KfHeadImgUrl,
+					KfStatus:     room.KfStatus,
+				},
+				CreateTime: room.CreateTime,
+			})
 
 			// 客户数据持久化
 			model.Customer{
@@ -50,6 +66,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
 			}.InsertOrUpdate()
 		}
+
+		//logic.PrintRoomMap()
 
 		return
 	})

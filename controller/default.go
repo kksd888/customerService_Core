@@ -3,6 +3,7 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -44,4 +45,34 @@ func (c *DefaultController) Ws(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /v1/init [get]
 func (c *DefaultController) Init(context *gin.Context) {
+	context.JSON(http.StatusOK, InitResponse{
+		BaseResponse:       BaseResponse{},
+		Mine:               InitMine{},
+		InitOnlineCustomer: []InitOnlineCustomer{},
+	})
+}
+
+// API全局响应基础结构
+type BaseResponse struct {
+	Code  int    `json:"code"`
+	Msg   string `json:"msg"`
+	Token string `json:"token"`
+}
+
+type InitResponse struct {
+	BaseResponse
+	Mine               InitMine             `json:"mine"`
+	InitOnlineCustomer []InitOnlineCustomer `json:"init_online_customer"`
+}
+type InitMine struct {
+	Id         string `json:"id"`
+	UserName   string `json:"user_name"`
+	HeadImgUrl string `json:"head_img_url"`
+	Status     string `json:"status"`
+}
+type InitOnlineCustomer struct {
+	Id                 string              `json:"id"`
+	CustomerNickName   string              `json:"customer_nick_name"`
+	CustomerHeadImgUrl string              `json:"customer_head_img_url"`
+	CustomerMessages   []logic.RoomMessage `json:"customer_messages"`
 }
