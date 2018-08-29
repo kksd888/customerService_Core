@@ -13,7 +13,7 @@ type Customer struct {
 	Sex          int32     `gorm:"sex"`
 	HeadImgUrl   string    `gorm:"head_img_url"`
 	Address      string    `gorm:"address"`
-	CustomerType int       `gorm:"customer_type"`
+	CustomerType int       `gorm:"customer_type"` // 1、普通
 	CreateTime   time.Time `gorm:"create_time"`
 	UpdateTime   time.Time `gorm:"update_time"`
 }
@@ -28,7 +28,7 @@ func (customer Customer) InsertOrUpdate() (err error) {
 		customer.OpenId, customer.NickName, customer.CustomerType, customer.Sex, customer.HeadImgUrl, customer.Address)
 	if exec.Error != nil {
 		err = exec.Error
-		log.Fatalf("Customer.InsertOrUpdate() is err => %#v", exec.Error)
+		log.Printf("Customer.InsertOrUpdate() is err => %#v", exec.Error)
 	}
 	return
 }

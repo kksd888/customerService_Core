@@ -14,7 +14,7 @@ func init() {
 
 	//mySqlDb.LogMode(true)
 	if err != nil {
-		log.Fatalf("MySql数据库连接异常，%v", err)
+		log.Printf("MySql数据库连接异常，%v", err)
 	}
 	db = mySqlDb
 }

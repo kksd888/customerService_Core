@@ -230,30 +230,3 @@ func (srv *Server) Send() (err error) {
 	}
 	return
 }
-
-//Send success消息，告知微信服务器已经接收成功
-func (srv *Server) SendSuccess() (err error) {
-	replyMsg := srv.responseMsg
-	if srv.isSafeMode {
-		//安全模式下对消息进行加密
-		var encryptedMsg []byte
-		encryptedMsg, err = util.EncryptMsg(srv.random, []byte("success"), srv.AppID, srv.EncodingAESKey)
-		if err != nil {
-			return
-		}
-
-		timestamp := srv.timestamp
-		timestampStr := strconv.FormatInt(timestamp, 10)
-		msgSignature := util.Signature(srv.Token, timestampStr, srv.nonce, string(encryptedMsg))
-		replyMsg = message.ResponseEncryptedXMLMsg{
-			EncryptedMsg: string(encryptedMsg),
-			MsgSignature: msgSignature,
-			Timestamp:    timestamp,
-			Nonce:        srv.nonce,
-		}
-	}
-	if replyMsg != nil {
-		srv.XML(replyMsg)
-	}
-	return
-}

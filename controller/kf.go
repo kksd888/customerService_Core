@@ -50,15 +50,16 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 func (c *KfServerController) LoginIn(context *gin.Context) {
 	tokenId := context.Param("tokenId")
 	if tokenId == "" {
-		context.JSON(http.StatusOK, gin.H{"code": 1000, "msg": "缺少授权客服的token"})
+		context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
 		return
 	}
 
 	kf := model.Kf{}
 	if err := kf.GetByTokenId(tokenId); err != nil {
-		log.Fatalf("LoginIn error：%#v", err)
+		log.Printf("LoginIn error：%#v", err)
 	} else {
-		// todo 向内存写入登录的客服
+		logic.AddOnlineKf(kf)
+
 		s, _ := logic.RoomKf{
 			KfId:         kf.Id,
 			KfName:       kf.NickName,
@@ -72,11 +73,6 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 			Authentication: s,
 		})
 	}
-}
-
-// 客服登出
-func (c *KfServerController) LoginOut(context *gin.Context) {
-
 }
 
 type LoginInResponse struct {

@@ -3,11 +3,14 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-gonic/gin"
-	"log"
+	"github.com/pkg/errors"
 	"net/http"
+	"strconv"
 )
 
 type DialogController struct {
@@ -25,25 +28,26 @@ func InitDialog(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *DialogC
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/dialog/:id/list [get]
+// @Router /v1/dialog/:kfId/list [get]
 func (c *DialogController) List(context *gin.Context) {
-	dialogId := context.Param("dialogId")
-	if dialogId == "" {
-		context.JSON(http.StatusOK, gin.H{"msg": "参数不能为空"})
+	kfId := context.Param("kfId")
+	if kfId == "" {
+		ReturnErrInfo(context, errors.New("参数不能为空"))
+	}
+	iKfId, err := strconv.Atoi(kfId)
+	if err != nil {
+		ReturnErrInfo(context, errors.New("客服编号异常"))
 	}
 
-	r, ok := c.rooms[dialogId]
-	if !ok {
-		log.Println("查询空异常")
-	} else {
-		log.Printf("RoomMaps内容：%#v", r)
-	}
+	customer := model.MessageLinkCustomer{Message: model.Message{KfId: iKfId}}
+	messages, e := customer.WaitReply()
+	ReturnErrInfo(context, e)
 
-	context.JSON(http.StatusOK, r.CustomerMsgs)
+	context.JSON(http.StatusOK, messages)
 }
 
-// @Summary 客服接入用户
-// @Description 客服接入用户，加入会话房间
+// @Summary 客服接入用户，确认该用户所有未读消息
+// @Description 客服接入用户，确认该用户所有未读消息
 // @Tags Dialog
 // @Accept  json
 // @Produce  json
@@ -51,8 +55,15 @@ func (c *DialogController) List(context *gin.Context) {
 // @Router /v1/dialog/access [post]
 func (c *DialogController) Access(context *gin.Context) {
 	var aRequest AccessRequest
+	context.Bind(&aRequest)
+	roomKf, _ := handle.AuthToken2Model(context)
+
+	// 所有对应客户的ACK消息确认
+	for _, v := range aRequest.CustomerIds {
+		model.Message{CustomerToken: v, KfId: roomKf.KfId}.AccessAck()
+	}
+
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
-		// todo 客服接入通话房间
 		logic.KfAccess(aRequest.CustomerIds, logic.RoomKf{})
 	}
 }

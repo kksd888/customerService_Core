@@ -8,6 +8,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
 )
 
 // OAuth2.0 授权认证
@@ -15,13 +16,13 @@ func OauthMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("authentication")
 		if token == "" {
-			c.JSON(401, "API token required")
+			c.JSON(http.StatusUnauthorized, "API token required")
 			c.Abort()
 			return
 		}
 
 		if _, err := AuthToken2Model(c); err != nil {
-			c.JSON(401, err.Error())
+			c.JSON(http.StatusUnauthorized, err.Error())
 			c.Abort()
 			return
 		}
@@ -39,7 +40,7 @@ func AuthToken2Model(c *gin.Context) (roomKf *logic.RoomKf, err error) {
 		err = errors.New("API token Authentication failed")
 	} else {
 		if err := json.Unmarshal(bytes, &roomKf); err != nil {
-			log.Fatalf("string json :%s, err %#v", string(bytes), err.Error())
+			log.Printf("string json :%s, err %#v", string(bytes), err.Error())
 			err = errors.New("API token Authentication failed")
 		}
 		if &roomKf == nil {

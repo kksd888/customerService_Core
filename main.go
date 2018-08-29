@@ -62,11 +62,11 @@ func main() {
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
+			dialog.GET("/:kfId/list", dialogController.List)
 			dialog.POST("/access", dialogController.Access)
-			dialog.GET("/:dialogId/list/", dialogController.List)
 		}
 
-		// 访客操作
+		// 客户数据
 		customer := v1.Group("/customer")
 		{
 			customer.GET("/:customerId/history/", customerController.History)
@@ -78,7 +78,6 @@ func main() {
 		{
 			kf.GET("/:kfId", kfController.Get)
 			kf.POST("/:kfId/status", kfController.ChangeStatus)
-			//kf.POST("/:token_id/loginout/", kfController.LoginOut)
 		}
 
 		// 设置操作
@@ -98,7 +97,7 @@ func main() {
 	// 客服登录操作
 	login := router.Group("/v1/login")
 	login.POST("/:tokenId", kfController.LoginIn)
-	login.DELETE("/:tokenId", kfController.LoginOut)
+	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
 	router.Any("/health", defaultController.Health)
 	// API文档地址

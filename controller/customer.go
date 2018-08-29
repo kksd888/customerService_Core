@@ -51,7 +51,7 @@ func (c *CustomerController) SendMessage(context *gin.Context) {
 // @Router /v1/wait_queue/ [get]
 func (c *CustomerController) Queue(context *gin.Context) {
 	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
-		log.Fatalf("CustomerController.Queue err: %s", err)
+		log.Printf("CustomerController.Queue err: %s", err)
 	} else {
 		var waitQueues []WaitQueueResponse
 		for _, value := range waitQueueRooms {

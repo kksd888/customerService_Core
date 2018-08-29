@@ -38,14 +38,15 @@ func (c *DefaultController) Health(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /v1/init [get]
 func (c *DefaultController) Init(context *gin.Context) {
+	// 获取访问客服信息
 	roomKf, err := handle.AuthToken2Model(context)
 	ReturnErrInfo(context, err)
-
 	kfDb := &model.Kf{Id: roomKf.KfId}
 	if err := kfDb.Get(); err != nil {
 		ReturnErrInfo(context, err.Error())
 	}
 
+	// 获取聊天历史记录
 	messageDb := model.MessageLinkCustomer{Message: model.Message{KfId: kfDb.Id}}
 	messages, err := messageDb.GetKfHistoryMsg()
 	ReturnErrInfo(context, err)
@@ -53,6 +54,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 	var initOnlineCustomers []InitOnlineCustomer
 	var mapCus = map[int]*InitOnlineCustomer{}
 
+	// 组织数据
 	for _, singeMsg := range messages {
 		if _, ok := mapCus[singeMsg.KfId]; ok {
 			mapCus[singeMsg.KfId].CustomerMessages = append(mapCus[singeMsg.KfId].CustomerMessages, InitMessage{
@@ -60,11 +62,12 @@ func (c *DefaultController) Init(context *gin.Context) {
 				MessageType:       singeMsg.MsgType,
 				MessageContent:    singeMsg.Msg,
 				MessageOperCode:   singeMsg.OperCode,
+				MessageAck:        singeMsg.KfAck,
 				MessageCteateTime: singeMsg.CreateTime,
 			})
 		} else {
 			mapCus[singeMsg.KfId] = &InitOnlineCustomer{
-				CustomerId:         singeMsg.CustomerId,
+				RoomToken:          singeMsg.CustomerToken,
 				CustomerNickName:   singeMsg.CustomerNickName,
 				CustomerHeadImgUrl: singeMsg.CustomerHeadImgUrl,
 				CustomerMessages: []InitMessage{
@@ -73,6 +76,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 						MessageType:       singeMsg.MsgType,
 						MessageContent:    singeMsg.Msg,
 						MessageOperCode:   singeMsg.OperCode,
+						MessageAck:        singeMsg.KfAck,
 						MessageCteateTime: singeMsg.CreateTime,
 					},
 				},
@@ -89,12 +93,13 @@ func (c *DefaultController) Init(context *gin.Context) {
 			Id:         kfDb.Id,
 			UserName:   kfDb.NickName,
 			HeadImgUrl: kfDb.HeadImgUrl,
-			Status:     common.KF_ONLINE,
+			Status:     string(common.KF_ONLINE),
 		},
 		InitOnlineCustomer: initOnlineCustomers,
 	})
 }
 
+// 控制器异常
 func ReturnErrInfo(context *gin.Context, err interface{}) {
 	if err != nil {
 		log.Printf("发生异常：%#v", err)
@@ -124,7 +129,7 @@ type InitMine struct {
 	Status     string `json:"status"`
 }
 type InitOnlineCustomer struct {
-	CustomerId         int           `json:"customer_id"`
+	RoomToken          string        `json:"room_token"` // 会话的Token，实际上就是用户的OpenId
 	CustomerNickName   string        `json:"customer_nick_name"`
 	CustomerHeadImgUrl string        `json:"customer_head_img_url"`
 	CustomerMessages   []InitMessage `json:"customer_messages"`
@@ -134,5 +139,6 @@ type InitMessage struct {
 	MessageType       int       `json:"message_type"`
 	MessageContent    string    `json:"message_content"`
 	MessageOperCode   int       `json:"message_oper_code"`
+	MessageAck        bool      `json:"message_ack"`
 	MessageCteateTime time.Time `json:"message_cteate_time"`
 }

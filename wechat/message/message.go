@@ -9,6 +9,8 @@ type MsgType string
 type EventType string
 
 const (
+	//默认的成功消息，什么都不回复
+	MsgTypeSuccess = "success"
 	//MsgTypeText 表示文本消息
 	MsgTypeText MsgType = "text"
 	//MsgTypeImage 表示图片消息

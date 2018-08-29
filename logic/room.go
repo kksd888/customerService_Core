@@ -5,7 +5,6 @@ import (
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"github.com/gin-gonic/gin/json"
-	"github.com/satori/go.uuid"
 	"log"
 	"time"
 )
@@ -36,7 +35,6 @@ type RoomKf struct {
 	KfHeadImgUrl string
 	KfStatus     int
 }
-
 type RoomMessage struct {
 	Uuid        string
 	MessageType string
@@ -64,14 +62,14 @@ func (r *Room) UnRegister(customerId string) {
 	}
 }
 
-func (r *Room) AddMessage(msg string) {
-	uuids, _ := uuid.NewV4()
-	r.CustomerMsgs = append(r.CustomerMsgs, &RoomMessage{
-		Uuid:       uuids.String(),
-		Content:    msg,
-		CreateTime: time.Now(),
-	})
-}
+//func (r *Room) AddMessage(msg string) {
+//	uuids, _ := uuid.NewV4()
+//	r.CustomerMsgs = append(r.CustomerMsgs, &RoomMessage{
+//		Uuid:       uuids.String(),
+//		Content:    msg,
+//		CreateTime: time.Now(),
+//	})
+//}
 
 func (r *Room) ChangeServerStatus(status int) {
 	r.KfStatus = status
