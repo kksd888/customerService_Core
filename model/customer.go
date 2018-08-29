@@ -18,6 +18,10 @@ type Customer struct {
 	UpdateTime   time.Time `gorm:"update_time"`
 }
 
+func (Customer) TableName() string {
+	return "dic_customer"
+}
+
 // 新增或更新用户基础数据
 func (customer Customer) InsertOrUpdate() (err error) {
 	exec := db.Exec("replace into dic_customer (open_id, nick_name, customer_type, sex, head_img_url, address) values (?, ?, ?, ?, ?, ?);",

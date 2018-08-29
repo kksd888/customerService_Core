@@ -48,19 +48,22 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /v1/login/:tokenId [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
-	param := context.Param("tokenId")
-	if param == "" {
-		context.JSON(http.StatusOK, gin.H{"code": 1000, "msg": "请传入授权客服的token"})
+	tokenId := context.Param("tokenId")
+	if tokenId == "" {
+		context.JSON(http.StatusOK, gin.H{"code": 1000, "msg": "缺少授权客服的token"})
 		return
 	}
 
 	kf := model.Kf{}
-	if err := kf.GetByTokenId(param); err != nil {
+	if err := kf.GetByTokenId(tokenId); err != nil {
 		log.Fatalf("LoginIn error：%#v", err)
 	} else {
 		// todo 向内存写入登录的客服
 		s, _ := logic.RoomKf{
-			KfId: string(kf.Id),
+			KfId:         kf.Id,
+			KfName:       kf.NickName,
+			KfHeadImgUrl: kf.HeadImgUrl,
+			KfStatus:     0,
 		}.Make2Auth()
 		context.JSON(http.StatusOK, LoginInResponse{
 			BaseResponse: BaseResponse{

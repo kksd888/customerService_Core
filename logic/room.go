@@ -31,16 +31,17 @@ type RoomCustomer struct {
 	CustomerMsgs         []*RoomMessage
 }
 type RoomKf struct {
-	KfId         string
+	KfId         int
 	KfName       string
 	KfHeadImgUrl string
 	KfStatus     int
 }
 
 type RoomMessage struct {
-	Uuid       uuid.UUID
-	Content    string
-	CreateTime time.Time
+	Uuid        string
+	MessageType string
+	Content     string
+	CreateTime  time.Time
 }
 
 func InitRoom(customerId string) (*Room, bool) {
@@ -66,7 +67,7 @@ func (r *Room) UnRegister(customerId string) {
 func (r *Room) AddMessage(msg string) {
 	uuids, _ := uuid.NewV4()
 	r.CustomerMsgs = append(r.CustomerMsgs, &RoomMessage{
-		Uuid:       uuids,
+		Uuid:       uuids.String(),
 		Content:    msg,
 		CreateTime: time.Now(),
 	})
@@ -123,7 +124,7 @@ func getRoomFromMaps(customerId string) *Room {
 
 func GetWaitQueue() (waitQueueRooms []*Room, err error) {
 	for _, value := range RoomMap {
-		if value.KfId == "" {
+		if value.KfId == 0 {
 			waitQueueRooms = append(waitQueueRooms, value)
 		}
 	}
