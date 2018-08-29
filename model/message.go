@@ -11,7 +11,7 @@ type Message struct {
 	KfId          int       `gorm:"kf_id"`
 	KfAck         bool      `gorm:"kf_ack"`
 	Msg           string    `gorm:"msg"`
-	MsgType       int       `gorm:"msg_type"`
+	MsgType       string    `gorm:"msg_type"`
 	OperCode      int       `gorm:"oper_code"`
 	CreateTime    time.Time `gorm:"create_time"`
 	UpdateTime    time.Time `gorm:"update_time"`
@@ -28,7 +28,7 @@ func (Message) TableName() string {
 	return "chat_message"
 }
 
-func (m Message) InsertOrUpdate() {
+func (m Message) Insert() {
 	m.CreateTime = time.Now()
 	m.UpdateTime = time.Now()
 	createErr := db.Create(&m)

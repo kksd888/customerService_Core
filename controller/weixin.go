@@ -17,7 +17,7 @@ type WeiXinController struct {
 }
 
 func InitWeiXin(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *WeiXinController {
-	return &WeiXinController{wxContext, rooms}
+	return &WeiXinController{wxContext: wxContext, rooms: rooms}
 }
 
 // 微信通信接口
@@ -50,9 +50,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 					KfId:          kf.Id,
 					KfAck:         false,
 					Msg:           msg.Content,
-					MsgType:       1,
+					MsgType:       "text",
 					OperCode:      200,
-				}.InsertOrUpdate()
+				}.Insert()
 				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 			}
 
@@ -72,9 +72,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				KfId:          kf.Id,
 				KfAck:         false,
 				Msg:           msg.Content,
-				MsgType:       1,
+				MsgType:       "text",
 				OperCode:      200,
-			}.InsertOrUpdate()
+			}.Insert()
 
 			// 更新Room数据
 			logic.UpdateRoom(&logic.Room{
@@ -105,9 +105,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 						KfId:          kf.Id,
 						KfAck:         false,
 						Msg:           msg.Content,
-						MsgType:       1,
+						MsgType:       "text",
 						OperCode:      200,
-					}.InsertOrUpdate()
+					}.Insert()
 					return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 				}
 
@@ -126,9 +126,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 					KfId:          room.KfId,
 					KfAck:         false,
 					Msg:           msg.Content,
-					MsgType:       1,
+					MsgType:       "text",
 					OperCode:      200,
-				}.InsertOrUpdate()
+				}.Insert()
 			} else {
 				// 存储消息
 				model.Message{
@@ -136,9 +136,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 					KfId:          room.KfId,
 					KfAck:         false,
 					Msg:           msg.Content,
-					MsgType:       1,
+					MsgType:       "text",
 					OperCode:      200,
-				}.InsertOrUpdate()
+				}.Insert()
 			}
 		}
 

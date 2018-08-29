@@ -28,7 +28,7 @@ func (customer Customer) InsertOrUpdate() (err error) {
 		customer.OpenId, customer.NickName, customer.CustomerType, customer.Sex, customer.HeadImgUrl, customer.Address)
 	if exec.Error != nil {
 		err = exec.Error
-		log.Printf("Customer.InsertOrUpdate() is err => %#v", exec.Error)
+		log.Printf("Customer.Insert() is err => %#v", exec.Error)
 	}
 	return
 }

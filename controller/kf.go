@@ -6,7 +6,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 )
 
@@ -56,7 +55,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 
 	kf := model.Kf{}
 	if err := kf.GetByTokenId(tokenId); err != nil {
-		log.Printf("LoginIn error：%#v", err)
+		ReturnErrInfo(context, err)
 	} else {
 		logic.AddOnlineKf(kf)
 

@@ -45,7 +45,7 @@ func TestCustomer_InsertOrUpdate(t *testing.T) {
 				CustomerType: tt.fields.CustomerType,
 			}
 			if err := customer.InsertOrUpdate(); (err != nil) != tt.wantErr {
-				t.Errorf("Customer.InsertOrUpdate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Customer.Insert() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

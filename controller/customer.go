@@ -3,8 +3,12 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -40,6 +44,33 @@ func (c *CustomerController) History(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /v1/customer/{id}/message [post]
 func (c *CustomerController) SendMessage(context *gin.Context) {
+	var sendRequest SendMessageRequest
+	bindErr := context.Bind(&sendRequest)
+	ReturnErrInfo(context, bindErr)
+
+	roomKf, err := handle.AuthToken2Model(context)
+	ReturnErrInfo(context, err)
+
+	model.Message{
+		CustomerToken: sendRequest.CustomerId,
+		KfId:          roomKf.KfId,
+		MsgType:       sendRequest.MsgType,
+		Msg:           sendRequest.Msg,
+		KfAck:         true,
+	}.Insert()
+
+	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
+		ToUser:  sendRequest.CustomerId,
+		MsgType: sendRequest.MsgType,
+		Text: message.Text{
+			Content: sendRequest.Msg,
+		},
+	})
+	ReturnErrInfo(context, err)
+
+	log.Printf("%#v", msgResponse)
+
+	ReturnSuccessInfo(context)
 }
 
 // @Summary 待接入列表
@@ -51,7 +82,7 @@ func (c *CustomerController) SendMessage(context *gin.Context) {
 // @Router /v1/wait_queue/ [get]
 func (c *CustomerController) Queue(context *gin.Context) {
 	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
-		log.Printf("CustomerController.Queue err: %s", err)
+		ReturnErrInfo(context, err)
 	} else {
 		var waitQueues []WaitQueueResponse
 		for _, value := range waitQueueRooms {
@@ -80,4 +111,11 @@ type WaitQueuePreviousKf struct {
 	KfId     string
 	KfName   string
 	LastTime time.Time
+}
+
+// 发送消息
+type SendMessageRequest struct {
+	CustomerId string `json:"customer_id"`
+	MsgType    string `json:"msg_type"`
+	Msg        string `json:"msg"`
 }

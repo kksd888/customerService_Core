@@ -111,6 +111,13 @@ func ReturnErrInfo(context *gin.Context, err interface{}) {
 	}
 }
 
+func ReturnSuccessInfo(context *gin.Context) {
+	context.JSON(http.StatusInternalServerError, BaseResponse{
+		Code: 200,
+		Msg:  "",
+	})
+}
+
 // API全局响应基础结构
 type BaseResponse struct {
 	Code int    `json:"code"`
@@ -136,7 +143,7 @@ type InitOnlineCustomer struct {
 }
 type InitMessage struct {
 	Id                int       `json:"id"`
-	MessageType       int       `json:"message_type"`
+	MessageType       string    `json:"message_type"`
 	MessageContent    string    `json:"message_content"`
 	MessageOperCode   int       `json:"message_oper_code"`
 	MessageAck        bool      `json:"message_ack"`
