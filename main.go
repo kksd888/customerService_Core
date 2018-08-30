@@ -19,7 +19,7 @@ var (
 
 func init() {
 	redis := cache.NewRedis(&cache.RedisOpts{
-		Host: "localhost:6379",
+		Host: "172.16.7.20:6379",
 	})
 
 	//配置微信参数
