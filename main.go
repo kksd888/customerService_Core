@@ -43,6 +43,7 @@ func main() {
 
 	router := gin.Default()
 
+	// CORS同源规则配置
 	router.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host", "Authentication"},
@@ -112,7 +113,7 @@ func main() {
 	router.POST("/login/:tokenId", kfController.LoginIn)
 	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
-	router.Any("/health", defaultController.Health)
+	router.GET("/health", defaultController.Health)
 	// API文档地址
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址
