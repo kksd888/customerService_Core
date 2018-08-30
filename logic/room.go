@@ -27,7 +27,6 @@ type RoomCustomer struct {
 	CustomerNickName     string
 	CustomerHeadImgUrl   string
 	CustomerPreviousKfId string
-	CustomerMsgs         []*RoomMessage
 }
 type RoomKf struct {
 	KfId         int

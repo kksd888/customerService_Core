@@ -3,6 +3,7 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
@@ -10,7 +11,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
-	"log"
+	"github.com/pkg/errors"
 	"net/http"
 	"time"
 )
@@ -45,8 +46,9 @@ func (c *CustomerController) History(context *gin.Context) {
 // @Router /v1/customer/{id}/message [post]
 func (c *CustomerController) SendMessage(context *gin.Context) {
 	var sendRequest SendMessageRequest
-	bindErr := context.Bind(&sendRequest)
-	ReturnErrInfo(context, bindErr)
+	if bindErr := context.Bind(&sendRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
 
 	roomKf, err := handle.AuthToken2Model(context)
 	ReturnErrInfo(context, err)
@@ -56,6 +58,7 @@ func (c *CustomerController) SendMessage(context *gin.Context) {
 		KfId:          roomKf.KfId,
 		MsgType:       sendRequest.MsgType,
 		Msg:           sendRequest.Msg,
+		OperCode:      common.MessageFromKf,
 		KfAck:         true,
 	}.Insert()
 
@@ -68,9 +71,11 @@ func (c *CustomerController) SendMessage(context *gin.Context) {
 	})
 	ReturnErrInfo(context, err)
 
-	log.Printf("%#v", msgResponse)
-
-	ReturnSuccessInfo(context)
+	if msgResponse.ErrCode == 0 {
+		ReturnSuccessInfo(context)
+	} else {
+		ReturnErrInfo(context, errors.New("发送消息失败"))
+	}
 }
 
 // @Summary 待接入列表
@@ -90,8 +95,8 @@ func (c *CustomerController) Queue(context *gin.Context) {
 				CustomerId:         value.CustomerId,
 				CustomerNickName:   value.CustomerNickName,
 				CustomerHeadImgUrl: value.CustomerHeadImgUrl,
-				Messages:           value.CustomerMsgs,
-				PreviousKf:         WaitQueuePreviousKf{},
+				//Messages:           value.CustomerMsgs,
+				PreviousKf: WaitQueuePreviousKf{},
 			})
 		}
 		context.JSON(http.StatusOK, waitQueues)

@@ -3,14 +3,13 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"net/http"
-	"strconv"
 )
 
 type DialogController struct {
@@ -28,46 +27,70 @@ func InitDialog(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *DialogC
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/dialog/:kfId/list [get]
+// @Router /v1/dialog/list [get]
 func (c *DialogController) List(context *gin.Context) {
-	kfId := context.Param("kfId")
-	if kfId == "" {
-		ReturnErrInfo(context, errors.New("参数不能为空"))
-	}
-	iKfId, err := strconv.Atoi(kfId)
-	if err != nil {
-		ReturnErrInfo(context, errors.New("客服编号异常"))
-	}
+	roomKf, _ := handle.AuthToken2Model(context)
 
-	customer := model.MessageLinkCustomer{Message: model.Message{KfId: iKfId}}
+	customer := model.MessageLinkCustomer{Message: model.Message{KfId: roomKf.KfId}}
 	messages, e := customer.WaitReply()
 	ReturnErrInfo(context, e)
 
 	context.JSON(http.StatusOK, messages)
 }
 
-// @Summary 客服接入用户，确认该用户所有未读消息
-// @Description 客服接入用户，确认该用户所有未读消息
+// @Summary 客服接入用户，客服加入会话房间
+// @Description 客服接入用户，客服加入会话房间
 // @Tags Dialog
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
 // @Router /v1/dialog/access [post]
 func (c *DialogController) Access(context *gin.Context) {
-	var aRequest AccessRequest
-	context.Bind(&aRequest)
+	var aRequest CustomerIdsRequest
+	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
+
 	roomKf, _ := handle.AuthToken2Model(context)
 
-	// 所有对应客户的ACK消息确认
 	for _, v := range aRequest.CustomerIds {
-		model.Message{CustomerToken: v, KfId: roomKf.KfId}.AccessAck()
+		// 客服加入聊天房间
+		room, _ := logic.InitRoom(v)
+		room.RoomKf = logic.RoomKf{
+			KfId:         roomKf.KfId,
+			KfName:       roomKf.KfName,
+			KfHeadImgUrl: roomKf.KfHeadImgUrl,
+			KfStatus:     common.KF_ONLINE,
+		}
+
+		// 更新所有指定客户的KfId
+		model.Message{CustomerToken: v, KfId: roomKf.KfId}.Access()
 	}
 
-	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
-		logic.KfAccess(aRequest.CustomerIds, logic.RoomKf{})
-	}
+	ReturnSuccessInfo(context)
 }
 
-type AccessRequest struct {
+// @Summary 确认已读用户的消息
+// @Description 确认已读用户的消息
+// @Tags Dialog
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} json ""
+// @Router /v1/dialog/ack [post]
+func (c *DialogController) Ack(context *gin.Context) {
+	var aRequest CustomerIdsRequest
+	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
+	roomKf, _ := handle.AuthToken2Model(context)
+
+	for _, v := range aRequest.CustomerIds {
+		model.Message{CustomerToken: v, KfId: roomKf.KfId, KfAck: true}.Ack()
+	}
+
+	ReturnSuccessInfo(context)
+}
+
+type CustomerIdsRequest struct {
 	CustomerIds []string `json:"customer_ids"`
 }

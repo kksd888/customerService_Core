@@ -37,8 +37,15 @@ func (m Message) Insert() {
 	}
 }
 
-func (m Message) AccessAck() {
-	update := db.Model(&m).Where("kf_id=? and customer_token=?", m.KfId, m.CustomerToken).Update("kf_ack")
+func (m Message) Access() {
+	update := db.Model(&m).Where("kf_id=0 and customer_token=?", m.CustomerToken).Update("kf_id", m.KfId)
+	if update.Error != nil {
+		panic(update.Error)
+	}
+}
+
+func (m Message) Ack() {
+	update := db.Model(&m).Where("kf_id=? and customer_token=?", m.CustomerToken).Update("kf_ack", m.KfAck)
 	if update.Error != nil {
 		panic(update.Error)
 	}

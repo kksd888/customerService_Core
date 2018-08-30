@@ -22,38 +22,40 @@ func InitWeiXin(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *WeiXinC
 
 // 微信通信接口
 func (c *WeiXinController) Listen(context *gin.Context) {
-
 	wcServer := c.wxContext.GetServer(context.Request, context.Writer)
 
 	//设置接收消息的处理方法
 	wcServer.SetMessageHandler(func(msg message.MixMessage) (reply *message.Reply) {
+		/*
+			A 24小时新接入客户：
+				1. 注册分配聊天房间
+				2. 存储新客户、离线留言信息数据
+			B 已在线的客户：
+				1. 检索已分配的房间
+				2. 存储聊天数据
+		*/
 		text := message.NewText(msg.Content)
 		log.Printf("用户[%s]发来信息：%s \n", msg.FromUserName, text.Content)
 
 		// 通信注册
 		room, isNew := logic.InitRoom(msg.FromUserName)
-		//room.AddMessage(text.Content)
+		log.Printf("%#v", room)
+
+		// 存储消息
+		model.Message{
+			CustomerToken: room.CustomerId,
+			KfId:          room.KfId,
+			KfAck:         false,
+			Msg:           msg.Content,
+			MsgType:       "text",
+			OperCode:      common.MessageFromCustomer,
+		}.Insert()
 
 		// 首次访问的客户
 		if isNew {
 			userInfo, err := c.wxContext.GetUser().GetUserInfo(msg.FromUserName)
 			if err != nil {
 				log.Printf("WeiXinController.wxContext.GetUser().GetUserInfo() is err：%v", err.Error())
-			}
-
-			// 自动分配客服 (随机)
-			kf, isOk := logic.GetOnlineKf()
-			if !isOk {
-				// 存储消息
-				model.Message{
-					CustomerToken: room.CustomerId,
-					KfId:          kf.Id,
-					KfAck:         false,
-					Msg:           msg.Content,
-					MsgType:       "text",
-					OperCode:      200,
-				}.Insert()
-				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 			}
 
 			// 客户数据持久化
@@ -66,84 +68,12 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
 			}.InsertOrUpdate()
 
-			// 存储消息
-			model.Message{
-				CustomerToken: room.CustomerId,
-				KfId:          kf.Id,
-				KfAck:         false,
-				Msg:           msg.Content,
-				MsgType:       "text",
-				OperCode:      200,
-			}.Insert()
-
-			// 更新Room数据
-			logic.UpdateRoom(&logic.Room{
-				RoomCustomer: logic.RoomCustomer{
-					CustomerId:         room.CustomerId,
-					CustomerNickName:   userInfo.Nickname,
-					CustomerHeadImgUrl: userInfo.Headimgurl,
-					CustomerMsgs:       room.CustomerMsgs,
-				},
-				RoomKf: logic.RoomKf{
-					KfId:         kf.Id,
-					KfName:       kf.NickName,
-					KfHeadImgUrl: kf.HeadImgUrl,
-					KfStatus:     common.KF_ONLINE,
-				},
-				CreateTime: room.CreateTime,
-			})
-
-		} else {
-			// 未分配客服的客户
-			if room.KfId == 0 {
-				// 自动分配客服 (随机)
-				kf, isOk := logic.GetOnlineKf()
-				if !isOk {
-					// 存储消息
-					model.Message{
-						CustomerToken: room.CustomerId,
-						KfId:          kf.Id,
-						KfAck:         false,
-						Msg:           msg.Content,
-						MsgType:       "text",
-						OperCode:      200,
-					}.Insert()
-					return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
-				}
-
-				// 更新Room数据
-				room.RoomKf = logic.RoomKf{
-					KfId:         kf.Id,
-					KfName:       kf.NickName,
-					KfHeadImgUrl: kf.HeadImgUrl,
-					KfStatus:     common.KF_ONLINE,
-				}
-				logic.UpdateRoom(room)
-
-				// 存储消息
-				model.Message{
-					CustomerToken: room.CustomerId,
-					KfId:          room.KfId,
-					KfAck:         false,
-					Msg:           msg.Content,
-					MsgType:       "text",
-					OperCode:      200,
-				}.Insert()
-			} else {
-				// 存储消息
-				model.Message{
-					CustomerToken: room.CustomerId,
-					KfId:          room.KfId,
-					KfAck:         false,
-					Msg:           msg.Content,
-					MsgType:       "text",
-					OperCode:      200,
-				}.Insert()
+			if _, isOk := logic.GetOnlineKf(); !isOk {
+				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 			}
 		}
 
 		//logic.PrintRoomMap()
-		log.Printf("%#v", room)
 
 		return &message.Reply{message.MsgTypeText, nil}
 	})

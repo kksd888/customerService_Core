@@ -62,15 +62,16 @@ func main() {
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
-			dialog.GET("/:kfId/list", dialogController.List)
+			dialog.GET("/list", dialogController.List)
 			dialog.POST("/access", dialogController.Access)
+			dialog.POST("/ack", dialogController.Ack)
 		}
 
 		// 客户数据
 		customer := v1.Group("/customer")
 		{
 			customer.GET("/:customerId/history/", customerController.History)
-			customer.POST("/:customerId/message/", customerController.SendMessage)
+			customer.POST("/message", customerController.SendMessage)
 		}
 
 		// 客服操作

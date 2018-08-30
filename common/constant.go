@@ -11,4 +11,6 @@ const (
 	NormalCustomer        // 普通客户
 	VipCustomer           // VIP客户
 
+	MessageFromCustomer = 2002 // 客户发送的消息
+	MessageFromKf       = 2003 // 客服发送的消息
 )
