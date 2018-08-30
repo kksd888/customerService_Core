@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"time"
 )
 
 type DialogController struct {
@@ -21,6 +22,31 @@ type DialogController struct {
 
 func InitDialog(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *DialogController {
 	return &DialogController{wxContext, rooms}
+}
+
+// @Summary 待接入列表
+// @Description 待接入列表
+// @Tags WaitQueue
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} json ""
+// @Router /v1/wait_queue [get]
+func (c *DialogController) Queue(context *gin.Context) {
+	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
+		ReturnErrInfo(context, err)
+	} else {
+		var waitQueues []WaitQueueResponse
+		for _, value := range waitQueueRooms {
+			waitQueues = append(waitQueues, WaitQueueResponse{
+				CustomerId:         value.CustomerId,
+				CustomerNickName:   value.CustomerNickName,
+				CustomerHeadImgUrl: value.CustomerHeadImgUrl,
+				//Messages:           value.CustomerMsgs,
+				PreviousKf: WaitQueuePreviousKf{},
+			})
+		}
+		context.JSON(http.StatusOK, waitQueues)
+	}
 }
 
 // @Summary 获取待回复消息列表
@@ -94,6 +120,20 @@ func (c *DialogController) Ack(context *gin.Context) {
 	}
 
 	ReturnSuccessInfo(context)
+}
+
+// 访客队列响应
+type WaitQueueResponse struct {
+	CustomerId         string
+	CustomerNickName   string
+	CustomerHeadImgUrl string
+	Messages           []*logic.RoomMessage
+	PreviousKf         WaitQueuePreviousKf
+}
+type WaitQueuePreviousKf struct {
+	KfId     string
+	KfName   string
+	LastTime time.Time
 }
 
 type CustomerIdsRequest struct {

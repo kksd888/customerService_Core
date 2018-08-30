@@ -12,8 +12,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
-	"time"
 )
 
 type CustomerController struct {
@@ -76,45 +74,6 @@ func (c *CustomerController) SendMessage(context *gin.Context) {
 	} else {
 		ReturnErrInfo(context, errors.New("发送消息失败"))
 	}
-}
-
-// @Summary 待接入列表
-// @Description 待接入列表
-// @Tags WaitQueue
-// @Accept  json
-// @Produce  json
-// @Success 200 {string} json ""
-// @Router /v1/wait_queue/ [get]
-func (c *CustomerController) Queue(context *gin.Context) {
-	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
-		ReturnErrInfo(context, err)
-	} else {
-		var waitQueues []WaitQueueResponse
-		for _, value := range waitQueueRooms {
-			waitQueues = append(waitQueues, WaitQueueResponse{
-				CustomerId:         value.CustomerId,
-				CustomerNickName:   value.CustomerNickName,
-				CustomerHeadImgUrl: value.CustomerHeadImgUrl,
-				//Messages:           value.CustomerMsgs,
-				PreviousKf: WaitQueuePreviousKf{},
-			})
-		}
-		context.JSON(http.StatusOK, waitQueues)
-	}
-}
-
-// 访客队列响应
-type WaitQueueResponse struct {
-	CustomerId         string
-	CustomerNickName   string
-	CustomerHeadImgUrl string
-	Messages           []*logic.RoomMessage
-	PreviousKf         WaitQueuePreviousKf
-}
-type WaitQueuePreviousKf struct {
-	KfId     string
-	KfName   string
-	LastTime time.Time
 }
 
 // 发送消息

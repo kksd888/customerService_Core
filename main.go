@@ -42,7 +42,16 @@ func main() {
 	//gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
-	router.Use(cors.Default())
+
+	router.Use(cors.New(cors.Config{
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host", "Authentication"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowAllOrigins:  false,
+		AllowOriginFunc:  func(origin string) bool { return true },
+		MaxAge:           86400,
+	}))
 
 	defaultController := controller.InitHealth()
 	offlineReplyController := controller.InitOfflineReply()
@@ -60,7 +69,7 @@ func main() {
 		// 待接入列表
 		waitQueue := v1.Group("/wait_queue")
 		{
-			waitQueue.GET("", customerController.Queue)
+			waitQueue.GET("", dialogController.Queue)
 		}
 
 		// 会话操作
@@ -100,7 +109,7 @@ func main() {
 	}
 
 	// 客服登录操作
-	router.POST("login/:tokenId", kfController.LoginIn)
+	router.POST("/login/:tokenId", kfController.LoginIn)
 	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
 	router.Any("/health", defaultController.Health)

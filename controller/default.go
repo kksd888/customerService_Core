@@ -5,6 +5,7 @@ package controller
 import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
+	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -87,6 +88,22 @@ func (c *DefaultController) Init(context *gin.Context) {
 		initOnlineCustomers = append(initOnlineCustomers, *v)
 	}
 
+	// 组织排队数据
+	var waitQueues []WaitQueueResponse
+	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
+		ReturnErrInfo(context, err)
+	} else {
+		for _, value := range waitQueueRooms {
+			waitQueues = append(waitQueues, WaitQueueResponse{
+				CustomerId:         value.CustomerId,
+				CustomerNickName:   value.CustomerNickName,
+				CustomerHeadImgUrl: value.CustomerHeadImgUrl,
+				//Messages:           value.CustomerMsgs,
+				PreviousKf: WaitQueuePreviousKf{},
+			})
+		}
+	}
+
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
 			Id:         kfDb.Id,
@@ -95,6 +112,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 			Status:     string(common.KF_ONLINE),
 		},
 		InitOnlineCustomer: initOnlineCustomers,
+		WaitQueueResponse:  waitQueues,
 	})
 }
 
@@ -121,6 +139,7 @@ func ReturnSuccessInfo(context *gin.Context) {
 type InitResponse struct {
 	Mine               InitMine             `json:"mine"`
 	InitOnlineCustomer []InitOnlineCustomer `json:"init_online_customer"`
+	WaitQueueResponse  []WaitQueueResponse  `json:"wait_queue_response"`
 }
 type InitMine struct {
 	Id         int    `json:"id"`
