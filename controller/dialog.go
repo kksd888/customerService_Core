@@ -3,12 +3,14 @@
 package controller
 
 import (
+	"encoding/json"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -34,6 +36,9 @@ func (c *DialogController) List(context *gin.Context) {
 	customer := model.MessageLinkCustomer{Message: model.Message{KfId: roomKf.KfId}}
 	messages, e := customer.WaitReply()
 	ReturnErrInfo(context, e)
+
+	bytes, _ := json.Marshal(messages)
+	log.Println(string(bytes))
 
 	context.JSON(http.StatusOK, messages)
 }
@@ -76,7 +81,7 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/dialog/ack [post]
+// @Router /v1/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
 	var aRequest CustomerIdsRequest
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {

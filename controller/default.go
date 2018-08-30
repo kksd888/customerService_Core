@@ -88,7 +88,6 @@ func (c *DefaultController) Init(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, InitResponse{
-		BaseResponse: BaseResponse{},
 		Mine: InitMine{
 			Id:         kfDb.Id,
 			UserName:   kfDb.NickName,
@@ -99,33 +98,27 @@ func (c *DefaultController) Init(context *gin.Context) {
 	})
 }
 
-// 控制器异常
+// 异常返回
 func ReturnErrInfo(context *gin.Context, err interface{}) {
 	if err != nil {
 		log.Printf("发生异常：%#v", err)
-		context.JSON(http.StatusInternalServerError, BaseResponse{
-			Code: 500,
-			Msg:  "接口调用异常，或联系管理员",
+		context.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  "接口调用异常，或联系管理员",
 		})
 		panic(err)
 	}
 }
 
+// 成功返回
 func ReturnSuccessInfo(context *gin.Context) {
-	context.JSON(http.StatusInternalServerError, BaseResponse{
-		Code: 200,
-		Msg:  "",
+	context.JSON(http.StatusInternalServerError, gin.H{
+		"code": http.StatusOK,
+		"msg":  "ok",
 	})
 }
 
-// API全局响应基础结构
-type BaseResponse struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg"`
-}
-
 type InitResponse struct {
-	BaseResponse
 	Mine               InitMine             `json:"mine"`
 	InitOnlineCustomer []InitOnlineCustomer `json:"init_online_customer"`
 }

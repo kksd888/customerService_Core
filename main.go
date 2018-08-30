@@ -33,6 +33,10 @@ func init() {
 	wxContext = wechat.NewWechat(config)
 }
 
+// @title 在线客服API文档
+// @version 0.0.1
+// @description  在线客服API文档的文档，接管了微信公众号聊天
+// @BasePath /
 func main() {
 
 	//gin.SetMode(gin.ReleaseMode)
@@ -64,13 +68,13 @@ func main() {
 		{
 			dialog.GET("/list", dialogController.List)
 			dialog.POST("/access", dialogController.Access)
-			dialog.POST("/ack", dialogController.Ack)
+			dialog.PUT("/ack", dialogController.Ack)
 		}
 
 		// 客户数据
 		customer := v1.Group("/customer")
 		{
-			customer.GET("/:customerId/history/", customerController.History)
+			customer.GET("/:customerId/history", customerController.History)
 			customer.POST("/message", customerController.SendMessage)
 		}
 
@@ -96,8 +100,7 @@ func main() {
 	}
 
 	// 客服登录操作
-	login := router.Group("/v1/login")
-	login.POST("/:tokenId", kfController.LoginIn)
+	router.POST("login/:tokenId", kfController.LoginIn)
 	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
 	router.Any("/health", defaultController.Health)

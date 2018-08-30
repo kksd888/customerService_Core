@@ -1,43 +1,12 @@
+basePath: /
 info:
   contact: {}
+  description: 在线客服API文档的文档，接管了微信公众号聊天
   license: {}
+  title: 在线客服API文档
+  version: 0.0.1
 paths:
-  /v1/dialog/create:
-    post:
-      consumes:
-      - application/json
-      description: 客服接入用户，创建一个会话房间
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: 客服接入用户
-      tags:
-      - Dialog
-  /v1/dialog/customer/{id}/message:
-    delete:
-      consumes:
-      - application/json
-      description: 客服撤回发送的消息
-      parameters:
-      - description: 客户 ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: 客服撤回发送的消息
-      tags:
-      - Dialog
+  /v1/customer/{customerId}/history:
     get:
       consumes:
       - application/json
@@ -58,6 +27,7 @@ paths:
       summary: 获取一个用户的聊天记录
       tags:
       - Dialog
+  /v1/customer/message:
     post:
       consumes:
       - application/json
@@ -76,6 +46,36 @@ paths:
           schema:
             type: string
       summary: 客服发送消息给客户
+      tags:
+      - Dialog
+  /v1/dialog/access:
+    post:
+      consumes:
+      - application/json
+      description: 客服接入用户，客服加入会话房间
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 客服接入用户，客服加入会话房间
+      tags:
+      - Dialog
+  /v1/dialog/ack:
+    put:
+      consumes:
+      - application/json
+      description: 确认已读用户的消息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 确认已读用户的消息
       tags:
       - Dialog
   /v1/dialog/list:
@@ -123,7 +123,7 @@ paths:
       summary: 系统初始化
       tags:
       - Default
-  /v1/server/{id}:
+  /v1/kf/{kfId}:
     get:
       consumes:
       - application/json
@@ -131,7 +131,7 @@ paths:
       parameters:
       - description: 客服的ID
         in: path
-        name: id
+        name: kfId
         required: true
         type: integer
       produces:
@@ -143,8 +143,8 @@ paths:
             type: string
       summary: 获取客服信息
       tags:
-      - server
-  /v1/server/{id}/status:
+      - Kf
+  /v1/kf/{kfId}/status:
     put:
       consumes:
       - application/json
@@ -152,7 +152,7 @@ paths:
       parameters:
       - description: 客服的ID
         in: path
-        name: id
+        name: kfId
         required: true
         type: integer
       produces:
@@ -164,7 +164,28 @@ paths:
             type: string
       summary: 客服修改在线状态
       tags:
-      - server
+      - Kf
+  /v1/login/{tokenId}:
+    post:
+      consumes:
+      - application/json
+      description: 客服登入
+      parameters:
+      - description: 客服的授权TokenId
+        in: path
+        name: tokenId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":0,"msg":"ok"}'
+          schema:
+            type: string
+      summary: 客服登入
+      tags:
+      - Kf
   /v1/setting/offline_reply:
     get:
       consumes:
@@ -235,11 +256,11 @@ paths:
       summary: 更新一条离线自动回复语句
       tags:
       - OfflineReply
-  /v1/ws:
+  /v1/wait_queue/:
     get:
       consumes:
       - application/json
-      description: 长连接监听，支持和游览器通过WebSocket通信
+      description: 待接入列表
       produces:
       - application/json
       responses:
@@ -247,7 +268,7 @@ paths:
           description: OK
           schema:
             type: string
-      summary: 长连接监听
+      summary: 待接入列表
       tags:
-      - Default
+      - WaitQueue
 swagger: "2.0"

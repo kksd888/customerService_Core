@@ -21,9 +21,9 @@ func InitKfServer() *KfServerController {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param id path int true "客服的ID"
+// @Param kfId path int true "客服的ID"
 // @Success 200 {string} json ""
-// @Router /v1/server/{id} [get]
+// @Router /v1/kf/{kfId} [get]
 func (c *KfServerController) Get(context *gin.Context) {
 }
 
@@ -32,9 +32,9 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param id path int true "客服的ID"
+// @Param kfId path int true "客服的ID"
 // @Success 200 {string} json ""
-// @Router /v1/server/{id}/status [put]
+// @Router /v1/kf/{kfId}/status [put]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
 }
 
@@ -44,8 +44,8 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param tokenId path int true "客服的授权TokenId"
-// @Success 200 {string} json ""
-// @Router /v1/login/:tokenId [post]
+// @Success 200 {string} json "{"code":0,"msg":"ok"}"
+// @Router /v1/login/{tokenId} [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
 	tokenId := context.Param("tokenId")
 	if tokenId == "" {
@@ -66,15 +66,11 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 			KfStatus:     0,
 		}.Make2Auth()
 		context.JSON(http.StatusOK, LoginInResponse{
-			BaseResponse: BaseResponse{
-				Code: 0,
-			},
 			Authentication: s,
 		})
 	}
 }
 
 type LoginInResponse struct {
-	BaseResponse
 	Authentication string
 }

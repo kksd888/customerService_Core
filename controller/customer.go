@@ -32,7 +32,7 @@ func InitCustomer(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *Custo
 // @Produce  json
 // @Param id path int true "客户 ID"
 // @Success 200 {string} json ""
-// @Router /v1/customer/{id}/message [get]
+// @Router /v1/customer/{customerId}/history [get]
 func (c *CustomerController) History(context *gin.Context) {
 }
 
@@ -43,7 +43,7 @@ func (c *CustomerController) History(context *gin.Context) {
 // @Produce  json
 // @Param id path int true "客户 ID"
 // @Success 200 {string} json ""
-// @Router /v1/customer/{id}/message [post]
+// @Router /v1/customer/message [post]
 func (c *CustomerController) SendMessage(context *gin.Context) {
 	var sendRequest SendMessageRequest
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
@@ -105,7 +105,6 @@ func (c *CustomerController) Queue(context *gin.Context) {
 
 // 访客队列响应
 type WaitQueueResponse struct {
-	BaseResponse
 	CustomerId         string
 	CustomerNickName   string
 	CustomerHeadImgUrl string

@@ -1,0 +1,33 @@
+before_script:
+  - echo " CI is running... "
+  - docker_image_version=0.0.1
+  - local_ip=$(ifconfig  | grep -E 'inet.[0-9]' | grep -v '.0.1' | awk '{ print $2}')
+
+# 编译静态二进制文件
+build:
+  stage: build
+  tags:
+  - build
+  only:
+  - develop
+  script:
+  - docker run -it --rm -v $GOPATH/src:/go/src -v $(pwd):/go/src/app -w /go/src/app golang:1.10.3 sh -c "CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app ."
+
+# ******************************************************************************************************
+# ************************************** 测试环境配置 ****************************************************
+# ******************************************************************************************************
+
+deploy-test-kefu:
+  stage: deploy
+  tags:
+  - build
+  only:
+  - develop
+  environment:
+    name: testing
+  script:
+  - name="kefu-online"
+  - server_port=20700
+  - if [ $(docker images maven.jsjit.cn:9911/kefu/$name -q | wc -l) -eq 1 ] ; then docker rmi $(docker images maven.jsjit.cn:9911/kefu/$name -q) ; fi
+  - docker build --rm -t maven.jsjit.cn:9911/kefu/$name:$docker_image_version . && docker push maven.jsjit.cn:9911/kefu/$name:$docker_image_version
+  - if [ $(docker service ls -q -f "name=$name" | wc -l) -eq 1 ] ; then docker service update --image $(docker inspect --type image --format '{{index .RepoDigests 0}}' maven.jsjit.cn:9911/kefu/$name:$docker_image_version) $name ; else docker service create --replicas=1 --publish $server_port:5000 --name $name --with-registry-auth maven.jsjit.cn:9911/kefu/$name:$docker_image_version ; fi
