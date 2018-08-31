@@ -5,22 +5,23 @@ package controller
 import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
 	"time"
 )
 
 type DefaultController struct {
+	db *model.MongoDb
 }
 
 func InitHealth() *DefaultController {
 	return &DefaultController{}
 }
 
-// @Summary 健康检查
+// @Summary 健康检查˚
 // @Description 应用程序健康检查接口
 // @Tags Default
 // @Accept json
@@ -42,73 +43,23 @@ func (c *DefaultController) Init(context *gin.Context) {
 	// 获取访问客服信息
 	roomKf, err := handle.AuthToken2Model(context)
 	ReturnErrInfo(context, err)
-	kfDb := &model.Kf{Id: roomKf.KfId}
-	if err := kfDb.Get(); err != nil {
-		ReturnErrInfo(context, err.Error())
-	}
+	var (
+		kf      = model.Kf{}
+		onlines = []InitOnlineCustomer{}
+	)
 
-	// 获取聊天历史记录
-	messageDb := model.MessageLinkCustomer{Message: model.Message{KfId: kfDb.Id}}
-	messages, err := messageDb.GetKfHistoryMsg()
-	ReturnErrInfo(context, err)
+	roomCollection := c.db.C("room")
+	customerCollection := c.db.C("customer")
+	kfCollection := c.db.C("kf")
 
-	var initOnlineCustomers []InitOnlineCustomer
-	var mapCus = map[int]*InitOnlineCustomer{}
-
-	// 组织数据
-	for _, singeMsg := range messages {
-		if _, ok := mapCus[singeMsg.KfId]; ok {
-			mapCus[singeMsg.KfId].CustomerMessages = append(mapCus[singeMsg.KfId].CustomerMessages, InitMessage{
-				Id:                singeMsg.Id,
-				MessageType:       singeMsg.MsgType,
-				MessageContent:    singeMsg.Msg,
-				MessageOperCode:   singeMsg.OperCode,
-				MessageAck:        singeMsg.KfAck,
-				MessageCteateTime: singeMsg.CreateTime,
-			})
-		} else {
-			mapCus[singeMsg.KfId] = &InitOnlineCustomer{
-				RoomToken:          singeMsg.CustomerToken,
-				CustomerNickName:   singeMsg.CustomerNickName,
-				CustomerHeadImgUrl: singeMsg.CustomerHeadImgUrl,
-				CustomerMessages: []InitMessage{
-					{
-						Id:                singeMsg.Id,
-						MessageType:       singeMsg.MsgType,
-						MessageContent:    singeMsg.Msg,
-						MessageOperCode:   singeMsg.OperCode,
-						MessageAck:        singeMsg.KfAck,
-						MessageCteateTime: singeMsg.CreateTime,
-					},
-				},
-			}
-		}
-	}
-	for _, v := range mapCus {
-		initOnlineCustomers = append(initOnlineCustomers, *v)
-	}
-
-	// 组织排队数据
-	var waitQueues []WaitQueueResponse
-	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
-		ReturnErrInfo(context, err)
-	} else {
-		for _, value := range waitQueueRooms {
-			waitQueues = append(waitQueues, WaitQueueResponse{
-				CustomerId:         value.CustomerId,
-				CustomerNickName:   value.CustomerNickName,
-				CustomerHeadImgUrl: value.CustomerHeadImgUrl,
-				//Messages:           value.CustomerMsgs,
-				PreviousKf: WaitQueuePreviousKf{},
-			})
-		}
-	}
+	kfCollection.Find(bson.M{"id": roomKf.KfId}).One(&kf)
+	roomCollection.Find(bson.M{"roomkf.kfid": bson.M{"$ne": 0}}).All(&onlines)
 
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
-			Id:         kfDb.Id,
-			UserName:   kfDb.NickName,
-			HeadImgUrl: kfDb.HeadImgUrl,
+			Id:         kf.Id,
+			UserName:   kf.NickName,
+			HeadImgUrl: kf.HeadImgUrl,
 			Status:     string(common.KF_ONLINE),
 		},
 		InitOnlineCustomer: initOnlineCustomers,
@@ -142,7 +93,7 @@ type InitResponse struct {
 	WaitQueueResponse  []WaitQueueResponse  `json:"wait_queue_response"`
 }
 type InitMine struct {
-	Id         int    `json:"id"`
+	Id         string `json:"id"`
 	UserName   string `json:"user_name"`
 	HeadImgUrl string `json:"head_img_url"`
 	Status     string `json:"status"`

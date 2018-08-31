@@ -3,21 +3,22 @@ package controller
 import (
 	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/mgo.v2/bson"
 	"log"
+	"time"
 )
 
 type WeiXinController struct {
+	db        *model.MongoDb
 	wxContext *wechat.Wechat
-	rooms     map[string]*logic.Room
 }
 
-func InitWeiXin(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *WeiXinController {
-	return &WeiXinController{wxContext: wxContext, rooms: rooms}
+func InitWeiXin(wxContext *wechat.Wechat, _db *model.MongoDb) *WeiXinController {
+	return &WeiXinController{wxContext: wxContext, db: _db}
 }
 
 // 微信通信接口
@@ -37,47 +38,57 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 		text := message.NewText(msg.Content)
 		log.Printf("用户[%s]发来信息：%s \n", msg.FromUserName, text.Content)
 
-		// 通信注册
-		room, isNew := logic.InitRoom(msg.FromUserName)
-		log.Printf("%#v", room)
+		roomCollection := c.db.C("room")
+		customerCollection := c.db.C("customer")
+		count, _ := roomCollection.Find(bson.M{"roomcustomer.customerid": msg.FromUserName}).Count()
 
-		// 存储消息
-		model.Message{
-			CustomerToken: room.CustomerId,
-			KfId:          room.KfId,
-			KfAck:         false,
-			Msg:           msg.Content,
-			MsgType:       string(msg.MsgType),
-			OperCode:      common.MessageFromCustomer,
-		}.Insert()
-
-		// 首次访问的客户
-		if isNew {
+		if count == 0 {
+			// 新接入
 			userInfo, err := c.wxContext.GetUser().GetUserInfo(msg.FromUserName)
 			if err != nil {
 				log.Printf("WeiXinController.wxContext.GetUser().GetUserInfo() is err：%v", err.Error())
 			}
 
 			// 客户数据持久化
-			model.Customer{
-				OpenId:       msg.FromUserName,
+			customerCollection.Insert(&model.Customer{
+				CustomerId:   msg.FromUserName,
 				NickName:     userInfo.Nickname,
 				CustomerType: common.NormalCustomer,
 				Sex:          userInfo.Sex,
 				HeadImgUrl:   userInfo.Headimgurl,
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
-			}.InsertOrUpdate()
+			})
 
-			if _, isOk := logic.GetOnlineKf(); !isOk {
-				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
-			}
+			//if _, isOk := logic.GetOnlineKf(); !isOk {
+			//	return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
+			//}
 
-			// 更新内存中的客户信息
-			room.CustomerNickName = userInfo.Nickname
-			room.CustomerHeadImgUrl = userInfo.Headimgurl
+			roomCollection.Insert(&model.Room{
+				RoomCustomer: model.RoomCustomer{
+					CustomerId:         msg.FromUserName,
+					CustomerNickName:   userInfo.Nickname,
+					CustomerHeadImgUrl: userInfo.Headimgurl,
+				},
+				RoomMessages: []model.RoomMessage{
+					{
+						Id:         common.GetNewUUID(),
+						Type:       string(msg.MsgType),
+						Msg:        text.Content,
+						CreateTime: time.Now(),
+					},
+				},
+				CreateTime: time.Now(),
+			})
+		} else {
+			// 会话中的客户
+			roomCollection.Update(bson.M{"roomcustomer.customerid": msg.FromUserName},
+				bson.M{"$push": bson.M{"roommessages": model.RoomMessage{
+					Id:         common.GetNewUUID(),
+					Type:       string(msg.MsgType),
+					Msg:        text.Content,
+					CreateTime: time.Now(),
+				}}})
 		}
-
-		//logic.PrintRoomMap()
 
 		return &message.Reply{message.MsgTypeText, nil}
 	})

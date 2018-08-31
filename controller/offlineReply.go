@@ -2,9 +2,13 @@
 
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"git.jsjit.cn/customerService/customerService_Core/model"
+	"github.com/gin-gonic/gin"
+)
 
 type OfflineReplyController struct {
+	db *model.MongoDb
 }
 
 func InitOfflineReply() *OfflineReplyController {

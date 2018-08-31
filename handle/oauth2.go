@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -33,7 +33,7 @@ func OauthMiddleWare() gin.HandlerFunc {
 }
 
 // 鉴权Token解码为模型
-func AuthToken2Model(c *gin.Context) (roomKf *logic.RoomKf, err error) {
+func AuthToken2Model(c *gin.Context) (roomKf *model.RoomKf, err error) {
 	token := c.Request.Header.Get("authentication")
 	decodeBytes, err := base64.StdEncoding.DecodeString(token)
 	aes := common.AesEncrypt{}

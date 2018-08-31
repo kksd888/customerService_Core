@@ -1,20 +1,18 @@
 package model
 
 import (
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	"log"
+	"gopkg.in/mgo.v2"
 )
 
-var db *gorm.DB
+type MongoDb struct {
+	*mgo.Database
+}
 
-func init() {
-	mySqlDb, err := gorm.Open("mysql", "root:fK2g0Zx6@tcp(172.16.14.52:3306)/customer_service_bak?parseTime=true")
-	//defer db.Close()
-
-	//mySqlDb.LogMode(true)
+func NewMongo() *MongoDb {
+	session, err := mgo.Dial("172.16.14.52:27017")
 	if err != nil {
-		log.Printf("MySql数据库连接异常，%v", err)
+		panic(err.Error())
 	}
-	db = mySqlDb
+	db := session.DB("test")
+	return &MongoDb{db}
 }
