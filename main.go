@@ -59,7 +59,7 @@ func main() {
 	kfController := controller.InitKfServer()
 	weiXinController := controller.InitWeiXin(wxContext, logic.RoomMap)
 	dialogController := controller.InitDialog(wxContext, logic.RoomMap)
-	customerController := controller.InitCustomer(wxContext, logic.RoomMap)
+	//customerController := controller.InitCustomer(wxContext, logic.RoomMap)
 
 	// API路由 (授权保护)
 	v1 := router.Group("/v1", handle.OauthMiddleWare())
@@ -76,16 +76,11 @@ func main() {
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
-			dialog.GET("/list", dialogController.List)
+			dialog.GET("/", dialogController.List)
+			dialog.GET("/:customerId/history", dialogController.History)
 			dialog.POST("/access", dialogController.Access)
 			dialog.PUT("/ack", dialogController.Ack)
-		}
-
-		// 客户数据
-		customer := v1.Group("/customer")
-		{
-			customer.GET("/:customerId/history", customerController.History)
-			customer.POST("/message", customerController.SendMessage)
+			dialog.POST("/message", dialogController.SendMessage)
 		}
 
 		// 客服操作

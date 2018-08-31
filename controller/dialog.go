@@ -4,11 +4,14 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -21,7 +24,7 @@ type DialogController struct {
 }
 
 func InitDialog(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *DialogController {
-	return &DialogController{wxContext, rooms}
+	return &DialogController{wxContext: wxContext, rooms: rooms}
 }
 
 // @Summary 待接入列表
@@ -74,7 +77,7 @@ func (c *DialogController) List(context *gin.Context) {
 // @Tags Dialog
 // @Accept  json
 // @Produce  json
-// @Success 200 {string} json ""
+// @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/dialog/access [post]
 func (c *DialogController) Access(context *gin.Context) {
 	var aRequest CustomerIdsRequest
@@ -106,7 +109,7 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Tags Dialog
 // @Accept  json
 // @Produce  json
-// @Success 200 {string} json ""
+// @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
 	var aRequest CustomerIdsRequest
@@ -120,6 +123,58 @@ func (c *DialogController) Ack(context *gin.Context) {
 	}
 
 	ReturnSuccessInfo(context)
+}
+
+// @Summary 获取一个用户的聊天记录
+// @Description 获取一个用户的聊天记录
+// @Tags Dialog
+// @Accept  json
+// @Produce  json
+// @Param customerId path int true "客户 ID"
+// @Success 200 {string} json ""
+// @Router /v1/dialog/{customerId}/history [get]
+func (c *DialogController) History(context *gin.Context) {
+}
+
+// @Summary 客服发送消息给客户
+// @Description 客服发送消息给客户
+// @Tags Dialog
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} json "{"code":0,"msg":"ok"}"
+// @Router /v1/dialog/message [post]
+func (c *DialogController) SendMessage(context *gin.Context) {
+	var sendRequest SendMessageRequest
+	if bindErr := context.Bind(&sendRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
+
+	roomKf, err := handle.AuthToken2Model(context)
+	ReturnErrInfo(context, err)
+
+	model.Message{
+		CustomerToken: sendRequest.CustomerId,
+		KfId:          roomKf.KfId,
+		MsgType:       sendRequest.MsgType,
+		Msg:           sendRequest.Msg,
+		OperCode:      common.MessageFromKf,
+		KfAck:         true,
+	}.Insert()
+
+	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
+		ToUser:  sendRequest.CustomerId,
+		MsgType: sendRequest.MsgType,
+		Text: message.Text{
+			Content: sendRequest.Msg,
+		},
+	})
+	ReturnErrInfo(context, err)
+
+	if msgResponse.ErrCode == 0 {
+		ReturnSuccessInfo(context)
+	} else {
+		ReturnErrInfo(context, errors.New("发送消息失败"))
+	}
 }
 
 // 访客队列响应
@@ -138,4 +193,11 @@ type WaitQueuePreviousKf struct {
 
 type CustomerIdsRequest struct {
 	CustomerIds []string `json:"customer_ids"`
+}
+
+// 发送消息
+type SendMessageRequest struct {
+	CustomerId string `json:"customer_id"`
+	MsgType    string `json:"msg_type"`
+	Msg        string `json:"msg"`
 }
