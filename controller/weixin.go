@@ -47,7 +47,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			KfId:          room.KfId,
 			KfAck:         false,
 			Msg:           msg.Content,
-			MsgType:       "text",
+			MsgType:       string(msg.MsgType),
 			OperCode:      common.MessageFromCustomer,
 		}.Insert()
 
@@ -71,6 +71,10 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			if _, isOk := logic.GetOnlineKf(); !isOk {
 				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 			}
+
+			// 更新内存中的客户信息
+			room.CustomerNickName = userInfo.Nickname
+			room.CustomerHeadImgUrl = userInfo.Headimgurl
 		}
 
 		//logic.PrintRoomMap()

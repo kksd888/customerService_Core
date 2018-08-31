@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"time"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 
 func init() {
 	redis := cache.NewRedis(&cache.RedisOpts{
-		Host: "localhost:6379",
+		Host: "172.16.7.20:6379",
 	})
 
 	//配置微信参数
@@ -42,14 +43,24 @@ func main() {
 	//gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
-	router.Use(cors.Default())
+
+	// CORS同源规则配置
+	router.Use(cors.New(cors.Config{
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host", "Authentication"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowAllOrigins:  false,
+		AllowOriginFunc:  func(origin string) bool { return true },
+		MaxAge:           12 * time.Hour,
+	}))
 
 	defaultController := controller.InitHealth()
 	offlineReplyController := controller.InitOfflineReply()
 	kfController := controller.InitKfServer()
 	weiXinController := controller.InitWeiXin(wxContext, logic.RoomMap)
 	dialogController := controller.InitDialog(wxContext, logic.RoomMap)
-	customerController := controller.InitCustomer(wxContext, logic.RoomMap)
+	//customerController := controller.InitCustomer(wxContext, logic.RoomMap)
 
 	// API路由 (授权保护)
 	v1 := router.Group("/v1", handle.OauthMiddleWare())
@@ -60,22 +71,17 @@ func main() {
 		// 待接入列表
 		waitQueue := v1.Group("/wait_queue")
 		{
-			waitQueue.GET("", customerController.Queue)
+			waitQueue.GET("", dialogController.Queue)
+			waitQueue.POST("/access", dialogController.Access)
 		}
 
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
-			dialog.GET("/list", dialogController.List)
-			dialog.POST("/access", dialogController.Access)
+			dialog.GET("/", dialogController.List)
+			dialog.POST("/", dialogController.SendMessage)
 			dialog.PUT("/ack", dialogController.Ack)
-		}
-
-		// 客户数据
-		customer := v1.Group("/customer")
-		{
-			customer.GET("/:customerId/history", customerController.History)
-			customer.POST("/message", customerController.SendMessage)
+			dialog.GET("/:customerId", dialogController.History)
 		}
 
 		// 客服操作
@@ -100,10 +106,10 @@ func main() {
 	}
 
 	// 客服登录操作
-	router.POST("login/:tokenId", kfController.LoginIn)
+	router.POST("/login/:tokenId", kfController.LoginIn)
 	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
-	router.Any("/health", defaultController.Health)
+	router.GET("/health", defaultController.Health)
 	// API文档地址
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址

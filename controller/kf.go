@@ -33,7 +33,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param kfId path int true "客服的ID"
-// @Success 200 {string} json ""
+// @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/kf/{kfId}/status [put]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
 }

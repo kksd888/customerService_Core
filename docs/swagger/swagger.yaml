@@ -6,79 +6,7 @@ info:
   title: 在线客服API文档
   version: 0.0.1
 paths:
-  /v1/customer/{customerId}/history:
-    get:
-      consumes:
-      - application/json
-      description: 获取一个用户的聊天记录
-      parameters:
-      - description: 客户 ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: 获取一个用户的聊天记录
-      tags:
-      - Dialog
-  /v1/customer/message:
-    post:
-      consumes:
-      - application/json
-      description: 客服发送消息给客户
-      parameters:
-      - description: 客户 ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: 客服发送消息给客户
-      tags:
-      - Dialog
-  /v1/dialog/access:
-    post:
-      consumes:
-      - application/json
-      description: 客服接入用户，客服加入会话房间
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: 客服接入用户，客服加入会话房间
-      tags:
-      - Dialog
-  /v1/dialog/ack:
-    put:
-      consumes:
-      - application/json
-      description: 确认已读用户的消息
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: 确认已读用户的消息
-      tags:
-      - Dialog
-  /v1/dialog/list:
+  /v1/dialog:
     get:
       consumes:
       - application/json
@@ -91,6 +19,56 @@ paths:
           schema:
             type: string
       summary: 获取待回复消息列表
+      tags:
+      - Dialog
+    post:
+      consumes:
+      - application/json
+      description: 发送消息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":0,"msg":"ok"}'
+          schema:
+            type: string
+      summary: 发送消息
+      tags:
+      - Dialog
+  /v1/dialog/{customerId}:
+    get:
+      consumes:
+      - application/json
+      description: 获取聊天记录
+      parameters:
+      - description: 客户 ID
+        in: path
+        name: customerId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 获取聊天记录
+      tags:
+      - Dialog
+  /v1/dialog/ack:
+    put:
+      consumes:
+      - application/json
+      description: 确认已读
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":0,"msg":"ok"}'
+          schema:
+            type: string
+      summary: 确认已读
       tags:
       - Dialog
   /v1/health:
@@ -159,7 +137,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: '{"code":0,"msg":"ok"}'
           schema:
             type: string
       summary: 客服修改在线状态
@@ -256,7 +234,7 @@ paths:
       summary: 更新一条离线自动回复语句
       tags:
       - OfflineReply
-  /v1/wait_queue/:
+  /v1/wait_queue:
     get:
       consumes:
       - application/json
@@ -269,6 +247,21 @@ paths:
           schema:
             type: string
       summary: 待接入列表
+      tags:
+      - WaitQueue
+  /v1/wait_queue/access:
+    post:
+      consumes:
+      - application/json
+      description: 会话确认应答
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"code":0,"msg":"ok"}'
+          schema:
+            type: string
+      summary: 会话确认应答
       tags:
       - WaitQueue
 swagger: "2.0"

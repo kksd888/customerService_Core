@@ -4,10 +4,15 @@ import "git.jsjit.cn/customerService/customerService_Core/model"
 
 var OnLineKfs = make(map[int]*model.Kf)
 
-type OnLineKf struct {
+//type OnLineKf interface {
+//	Get() (kf model.Kf, isOk bool)
+//	Add(kf model.Kf)
+//}
+
+type OnLineKfMySql struct {
 }
 
-func (o *OnLineKf) KfOnline(kf model.Kf) {
+func (o *OnLineKfMySql) KfOnline(kf model.Kf) {
 	OnLineKfs[kf.Id] = &kf
 }
 

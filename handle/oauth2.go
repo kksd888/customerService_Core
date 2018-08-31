@@ -21,12 +21,13 @@ func OauthMiddleWare() gin.HandlerFunc {
 			return
 		}
 
-		if _, err := AuthToken2Model(c); err != nil {
+		if roomKf, err := AuthToken2Model(c); err != nil {
 			c.JSON(http.StatusUnauthorized, err.Error())
 			c.Abort()
 			return
+		} else {
+			c.Set("roomKf", roomKf)
 		}
-
 		c.Next()
 	}
 }
