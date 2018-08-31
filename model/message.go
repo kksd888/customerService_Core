@@ -25,7 +25,7 @@ type MessageLinkCustomer struct {
 }
 
 func (Message) TableName() string {
-	return "chat_message"
+	return "dialog_message"
 }
 
 func (m Message) Insert() {
@@ -45,7 +45,7 @@ func (m Message) Access() {
 }
 
 func (m Message) Ack() {
-	update := db.Model(&m).Where("kf_id=? and customer_token=?", m.CustomerToken).Update("kf_ack", m.KfAck)
+	update := db.Model(&m).Where("kf_id=? and customer_token=?", m.KfId, m.CustomerToken).Update("kf_ack", m.KfAck)
 	if update.Error != nil {
 		panic(update.Error)
 	}
@@ -59,19 +59,19 @@ func (m *Message) WaitReply() ([]Message, error) {
 
 func (m *MessageLinkCustomer) GetKfHistoryMsg() ([]MessageLinkCustomer, error) {
 	var messages []MessageLinkCustomer
-	find := db.Raw(`select chat_message.id,
-       chat_message.customer_token,
-       chat_message.kf_id,
-       chat_message.msg,
-       chat_message.msg_type,
-       chat_message.oper_code,
-       chat_message.kf_ack,
-       chat_message.create_time,
-       chat_message.update_time,
+	find := db.Raw(`select dialog_message.id,
+       dialog_message.customer_token,
+       dialog_message.kf_id,
+       dialog_message.msg,
+       dialog_message.msg_type,
+       dialog_message.oper_code,
+       dialog_message.kf_ack,
+       dialog_message.create_time,
+       dialog_message.update_time,
        dic_customer.nick_name as customer_nick_name,
        dic_customer.head_img_url as customer_head_img_url
-from chat_message
-       left join dic_customer on dic_customer.open_id = chat_message.customer_token
+from dialog_message
+       left join dic_customer on dic_customer.open_id = dialog_message.customer_token
 where kf_id = ? limit 10;`, m.KfId).Scan(&messages)
 	return messages, find.Error
 }
