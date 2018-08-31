@@ -71,16 +71,16 @@ func main() {
 		waitQueue := v1.Group("/wait_queue")
 		{
 			waitQueue.GET("", dialogController.Queue)
+			waitQueue.POST("/access", dialogController.Access)
 		}
 
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
 			dialog.GET("/", dialogController.List)
-			dialog.GET("/:customerId/history", dialogController.History)
-			dialog.POST("/access", dialogController.Access)
+			dialog.POST("/", dialogController.SendMessage)
 			dialog.PUT("/ack", dialogController.Ack)
-			dialog.POST("/message", dialogController.SendMessage)
+			dialog.GET("/:customerId", dialogController.History)
 		}
 
 		// 客服操作

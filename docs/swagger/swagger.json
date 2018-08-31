@@ -9,117 +9,7 @@
     },
     "basePath": "/",
     "paths": {
-        "/v1/customer/message": {
-            "post": {
-                "description": "客服发送消息给客户",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dialog"
-                ],
-                "summary": "客服发送消息给客户",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "客户 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/customer/{customerId}/history": {
-            "get": {
-                "description": "获取一个用户的聊天记录",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dialog"
-                ],
-                "summary": "获取一个用户的聊天记录",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "客户 ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dialog/access": {
-            "post": {
-                "description": "客服接入用户，客服加入会话房间",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dialog"
-                ],
-                "summary": "客服接入用户，客服加入会话房间",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dialog/ack": {
-            "put": {
-                "description": "确认已读用户的消息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dialog"
-                ],
-                "summary": "确认已读用户的消息",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dialog/list": {
+        "/v1/dialog": {
             "get": {
                 "description": "获取待回复消息列表",
                 "consumes": [
@@ -132,6 +22,82 @@
                     "Dialog"
                 ],
                 "summary": "获取待回复消息列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "发送消息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dialog"
+                ],
+                "summary": "发送消息",
+                "responses": {
+                    "200": {
+                        "description": "{\"code\":0,\"msg\":\"ok\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dialog/ack": {
+            "put": {
+                "description": "确认已读",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dialog"
+                ],
+                "summary": "确认已读",
+                "responses": {
+                    "200": {
+                        "description": "{\"code\":0,\"msg\":\"ok\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dialog/{customerId}": {
+            "get": {
+                "description": "获取聊天记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dialog"
+                ],
+                "summary": "获取聊天记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "客户 ID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -244,7 +210,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "{\"code\":0,\"msg\":\"ok\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -390,7 +356,7 @@
                 }
             }
         },
-        "/v1/wait_queue/": {
+        "/v1/wait_queue": {
             "get": {
                 "description": "待接入列表",
                 "consumes": [
@@ -406,6 +372,29 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/wait_queue/access": {
+            "post": {
+                "description": "会话确认应答",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WaitQueue"
+                ],
+                "summary": "会话确认应答",
+                "responses": {
+                    "200": {
+                        "description": "{\"code\":0,\"msg\":\"ok\"}",
                         "schema": {
                             "type": "string"
                         }
