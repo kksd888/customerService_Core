@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
+	"time"
 )
 
 var (
@@ -51,7 +52,7 @@ func main() {
 		AllowCredentials: true,
 		AllowAllOrigins:  false,
 		AllowOriginFunc:  func(origin string) bool { return true },
-		MaxAge:           86400,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	defaultController := controller.InitHealth()
