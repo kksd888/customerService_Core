@@ -26,10 +26,20 @@ func InitKfServer(_db *model.MongoDb) *KfServerController {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param kfId path int true "客服的ID"
 // @Success 200 {string} json ""
 // @Router /v1/kf/{kfId} [get]
 func (c *KfServerController) Get(context *gin.Context) {
+	var (
+		kf      model.Kf
+		kfId, _ = context.Get("KFID")
+		kfC     = c.db.C("kf")
+	)
+
+	if err := kfC.Find(bson.M{"id": kfId}).One(&kf); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	context.JSON(http.StatusOK, kf)
 }
 
 // @Summary 客服修改在线状态
@@ -37,10 +47,26 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param kfId path int true "客服的ID"
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/kf/{kfId}/status [put]
+// @Router /v1/kf/status [post]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
+	var (
+		kfId, _ = context.Get("KFID")
+		kfC     = c.db.C("kf")
+		reqBind = struct {
+			status bool
+		}{}
+	)
+
+	if err := context.Bind(reqBind); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	if err := kfC.Update(bson.M{"id": kfId}, bson.M{"status": reqBind.status}); err != nil {
+		ReturnErrInfo(context, err)
+	} else {
+		ReturnSuccessInfo(context)
+	}
 }
 
 // @Summary 客服登入

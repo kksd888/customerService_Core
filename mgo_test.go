@@ -73,6 +73,7 @@ func Test_InitKf(t *testing.T) {
 		NickName:   "小金同学",
 		HeadImgUrl: "http://thirdwx.qlogo.cn/mmopen/Q3auHgzwzM68w5nLXXsKOhFPqpB8wAyTz5TjXIHZ1ZfaroNrmPCjAJenrlrypP0XHl7WNf1vSW3AARJhNUryvoXTFsppf4ty3NicoA07kRQM/132",
 		Type:       1,
+		Status:     false,
 		CreateTime: time.Now(),
 		UpdateTime: time.Now(),
 	})
