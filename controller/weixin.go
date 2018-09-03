@@ -40,7 +40,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 
 		roomCollection := c.db.C("room")
 		customerCollection := c.db.C("customer")
-		count, _ := roomCollection.Find(bson.M{"roomcustomer.customerid": msg.FromUserName}).Count()
+		count, _ := roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).Count()
 
 		if count == 0 {
 			// 新接入
@@ -74,6 +74,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 						Id:         common.GetNewUUID(),
 						Type:       string(msg.MsgType),
 						Msg:        text.Content,
+						OperCode:   common.MessageFromCustomer,
 						CreateTime: time.Now(),
 					},
 				},
@@ -81,11 +82,12 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			})
 		} else {
 			// 会话中的客户
-			roomCollection.Update(bson.M{"roomcustomer.customerid": msg.FromUserName},
-				bson.M{"$push": bson.M{"roommessages": model.RoomMessage{
+			roomCollection.Update(bson.M{"room_customer.customer_id": msg.FromUserName},
+				bson.M{"$push": bson.M{"room_messages": model.RoomMessage{
 					Id:         common.GetNewUUID(),
 					Type:       string(msg.MsgType),
 					Msg:        text.Content,
+					OperCode:   common.MessageFromCustomer,
 					CreateTime: time.Now(),
 				}}})
 		}

@@ -54,7 +54,7 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 		kfId, _ = context.Get("KFID")
 		kfC     = c.db.C("kf")
 		reqBind = struct {
-			status bool
+			status bool `json:"status"`
 		}{}
 	)
 

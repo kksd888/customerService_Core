@@ -3,7 +3,6 @@
 package controller
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
@@ -41,25 +40,24 @@ func (c *DefaultController) Health(context *gin.Context) {
 func (c *DefaultController) Init(context *gin.Context) {
 	// 获取访问客服信息
 	var (
-		onlineCustomer []OnlineCustomer
-		waitCustomer   []WaitCustomer
-		kfId, _        = context.Get("KFID")
 		kf             = model.Kf{}
+		waitCustomer   = []WaitCustomer{}
+		onlineCustomer = []OnlineCustomer{}
+		kfId, _        = context.Get("KFID")
+		kfCollection   = c.db.C("kf")
+		roomCollection = c.db.C("room")
 	)
 
-	kfCollection := c.db.C("kf")
-	roomCollection := c.db.C("room")
-
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
-	roomCollection.Find(bson.M{"roomkf.kf_id": kfId}).All(&onlineCustomer)
-	roomCollection.Find(bson.M{"roomkf.kf_id": ""}).All(&waitCustomer)
+	roomCollection.Find(bson.M{"room_kf.kf_id": kfId}).All(&onlineCustomer)
+	roomCollection.Find(bson.M{"room_kf.kf_id": ""}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
 			Id:         kf.Id,
 			UserName:   kf.NickName,
 			HeadImgUrl: kf.HeadImgUrl,
-			Status:     common.KF_ONLINE,
+			Status:     kf.Status,
 		},
 		OnlineCustomer: onlineCustomer,
 		WaitCustomer:   waitCustomer,
@@ -87,35 +85,35 @@ func ReturnSuccessInfo(context *gin.Context) {
 }
 
 type InitResponse struct {
-	Mine           InitMine         `json:"mine"`
-	OnlineCustomer []OnlineCustomer `json:"online_customer"`
-	WaitCustomer   []WaitCustomer   `json:"wait_customer"`
+	Mine           InitMine         `bson:"mine" json:"mine"`
+	OnlineCustomer []OnlineCustomer `bson:"online_customer" json:"online_customer"`
+	WaitCustomer   []WaitCustomer   `bson:"wait_customer" json:"wait_customer"`
 }
 type InitMine struct {
-	Id         string `json:"id"`
-	UserName   string `json:"user_name"`
-	HeadImgUrl string `json:"head_img_url"`
-	Status     int    `json:"status"`
+	Id         string `bson:"id" json:"id"`
+	UserName   string `bson:"user_name" json:"user_name"`
+	HeadImgUrl string `bson:"head_img_url" json:"head_img_url"`
+	Status     bool   `json:"status" json:"status"`
 }
 type CustomerInfo struct {
-	CustomerId         string `json:"customer_id"`
-	CustomerNickName   string `json:"customer_nick_name"`
-	CustomerHeadImgUrl string `json:"customer_head_img_url"`
+	CustomerId         string `bson:"customer_id" json:"customer_id"`
+	CustomerNickName   string `bson:"customer_nick_name" json:"customer_nick_name"`
+	CustomerHeadImgUrl string `bson:"customer_head_img_url" json:"customer_head_img_url"`
 }
 type RoomMessage struct {
-	Id         string    `json:"id"`
-	Type       string    `json:"message_type"`
-	Msg        string    `json:"message_content"`
-	OperCode   int       `json:"message_oper_code"`
-	Ack        bool      `json:"message_ack"`
-	CteateTime time.Time `json:"message_cteate_time"`
+	Id         string    `bson:"id" json:"id"`
+	Type       string    `bson:"type" json:"message_type"`
+	Msg        string    `bson:"msg" json:"message_content"`
+	OperCode   int       `bson:"oper_code" json:"message_oper_code"`
+	Ack        bool      `bson:"ack" json:"message_ack"`
+	CteateTime time.Time `bson:"cteate_time" json:"message_cteate_time"`
 }
 type OnlineCustomer struct {
-	RoomCustomer CustomerInfo  `json:"room_customer"`
-	RoomMessages []RoomMessage `json:"room_messages"`
+	RoomCustomer CustomerInfo  `bson:"room_customer" json:"room_customer"`
+	RoomMessages []RoomMessage `bson:"room_messages" json:"room_messages"`
 }
 type WaitCustomer struct {
-	RoomCustomer CustomerInfo  `json:"room_customer"`
-	RoomMessages []RoomMessage `json:"room_messages"`
+	RoomCustomer CustomerInfo  `bson:"room_customer" json:"room_customer"`
+	RoomMessages []RoomMessage `bson:"room_messages" json:"room_messages"`
 	//PreviousKf         WaitQueuePreviousKf
 }
