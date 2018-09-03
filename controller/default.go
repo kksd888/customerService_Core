@@ -40,11 +40,11 @@ func (c *DefaultController) Health(context *gin.Context) {
 // @Router /v1/init [get]
 func (c *DefaultController) Init(context *gin.Context) {
 	// 获取访问客服信息
-	kfId, _ := context.Get("KFID")
 	var (
+		onlineCustomer []OnlineCustomer
+		waitCustomer   []WaitCustomer
+		kfId, _        = context.Get("KFID")
 		kf             = model.Kf{}
-		onlineCustomer = []OnlineCustomer{}
-		waitCustomer   = []WaitCustomer{}
 	)
 
 	kfCollection := c.db.C("kf")

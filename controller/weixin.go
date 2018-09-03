@@ -90,7 +90,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				}}})
 		}
 
-		return &message.Reply{message.MsgTypeText, nil}
+		return &message.Reply{MsgType: message.MsgTypeText}
 	})
 
 	//处理消息接收以及回复

@@ -52,16 +52,17 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/login/{tokenId} [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
-	tokenId := context.Param("tokenId")
+	var (
+		kf           = model.Kf{}
+		tokenId      = context.Param("tokenId")
+		kfCollection = c.db.C("kf")
+	)
+
 	if tokenId == "" {
 		context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
 		return
 	}
-
-	var kf = model.Kf{}
-
-	log.Println(tokenId)
-	if err := c.db.C("kf").Find(bson.M{"tokenid": tokenId}).One(&kf); err != nil {
+	if err := kfCollection.Find(bson.M{"tokenid": tokenId}).One(&kf); err != nil {
 		ReturnErrInfo(context, err)
 	}
 

@@ -34,10 +34,10 @@ func InitDialog(wxContext *wechat.Wechat, _db *model.MongoDb) *DialogController 
 // @Router /v1/wait_queue [get]
 func (c *DialogController) Queue(context *gin.Context) {
 	var (
-		waitCustomer = []WaitCustomer{}
+		waitCustomer   []WaitCustomer
+		roomCollection = c.db.C("room")
 	)
 
-	roomCollection := c.db.C("room")
 	roomCollection.Find(bson.M{"roomkf.kfid": ""}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, waitCustomer)
@@ -52,21 +52,18 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Router /v1/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
 	var (
-		aRequest CustomerIdsRequest
-		kf       model.Kf
+		aRequest       CustomerIdsRequest
+		kf             model.Kf
+		kfId, _        = context.Get("KFID")
+		roomCollection = c.db.C("room")
+		kfCollection   = c.db.C("kf")
 	)
 
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	kfId, _ := context.Get("KFID")
-
-	roomCollection := c.db.C("room")
-
-	kfCollection := c.db.C("kf")
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
-
 	for _, v := range aRequest.CustomerIds {
 		// 客服加入聊天房间
 		roomKf := model.RoomKf{
@@ -90,11 +87,11 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Router /v1/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
 	var (
-		kfId, _      = context.Get("KFID")
-		waitCustomer = []WaitCustomer{}
+		waitCustomer   []WaitCustomer
+		kfId, _        = context.Get("KFID")
+		roomCollection = c.db.C("room")
 	)
 
-	roomCollection := c.db.C("room")
 	roomCollection.Find(bson.M{"roomkf.kfid": kfId, "roommessages.ack": false}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, waitCustomer)
@@ -109,14 +106,14 @@ func (c *DialogController) List(context *gin.Context) {
 // @Router /v1/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
 	var (
-		aRequest CustomerIdsRequest
-		kfId, _  = context.Get("KFID")
+		aRequest       CustomerIdsRequest
+		kfId, _        = context.Get("KFID")
+		roomCollection = c.db.C("room")
 	)
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	roomCollection := c.db.C("room")
 	for _, v := range aRequest.CustomerIds {
 		if updateErr := roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roommessages.$[].ack": true}}); updateErr != nil {
 			ReturnErrInfo(context, updateErr)
@@ -137,10 +134,11 @@ func (c *DialogController) Ack(context *gin.Context) {
 // @Router /v1/dialog/{customerId}/{page}/{limit} [get]
 func (c *DialogController) History(context *gin.Context) {
 	var (
-		customerId  = context.Param("customerId")
-		strPage     = context.Param("page")
-		strLimit    = context.Param("limit")
-		roomHistory RoomHistory
+		roomHistory    RoomHistory
+		customerId     = context.Param("customerId")
+		strPage        = context.Param("page")
+		strLimit       = context.Param("limit")
+		roomCollection = c.db.C("room")
 	)
 	if customerId == "" {
 		ReturnErrInfo(context, errors.New("缺少customerId"))
@@ -155,7 +153,6 @@ func (c *DialogController) History(context *gin.Context) {
 		ReturnErrInfo(context, errors.New("缺少limit"))
 	}
 
-	roomCollection := c.db.C("room")
 	query := []bson.M{
 		{
 			"$match": bson.M{"roomcustomer.customerid": customerId},
@@ -182,14 +179,13 @@ func (c *DialogController) History(context *gin.Context) {
 // @Router /v1/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
 	var (
-		sendRequest SendMessageRequest
-		kfId, _     = context.Get("KFID")
+		sendRequest    SendMessageRequest
+		kfId, _        = context.Get("KFID")
+		roomCollection = c.db.C("room")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
 	}
-
-	roomCollection := c.db.C("room")
 
 	roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": sendRequest.CustomerId},
 		bson.M{"$push": bson.M{"roommessages": &model.RoomMessage{
@@ -221,7 +217,6 @@ type CustomerIdsRequest struct {
 	CustomerIds []string `json:"customer_ids"`
 }
 
-// 发送消息
 type SendMessageRequest struct {
 	CustomerId string `json:"customer_id"`
 	MsgType    string `json:"msg_type"`
