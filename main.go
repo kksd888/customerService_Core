@@ -82,7 +82,7 @@ func main() {
 			dialog.GET("/", dialogController.List)
 			dialog.POST("/", dialogController.SendMessage)
 			dialog.PUT("/ack", dialogController.Ack)
-			dialog.GET("/:customerId", dialogController.History)
+			dialog.GET("/:customerId/:page/:limit", dialogController.History)
 		}
 
 		// 客服操作

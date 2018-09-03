@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type DialogController struct {
@@ -129,9 +131,46 @@ func (c *DialogController) Ack(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param customerId path int true "客户 ID"
+// @page customerId path int true "第几页"
+// @limit customerId path int true "页容量"
 // @Success 200 {string} json ""
-// @Router /v1/dialog/{customerId} [get]
+// @Router /v1/dialog/{customerId}/{page}/{limit} [get]
 func (c *DialogController) History(context *gin.Context) {
+	var (
+		customerId  = context.Param("customerId")
+		strPage     = context.Param("page")
+		strLimit    = context.Param("limit")
+		roomHistory RoomHistory
+	)
+	if customerId == "" {
+		ReturnErrInfo(context, errors.New("缺少customerId"))
+	}
+
+	page, err := strconv.Atoi(strPage)
+	if err != nil {
+		ReturnErrInfo(context, errors.New("缺少page"))
+	}
+	limit, err := strconv.Atoi(strLimit)
+	if err != nil {
+		ReturnErrInfo(context, errors.New("缺少limit"))
+	}
+
+	roomCollection := c.db.C("room")
+	query := []bson.M{
+		{
+			"$match": bson.M{"roomcustomer.customerid": customerId},
+		},
+		{
+			"$project": bson.M{
+				"roommessages": bson.M{"$slice": []interface{}{"$roommessages", (page - 1) * limit, limit}},
+			},
+		},
+	}
+	if err := roomCollection.Pipe(query).One(&roomHistory); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	context.JSON(http.StatusOK, roomHistory)
 }
 
 // @Summary 发送消息
@@ -154,11 +193,12 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 
 	roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": sendRequest.CustomerId},
 		bson.M{"$push": bson.M{"roommessages": &model.RoomMessage{
-			Id:       common.GetNewUUID(),
-			Type:     sendRequest.MsgType,
-			Msg:      sendRequest.Msg,
-			OperCode: common.MessageFromKf,
-			Ack:      true,
+			Id:         common.GetNewUUID(),
+			Type:       sendRequest.MsgType,
+			Msg:        sendRequest.Msg,
+			OperCode:   common.MessageFromKf,
+			Ack:        true,
+			CreateTime: time.Now(),
 		}}})
 
 	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
@@ -186,4 +226,8 @@ type SendMessageRequest struct {
 	CustomerId string `json:"customer_id"`
 	MsgType    string `json:"msg_type"`
 	Msg        string `json:"msg"`
+}
+
+type RoomHistory struct {
+	RoomMessages []model.RoomMessage
 }

@@ -72,7 +72,7 @@ func ReturnErrInfo(context *gin.Context, err interface{}) {
 		log.Printf("发生异常：%#v", err)
 		context.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  "接口调用异常，或联系管理员",
+			"msg":  err.(error).Error(),
 		})
 		panic(err)
 	}

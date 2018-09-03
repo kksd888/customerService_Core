@@ -21,10 +21,10 @@ type RoomKf struct {
 	KfStatus     int
 }
 type RoomMessage struct {
-	Id         string
-	Type       string
-	Msg        string
-	Ack        bool
-	OperCode   int
-	CreateTime time.Time
+	Id         string    `bson:"id"`
+	Type       string    `bson:"type"`
+	Msg        string    `bson:"msg"`
+	Ack        bool      `bson:"ack"`
+	OperCode   int       `bson:"oper_code"`
+	CreateTime time.Time `bson:"create_time"`
 }
