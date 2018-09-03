@@ -24,5 +24,7 @@ type RoomMessage struct {
 	Id         string
 	Type       string
 	Msg        string
+	Ack        bool
+	OperCode   int
 	CreateTime time.Time
 }

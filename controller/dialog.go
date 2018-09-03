@@ -3,9 +3,12 @@
 package controller
 
 import (
+	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
@@ -84,16 +87,15 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /v1/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
-	//roomKf, _ := handle.AuthToken2Model(context)
-	//
-	//customer := model.MessageLinkCustomer{Message: model.Message{KfId: roomKf.KfId}}
-	//messages, e := customer.WaitReply()
-	//ReturnErrInfo(context, e)
-	//
-	//bytes, _ := json.Marshal(messages)
-	//log.Println(string(bytes))
-	//
-	//context.JSON(http.StatusOK, messages)
+	var (
+		kfId, _      = context.Get("KFID")
+		waitCustomer = []WaitCustomer{}
+	)
+
+	roomCollection := c.db.C("room")
+	roomCollection.Find(bson.M{"roomkf.kfid": kfId, "roommessages.ack": false}).All(&waitCustomer)
+
+	context.JSON(http.StatusOK, waitCustomer)
 }
 
 // @Summary 确认已读
@@ -104,17 +106,21 @@ func (c *DialogController) List(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
-	//var aRequest CustomerIdsRequest
-	//if bindErr := context.BindJSON(&aRequest); bindErr != nil {
-	//	ReturnErrInfo(context, bindErr)
-	//}
-	//roomKf, _ := handle.AuthToken2Model(context)
-	//
-	//for _, v := range aRequest.CustomerIds {
-	//	model.Message{CustomerToken: v, KfId: roomKf.KfId, KfAck: true}.Ack()
-	//}
-	//
-	//ReturnSuccessInfo(context)
+	var (
+		aRequest CustomerIdsRequest
+		kfId, _  = context.Get("KFID")
+	)
+	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
+
+	roomCollection := c.db.C("room")
+	for _, v := range aRequest.CustomerIds {
+		if updateErr := roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roommessages.$[].ack": true}}); updateErr != nil {
+			ReturnErrInfo(context, updateErr)
+		}
+	}
+	ReturnSuccessInfo(context)
 }
 
 // @Summary 获取聊天记录
@@ -136,37 +142,39 @@ func (c *DialogController) History(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
-	//var sendRequest SendMessageRequest
-	//if bindErr := context.Bind(&sendRequest); bindErr != nil {
-	//	ReturnErrInfo(context, bindErr)
-	//}
-	//
-	//roomKf, err := handle.AuthToken2Model(context)
-	//ReturnErrInfo(context, err)
-	//
-	//model.Message{
-	//	CustomerToken: sendRequest.CustomerId,
-	//	KfId:          roomKf.KfId,
-	//	MsgType:       sendRequest.MsgType,
-	//	Msg:           sendRequest.Msg,
-	//	OperCode:      common.MessageFromKf,
-	//	KfAck:         true,
-	//}.Insert()
-	//
-	//msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
-	//	ToUser:  sendRequest.CustomerId,
-	//	MsgType: sendRequest.MsgType,
-	//	Text: message.Text{
-	//		Content: sendRequest.Msg,
-	//	},
-	//})
-	//ReturnErrInfo(context, err)
-	//
-	//if msgResponse.ErrCode == 0 {
-	//	ReturnSuccessInfo(context)
-	//} else {
-	//	ReturnErrInfo(context, errors.New("发送消息失败"))
-	//}
+	var (
+		sendRequest SendMessageRequest
+		kfId, _     = context.Get("KFID")
+	)
+	if bindErr := context.Bind(&sendRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
+
+	roomCollection := c.db.C("room")
+
+	roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": sendRequest.CustomerId},
+		bson.M{"$push": bson.M{"roommessages": &model.RoomMessage{
+			Id:       common.GetNewUUID(),
+			Type:     sendRequest.MsgType,
+			Msg:      sendRequest.Msg,
+			OperCode: common.MessageFromKf,
+			Ack:      true,
+		}}})
+
+	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
+		ToUser:  sendRequest.CustomerId,
+		MsgType: sendRequest.MsgType,
+		Text: message.Text{
+			Content: sendRequest.Msg,
+		},
+	})
+	ReturnErrInfo(context, err)
+
+	if msgResponse.ErrCode == 0 {
+		ReturnSuccessInfo(context)
+	} else {
+		ReturnErrInfo(context, errors.New("发送消息失败"))
+	}
 }
 
 type CustomerIdsRequest struct {
