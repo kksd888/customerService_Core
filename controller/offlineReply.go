@@ -33,6 +33,17 @@ func (c *OfflineReplyController) List(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /v1/setting/offline_reply [post]
 func (c *OfflineReplyController) Create(context *gin.Context) {
+	var (
+		offline = struct {
+			offLineMsg string `bson:"off_line_msg" json:"off_line_msg"`
+			operKfId   string `bson:"oper_kf_id" json:"oper_kf_id"`
+		}{}
+		replyC = c.db.C("offineReply")
+	)
+
+	if err := replyC.Insert(&offline); err != nil {
+		ReturnErrInfo(context, err)
+	}
 }
 
 // @Summary 删除一条离线自动回复语句
