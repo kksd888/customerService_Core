@@ -56,9 +56,9 @@ func main() {
 	}))
 
 	mongoDb := model.NewMongo()
-	defaultController := controller.InitHealth()
+	defaultController := controller.InitHealth(mongoDb)
 	offlineReplyController := controller.InitOfflineReply()
-	kfController := controller.InitKfServer()
+	kfController := controller.InitKfServer(mongoDb)
 	weiXinController := controller.InitWeiXin(wxContext, mongoDb)
 	dialogController := controller.InitDialog(wxContext, mongoDb)
 	//customerController := controller.InitCustomer(wxContext, logic.RoomMap)

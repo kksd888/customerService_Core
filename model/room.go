@@ -15,7 +15,7 @@ type RoomCustomer struct {
 	CustomerPreviousKfId string
 }
 type RoomKf struct {
-	KfId         int
+	KfId         string
 	KfName       string
 	KfHeadImgUrl string
 	KfStatus     int

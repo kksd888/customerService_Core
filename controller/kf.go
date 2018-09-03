@@ -3,16 +3,22 @@
 package controller
 
 import (
+	"encoding/base64"
+	"errors"
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/mgo.v2/bson"
+	"log"
+	"net/http"
 )
 
 type KfServerController struct {
 	db *model.MongoDb
 }
 
-func InitKfServer() *KfServerController {
-	return &KfServerController{}
+func InitKfServer(_db *model.MongoDb) *KfServerController {
+	return &KfServerController{db: _db}
 }
 
 // @Summary 获取客服信息
@@ -46,28 +52,39 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/login/{tokenId} [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
-	//tokenId := context.Param("tokenId")
-	//if tokenId == "" {
-	//	context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
-	//	return
-	//}
-	//
-	//kf := model.Kf{}
-	//if err := kf.GetByTokenId(tokenId); err != nil {
-	//	ReturnErrInfo(context, err)
-	//} else {
-	//	logic.AddOnlineKf(kf)
-	//
-	//	s, _ := logic.RoomKf{
-	//		KfId:         kf.Id,
-	//		KfName:       kf.NickName,
-	//		KfHeadImgUrl: kf.HeadImgUrl,
-	//		KfStatus:     0,
-	//	}.Make2Auth()
-	//	context.JSON(http.StatusOK, LoginInResponse{
-	//		Authentication: s,
-	//	})
-	//}
+	tokenId := context.Param("tokenId")
+	if tokenId == "" {
+		context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
+		return
+	}
+
+	var kf = model.Kf{}
+
+	log.Println(tokenId)
+	if err := c.db.C("kf").Find(bson.M{"tokenid": tokenId}).One(&kf); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	if kf.Id == "0" {
+		ReturnErrInfo(context, errors.New("客服登录授权失败"))
+	}
+
+	//logic.AddOnlineKf(kf)
+	s, _ := Make2Auth(kf.Id)
+
+	context.JSON(http.StatusOK, LoginInResponse{
+		Authentication: s,
+	})
+}
+
+func Make2Auth(kfId string) (string, error) {
+	encrypt := common.AesEncrypt{}
+	byteInfo, err := encrypt.Encrypt([]byte(kfId))
+	if err != nil {
+		log.Printf("common.NewGoAES() err：%v", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(byteInfo), err
 }
 
 type LoginInResponse struct {

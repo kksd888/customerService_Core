@@ -2,12 +2,9 @@ package handle
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 )
 
@@ -21,30 +18,31 @@ func OauthMiddleWare() gin.HandlerFunc {
 			return
 		}
 
-		if roomKf, err := AuthToken2Model(c); err != nil {
+		if kfId, err := AuthToken2Model(c); err != nil {
 			c.JSON(http.StatusUnauthorized, err.Error())
 			c.Abort()
 			return
 		} else {
-			c.Set("roomKf", roomKf)
+			c.Set("KFID", kfId)
 		}
 		c.Next()
 	}
 }
 
 // 鉴权Token解码为模型
-func AuthToken2Model(c *gin.Context) (roomKf *model.RoomKf, err error) {
+func AuthToken2Model(c *gin.Context) (kfId string, err error) {
 	token := c.Request.Header.Get("authentication")
 	decodeBytes, err := base64.StdEncoding.DecodeString(token)
 	aes := common.AesEncrypt{}
 	if bytes, err := aes.Decrypt(decodeBytes); err != nil {
 		err = errors.New("API token Authentication failed")
 	} else {
-		if err := json.Unmarshal(bytes, &roomKf); err != nil {
-			log.Printf("string json :%s, err %#v", string(bytes), err.Error())
-			err = errors.New("API token Authentication failed")
-		}
-		if &roomKf == nil {
+		kfId = string(bytes)
+		//if err := json.Unmarshal(bytes, &roomKf); err != nil {
+		//	log.Printf("string json :%s, err %#v", string(bytes), err.Error())
+		//	err = errors.New("API token Authentication failed")
+		//}
+		if kfId == "" {
 			err = errors.New("API token Authentication failed")
 		}
 	}

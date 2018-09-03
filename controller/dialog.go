@@ -3,10 +3,12 @@
 package controller
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-gonic/gin"
-	"time"
+	"gopkg.in/mgo.v2/bson"
+	"net/http"
 )
 
 type DialogController struct {
@@ -26,21 +28,14 @@ func InitDialog(wxContext *wechat.Wechat, _db *model.MongoDb) *DialogController 
 // @Success 200 {string} json ""
 // @Router /v1/wait_queue [get]
 func (c *DialogController) Queue(context *gin.Context) {
-	//if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
-	//	ReturnErrInfo(context, err)
-	//} else {
-	//	var waitQueues []WaitQueueResponse
-	//	for _, value := range waitQueueRooms {
-	//		waitQueues = append(waitQueues, WaitQueueResponse{
-	//			CustomerId:         value.CustomerId,
-	//			CustomerNickName:   value.CustomerNickName,
-	//			CustomerHeadImgUrl: value.CustomerHeadImgUrl,
-	//			//Messages:           value.CustomerMsgs,
-	//			PreviousKf: WaitQueuePreviousKf{},
-	//		})
-	//	}
-	//	context.JSON(http.StatusOK, waitQueues)
-	//}
+	var (
+		waitCustomer = []WaitCustomer{}
+	)
+
+	roomCollection := c.db.C("room")
+	roomCollection.Find(bson.M{"roomkf.kfid": ""}).All(&waitCustomer)
+
+	context.JSON(http.StatusOK, waitCustomer)
 }
 
 // @Summary 会话确认应答
@@ -51,28 +46,34 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /v1/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
-	//var aRequest CustomerIdsRequest
-	//if bindErr := context.BindJSON(&aRequest); bindErr != nil {
-	//	ReturnErrInfo(context, bindErr)
-	//}
-	//
-	//roomKf, _ := handle.AuthToken2Model(context)
-	//
-	//for _, v := range aRequest.CustomerIds {
-	//	// 客服加入聊天房间
-	//	room, _ := logic.InitRoom(v)
-	//	room.RoomKf = logic.RoomKf{
-	//		KfId:         roomKf.KfId,
-	//		KfName:       roomKf.KfName,
-	//		KfHeadImgUrl: roomKf.KfHeadImgUrl,
-	//		KfStatus:     common.KF_ONLINE,
-	//	}
-	//
-	//	// 更新所有指定客户的KfId
-	//	model.Message{CustomerToken: v, KfId: roomKf.KfId}.Access()
-	//}
-	//
-	//ReturnSuccessInfo(context)
+	var (
+		aRequest CustomerIdsRequest
+		kf       model.Kf
+	)
+
+	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
+		ReturnErrInfo(context, bindErr)
+	}
+
+	kfId, _ := context.Get("KFID")
+
+	roomCollection := c.db.C("room")
+
+	kfCollection := c.db.C("kf")
+	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
+
+	for _, v := range aRequest.CustomerIds {
+		// 客服加入聊天房间
+		roomKf := model.RoomKf{
+			KfId:         kf.Id,
+			KfName:       kf.NickName,
+			KfHeadImgUrl: kf.HeadImgUrl,
+			KfStatus:     common.KF_ONLINE,
+		}
+		roomCollection.Update(bson.M{"roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roomkf": roomKf}})
+	}
+
+	ReturnSuccessInfo(context)
 }
 
 // @Summary 获取待回复消息列表
@@ -166,20 +167,6 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 	//} else {
 	//	ReturnErrInfo(context, errors.New("发送消息失败"))
 	//}
-}
-
-// 访客队列响应
-type WaitQueueResponse struct {
-	CustomerId         string
-	CustomerNickName   string
-	CustomerHeadImgUrl string
-	Messages           []*model.RoomMessage
-	PreviousKf         WaitQueuePreviousKf
-}
-type WaitQueuePreviousKf struct {
-	KfId     string
-	KfName   string
-	LastTime time.Time
 }
 
 type CustomerIdsRequest struct {
