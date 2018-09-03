@@ -3,22 +3,22 @@ package model
 import "time"
 
 type Room struct {
-	RoomCustomer
-	RoomKf
-	RoomMessages []RoomMessage
-	CreateTime   time.Time
+	RoomCustomer RoomCustomer  `bson:"room_customer"`
+	RoomKf       RoomKf        `bson:"room_kf"`
+	RoomMessages []RoomMessage `bson:"room_messages"`
+	CreateTime   time.Time     `bson:"create_time"`
 }
 type RoomCustomer struct {
-	CustomerId           string
-	CustomerNickName     string
-	CustomerHeadImgUrl   string
-	CustomerPreviousKfId string
+	CustomerId           string `bson:"customer_id"`
+	CustomerNickName     string `bson:"customer_nick_name"`
+	CustomerHeadImgUrl   string `bson:"customer_head_img_url"`
+	CustomerPreviousKfId string `bson:"customer_previous_kf_id"`
 }
 type RoomKf struct {
-	KfId         string
-	KfName       string
-	KfHeadImgUrl string
-	KfStatus     int
+	KfId         string `bson:"kf_id"`
+	KfName       string `bson:"kf_name"`
+	KfHeadImgUrl string `bson:"kf_head_img_url"`
+	KfStatus     int    `bson:"kf_status"`
 }
 type RoomMessage struct {
 	Id         string    `bson:"id"`

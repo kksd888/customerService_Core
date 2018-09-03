@@ -51,8 +51,8 @@ func (c *DefaultController) Init(context *gin.Context) {
 	roomCollection := c.db.C("room")
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
-	roomCollection.Find(bson.M{"roomkf.kfid": kfId}).All(&onlineCustomer)
-	roomCollection.Find(bson.M{"roomkf.kfid": ""}).All(&waitCustomer)
+	roomCollection.Find(bson.M{"roomkf.kf_id": kfId}).All(&onlineCustomer)
+	roomCollection.Find(bson.M{"roomkf.kf_id": ""}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{

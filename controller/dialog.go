@@ -38,7 +38,7 @@ func (c *DialogController) Queue(context *gin.Context) {
 		roomCollection = c.db.C("room")
 	)
 
-	roomCollection.Find(bson.M{"roomkf.kfid": ""}).All(&waitCustomer)
+	roomCollection.Find(bson.M{"roomkf.kf_id": ""}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, waitCustomer)
 }
@@ -92,7 +92,7 @@ func (c *DialogController) List(context *gin.Context) {
 		roomCollection = c.db.C("room")
 	)
 
-	roomCollection.Find(bson.M{"roomkf.kfid": kfId, "roommessages.ack": false}).All(&waitCustomer)
+	roomCollection.Find(bson.M{"roomkf.kf_id": kfId, "roommessages.ack": false}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, waitCustomer)
 }
@@ -115,7 +115,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 	}
 
 	for _, v := range aRequest.CustomerIds {
-		if updateErr := roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roommessages.$[].ack": true}}); updateErr != nil {
+		if updateErr := roomCollection.Update(bson.M{"roomkf.kf_id": kfId, "roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roommessages.$[].ack": true}}); updateErr != nil {
 			ReturnErrInfo(context, updateErr)
 		}
 	}
@@ -187,7 +187,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	roomCollection.Update(bson.M{"roomkf.kfid": kfId, "roomcustomer.customerid": sendRequest.CustomerId},
+	roomCollection.Update(bson.M{"roomkf.kf_id": kfId, "roomcustomer.customerid": sendRequest.CustomerId},
 		bson.M{"$push": bson.M{"roommessages": &model.RoomMessage{
 			Id:         common.GetNewUUID(),
 			Type:       sendRequest.MsgType,

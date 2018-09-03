@@ -11,7 +11,7 @@ type Customer struct {
 	Sex          int32
 	HeadImgUrl   string
 	Address      string
-	CustomerType int // 1、普通
+	CustomerType int
 	CreateTime   time.Time
 	UpdateTime   time.Time
 }

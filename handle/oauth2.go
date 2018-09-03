@@ -31,17 +31,16 @@ func OauthMiddleWare() gin.HandlerFunc {
 
 // 鉴权Token解码为模型
 func AuthToken2Model(c *gin.Context) (kfId string, err error) {
-	token := c.Request.Header.Get("authentication")
+	var (
+		token = c.Request.Header.Get("authentication")
+		aes   = common.AesEncrypt{}
+	)
+
 	decodeBytes, err := base64.StdEncoding.DecodeString(token)
-	aes := common.AesEncrypt{}
 	if bytes, err := aes.Decrypt(decodeBytes); err != nil {
 		err = errors.New("API token Authentication failed")
 	} else {
 		kfId = string(bytes)
-		//if err := json.Unmarshal(bytes, &roomKf); err != nil {
-		//	log.Printf("string json :%s, err %#v", string(bytes), err.Error())
-		//	err = errors.New("API token Authentication failed")
-		//}
 		if kfId == "" {
 			err = errors.New("API token Authentication failed")
 		}

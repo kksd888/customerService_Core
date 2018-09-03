@@ -88,7 +88,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
 		return
 	}
-	if err := kfCollection.Find(bson.M{"tokenid": tokenId}).One(&kf); err != nil {
+	if err := kfCollection.Find(bson.M{"token_id": tokenId}).One(&kf); err != nil {
 		ReturnErrInfo(context, err)
 	}
 

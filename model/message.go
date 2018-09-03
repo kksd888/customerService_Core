@@ -16,10 +16,3 @@ type Message struct {
 	CreateTime    time.Time `gorm:"create_time"`
 	UpdateTime    time.Time `gorm:"update_time"`
 }
-
-// 消息模型-扩展用户数据
-type MessageLinkCustomer struct {
-	Message
-	CustomerNickName   string `gorm:"customer_nick_name"`
-	CustomerHeadImgUrl string `gorm:"customer_head_img_url"`
-}
