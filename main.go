@@ -116,6 +116,8 @@ func main() {
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
 
+	go handle.Listen()
+
 	// GO GO GO!!!
 	router.Run(":5000")
 }

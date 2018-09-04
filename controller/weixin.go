@@ -92,10 +92,6 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
 			})
 
-			//if _, isOk := logic.GetOnlineKf(); !isOk {
-			//	return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
-			//}
-
 			roomCollection.Insert(&model.Room{
 				RoomCustomer: model.RoomCustomer{
 					CustomerId:         msg.FromUserName,
@@ -125,6 +121,10 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 					OperCode:   common.MessageFromCustomer,
 					CreateTime: time.Now(),
 				}}})
+		}
+
+		if len(OnlineKfs) == 0 {
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 		}
 
 		return

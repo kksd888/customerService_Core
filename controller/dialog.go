@@ -25,6 +25,27 @@ func InitDialog(wxContext *wechat.Wechat, _db *model.MongoDb) *DialogController 
 	return &DialogController{wxContext: wxContext, db: _db}
 }
 
+// @Summary 获取待回复消息列表 (5s轮询一次)
+// @Description 获取待回复消息列表 (5s轮询一次)
+// @Tags Dialog
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} json ""
+// @Router /v1/dialog [get]
+func (c *DialogController) List(context *gin.Context) {
+	var (
+		waitCustomer   = []WaitCustomer{}
+		kfId, _        = context.Get("KFID")
+		roomCollection = c.db.C("room")
+	)
+
+	if err := roomCollection.Find(bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false}).All(&waitCustomer); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	context.JSON(http.StatusOK, waitCustomer)
+}
+
 // @Summary 待接入列表
 // @Description 待接入列表
 // @Tags WaitQueue
@@ -88,25 +109,6 @@ func (c *DialogController) Access(context *gin.Context) {
 	}
 
 	ReturnSuccessInfo(context)
-}
-
-// @Summary 获取待回复消息列表
-// @Description 获取待回复消息列表
-// @Tags Dialog
-// @Accept  json
-// @Produce  json
-// @Success 200 {string} json ""
-// @Router /v1/dialog [get]
-func (c *DialogController) List(context *gin.Context) {
-	var (
-		waitCustomer   = []WaitCustomer{}
-		kfId, _        = context.Get("KFID")
-		roomCollection = c.db.C("room")
-	)
-
-	roomCollection.Find(bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false}).All(&waitCustomer)
-
-	context.JSON(http.StatusOK, waitCustomer)
 }
 
 // @Summary 确认已读

@@ -4,8 +4,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/controller"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 // OAuth2.0 授权认证
@@ -13,18 +15,37 @@ func OauthMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.Request.Header.Get("authentication")
 		if token == "" {
-			c.JSON(http.StatusUnauthorized, "API token required")
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized,
+				"msg":  "API token required",
+			})
 			c.Abort()
 			return
 		}
 
 		if kfId, err := AuthToken2Model(c); err != nil {
-			c.JSON(http.StatusUnauthorized, err.Error())
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized,
+				"msg":  err.Error(),
+			})
 			c.Abort()
 			return
 		} else {
 			c.Set("KFID", kfId)
 		}
+
+		// 更新在线客服列表时间
+		if online, exist := controller.OnlineKfs[token]; exist {
+			online.LastTime = time.Now()
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized,
+				"msg":  "请重新登录",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }
