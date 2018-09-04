@@ -19,7 +19,7 @@ func InitHealth(_db *model.MongoDb) *DefaultController {
 	return &DefaultController{db: _db}
 }
 
-// @Summary 健康检查˚
+// @Summary 健康检查
 // @Description 应用程序健康检查接口
 // @Tags Default
 // @Accept json
@@ -78,7 +78,7 @@ func ReturnErrInfo(context *gin.Context, err interface{}) {
 
 // 成功返回
 func ReturnSuccessInfo(context *gin.Context) {
-	context.JSON(http.StatusInternalServerError, gin.H{
+	context.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"msg":  "ok",
 	})
