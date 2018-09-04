@@ -27,7 +27,7 @@ func InitKfServer(_db *model.MongoDb) *KfServerController {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/kf/{kfId} [get]
+// @Router /v1/kf [get]
 func (c *KfServerController) Get(context *gin.Context) {
 	var (
 		kf      model.Kf
@@ -62,7 +62,7 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 		ReturnErrInfo(context, err)
 	}
 
-	if err := kfC.Update(bson.M{"id": kfId}, bson.M{"status": reqBind.Status}); err != nil {
+	if err := kfC.Update(bson.M{"id": kfId}, bson.M{"$set": bson.M{"is_online": reqBind.Status}}); err != nil {
 		ReturnErrInfo(context, err)
 	} else {
 		ReturnSuccessInfo(context)

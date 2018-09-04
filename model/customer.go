@@ -6,12 +6,12 @@ import (
 
 // 用户模型
 type Customer struct {
-	CustomerId   string
-	NickName     string
-	Sex          int32
-	HeadImgUrl   string
-	Address      string
-	CustomerType int
-	CreateTime   time.Time
-	UpdateTime   time.Time
+	CustomerId   string    `bson:"customer_id" json:"customer_id"`
+	NickName     string    `bson:"nick_name" json:"nick_name"`
+	Sex          int32     `bson:"sex" json:"sex"`
+	HeadImgUrl   string    `bson:"head_img_url" json:"head_img_url"`
+	Address      string    `bson:"address" json:"address"`
+	CustomerType int       `bson:"customer_type" json:"customer_type"`
+	CreateTime   time.Time `bson:"create_time" json:"create_time"`
+	UpdateTime   time.Time `bson:"update_time" json:"update_time"`
 }

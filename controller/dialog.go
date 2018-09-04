@@ -34,12 +34,22 @@ func InitDialog(wxContext *wechat.Wechat, _db *model.MongoDb) *DialogController 
 // @Router /v1/wait_queue [get]
 func (c *DialogController) Queue(context *gin.Context) {
 	var (
-		waitCustomer   []WaitCustomer
+		waitCustomer   = []WaitCustomer{}
 		roomCollection = c.db.C("room")
 	)
 
-	roomCollection.Find(bson.M{"roomkf.kf_id": ""}).All(&waitCustomer)
-
+	query := []bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": ""},
+		},
+		{
+			"$project": bson.M{
+				"room_customer": 1,
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 5}},
+			},
+		},
+	}
+	roomCollection.Pipe(query).All(&waitCustomer)
 	context.JSON(http.StatusOK, waitCustomer)
 }
 
@@ -56,7 +66,7 @@ func (c *DialogController) Access(context *gin.Context) {
 		kfModel        model.Kf
 		kfId, _        = context.Get("KFID")
 		roomCollection = c.db.C("room")
-		kfCollection   = c.db.C("kfModel")
+		kfCollection   = c.db.C("kf")
 	)
 
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
@@ -72,7 +82,9 @@ func (c *DialogController) Access(context *gin.Context) {
 			KfHeadImgUrl: kfModel.HeadImgUrl,
 			KfStatus:     common.KF_ONLINE,
 		}
-		roomCollection.Update(bson.M{"room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_kf": roomKf}})
+		if err := roomCollection.Update(bson.M{"room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_kf": roomKf}}); err != nil {
+			ReturnErrInfo(context, err)
+		}
 	}
 
 	ReturnSuccessInfo(context)
@@ -87,8 +99,8 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Router /v1/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
 	var (
-		kfId, _        = context.Get("KFID")
 		waitCustomer   = []WaitCustomer{}
+		kfId, _        = context.Get("KFID")
 		roomCollection = c.db.C("room")
 	)
 

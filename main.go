@@ -88,8 +88,8 @@ func main() {
 		// 客服操作
 		kf := v1.Group("/kf")
 		{
-			kf.GET("/:kfId", kfController.Get)
-			kf.POST("/:kfId/status", kfController.ChangeStatus)
+			kf.GET("/", kfController.Get)
+			kf.PUT("/status", kfController.ChangeStatus)
 		}
 
 		// 设置操作

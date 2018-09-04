@@ -57,7 +57,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 			Id:         kf.Id,
 			UserName:   kf.NickName,
 			HeadImgUrl: kf.HeadImgUrl,
-			Status:     kf.Status,
+			IsOnline:   kf.IsOnline,
 		},
 		OnlineCustomer: onlineCustomer,
 		WaitCustomer:   waitCustomer,
@@ -93,28 +93,19 @@ type InitMine struct {
 	Id         string `bson:"id" json:"id"`
 	UserName   string `bson:"user_name" json:"user_name"`
 	HeadImgUrl string `bson:"head_img_url" json:"head_img_url"`
-	Status     bool   `json:"is_online" json:"status"`
+	IsOnline   bool   `bson:"is_online" json:"status"`
 }
 type CustomerInfo struct {
 	CustomerId         string `bson:"customer_id" json:"customer_id"`
 	CustomerNickName   string `bson:"customer_nick_name" json:"customer_nick_name"`
 	CustomerHeadImgUrl string `bson:"customer_head_img_url" json:"customer_head_img_url"`
 }
-type RoomMessage struct {
-	Id         string    `bson:"id" json:"id"`
-	Type       string    `bson:"type" json:"message_type"`
-	MediaUrl   string    `bson:"media_url" json:"media_url"`
-	Msg        string    `bson:"msg" json:"message_content"`
-	OperCode   int       `bson:"oper_code" json:"message_oper_code"`
-	Ack        bool      `bson:"ack" json:"message_ack"`
-	CreateTime time.Time `bson:"create_time" json:"create_time"`
-}
 type OnlineCustomer struct {
-	RoomCustomer CustomerInfo  `bson:"room_customer" json:"room_customer"`
-	RoomMessages []RoomMessage `bson:"room_messages" json:"room_messages"`
+	RoomCustomer CustomerInfo        `bson:"room_customer" json:"room_customer"`
+	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
 }
 type WaitCustomer struct {
-	RoomCustomer CustomerInfo  `bson:"room_customer" json:"room_customer"`
-	RoomMessages []RoomMessage `bson:"room_messages" json:"room_messages"`
+	RoomCustomer CustomerInfo        `bson:"room_customer" json:"room_customer"`
+	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
 	//PreviousKf         WaitQueuePreviousKf
 }
