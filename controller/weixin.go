@@ -35,8 +35,42 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				1. 检索已分配的房间
 				2. 存储聊天数据
 		*/
-		text := message.NewText(msg.Content)
-		log.Printf("用户[%s]发来信息：%s \n", msg.FromUserName, text.Content)
+		var (
+			msgType = string(msg.MsgType)
+			msgText = ""
+		)
+		switch msg.MsgType {
+		case message.MsgTypeText:
+			msgText = message.NewText(msg.Content).Content
+		case message.MsgTypeImage:
+			msgText = msg.PicURL
+		case message.MsgTypeVoice:
+			material := c.wxContext.GetMaterial()
+			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
+				log.Printf("material.MsgTypeVoice is err: %#v", err)
+			} else {
+				msgText = mediaURL
+
+			}
+		case message.MsgTypeVideo:
+			material := c.wxContext.GetMaterial()
+			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
+				log.Printf("material.MsgTypeVideo is err: %#v", err)
+			} else {
+				msgText = mediaURL
+
+			}
+		case message.MsgTypeShortVideo:
+			material := c.wxContext.GetMaterial()
+			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
+				log.Printf("material.MsgTypeShortVideo is err: %#v", err)
+			} else {
+				msgText = mediaURL
+
+			}
+		}
+
+		log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
 
 		roomCollection := c.db.C("room")
 		customerCollection := c.db.C("customer")
@@ -72,8 +106,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				RoomMessages: []model.RoomMessage{
 					{
 						Id:         common.GetNewUUID(),
-						Type:       string(msg.MsgType),
-						Msg:        text.Content,
+						Type:       msgType,
+						Msg:        msgText,
 						OperCode:   common.MessageFromCustomer,
 						CreateTime: time.Now(),
 					},
@@ -85,14 +119,14 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			roomCollection.Update(bson.M{"room_customer.customer_id": msg.FromUserName},
 				bson.M{"$push": bson.M{"room_messages": model.RoomMessage{
 					Id:         common.GetNewUUID(),
-					Type:       string(msg.MsgType),
-					Msg:        text.Content,
+					Type:       msgType,
+					Msg:        msgText,
 					OperCode:   common.MessageFromCustomer,
 					CreateTime: time.Now(),
 				}}})
 		}
 
-		return &message.Reply{MsgType: message.MsgTypeText}
+		return
 	})
 
 	//处理消息接收以及回复

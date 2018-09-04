@@ -54,15 +54,15 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 		kfId, _ = context.Get("KFID")
 		kfC     = c.db.C("kf")
 		reqBind = struct {
-			status bool `json:"status"`
+			Status bool `bson:"status" json:"status"`
 		}{}
 	)
 
-	if err := context.Bind(reqBind); err != nil {
+	if err := context.Bind(&reqBind); err != nil {
 		ReturnErrInfo(context, err)
 	}
 
-	if err := kfC.Update(bson.M{"id": kfId}, bson.M{"status": reqBind.status}); err != nil {
+	if err := kfC.Update(bson.M{"id": kfId}, bson.M{"status": reqBind.Status}); err != nil {
 		ReturnErrInfo(context, err)
 	} else {
 		ReturnSuccessInfo(context)
@@ -96,7 +96,6 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 		ReturnErrInfo(context, errors.New("客服登录授权失败"))
 	}
 
-	//logic.AddOnlineKf(kf)
 	s, _ := Make2Auth(kf.Id)
 
 	context.JSON(http.StatusOK, LoginInResponse{

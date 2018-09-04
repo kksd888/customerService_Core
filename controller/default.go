@@ -93,7 +93,7 @@ type InitMine struct {
 	Id         string `bson:"id" json:"id"`
 	UserName   string `bson:"user_name" json:"user_name"`
 	HeadImgUrl string `bson:"head_img_url" json:"head_img_url"`
-	Status     bool   `json:"status" json:"status"`
+	Status     bool   `json:"is_online" json:"status"`
 }
 type CustomerInfo struct {
 	CustomerId         string `bson:"customer_id" json:"customer_id"`
@@ -106,7 +106,7 @@ type RoomMessage struct {
 	Msg        string    `bson:"msg" json:"message_content"`
 	OperCode   int       `bson:"oper_code" json:"message_oper_code"`
 	Ack        bool      `bson:"ack" json:"message_ack"`
-	CteateTime time.Time `bson:"cteate_time" json:"message_cteate_time"`
+	CreateTime time.Time `bson:"create_time" json:"create_time"`
 }
 type OnlineCustomer struct {
 	RoomCustomer CustomerInfo  `bson:"room_customer" json:"room_customer"`

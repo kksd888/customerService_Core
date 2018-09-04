@@ -53,26 +53,26 @@ func (c *DialogController) Queue(context *gin.Context) {
 func (c *DialogController) Access(context *gin.Context) {
 	var (
 		aRequest       CustomerIdsRequest
-		kf             model.Kf
+		kfModel        model.Kf
 		kfId, _        = context.Get("KFID")
 		roomCollection = c.db.C("room")
-		kfCollection   = c.db.C("kf")
+		kfCollection   = c.db.C("kfModel")
 	)
 
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
+	kfCollection.Find(bson.M{"id": kfId}).One(&kfModel)
 	for _, v := range aRequest.CustomerIds {
 		// 客服加入聊天房间
 		roomKf := model.RoomKf{
-			KfId:         kf.Id,
-			KfName:       kf.NickName,
-			KfHeadImgUrl: kf.HeadImgUrl,
+			KfId:         kfModel.Id,
+			KfName:       kfModel.NickName,
+			KfHeadImgUrl: kfModel.HeadImgUrl,
 			KfStatus:     common.KF_ONLINE,
 		}
-		roomCollection.Update(bson.M{"roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roomkf": roomKf}})
+		roomCollection.Update(bson.M{"room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_kf": roomKf}})
 	}
 
 	ReturnSuccessInfo(context)
@@ -87,12 +87,12 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Router /v1/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
 	var (
-		waitCustomer   []WaitCustomer
 		kfId, _        = context.Get("KFID")
+		waitCustomer   = []WaitCustomer{}
 		roomCollection = c.db.C("room")
 	)
 
-	roomCollection.Find(bson.M{"roomkf.kf_id": kfId, "roommessages.ack": false}).All(&waitCustomer)
+	roomCollection.Find(bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, waitCustomer)
 }
@@ -115,7 +115,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 	}
 
 	for _, v := range aRequest.CustomerIds {
-		if updateErr := roomCollection.Update(bson.M{"roomkf.kf_id": kfId, "roomcustomer.customerid": v}, bson.M{"$set": bson.M{"roommessages.$[].ack": true}}); updateErr != nil {
+		if updateErr := roomCollection.Update(bson.M{"room_kf.kf_id": kfId, "room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_messages.$[].ack": true}}); updateErr != nil {
 			ReturnErrInfo(context, updateErr)
 		}
 	}
@@ -155,11 +155,11 @@ func (c *DialogController) History(context *gin.Context) {
 
 	query := []bson.M{
 		{
-			"$match": bson.M{"roomcustomer.customerid": customerId},
+			"$match": bson.M{"room_customer.customer_id": customerId},
 		},
 		{
 			"$project": bson.M{
-				"roommessages": bson.M{"$slice": []interface{}{"$roommessages", (page - 1) * limit, limit}},
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", (page - 1) * limit, limit}},
 			},
 		},
 	}
@@ -187,8 +187,8 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	roomCollection.Update(bson.M{"roomkf.kf_id": kfId, "roomcustomer.customerid": sendRequest.CustomerId},
-		bson.M{"$push": bson.M{"roommessages": &model.RoomMessage{
+	roomCollection.Update(bson.M{"room_kf.kf_id": kfId, "room_customer.customer_id": sendRequest.CustomerId},
+		bson.M{"$push": bson.M{"room_messages": &model.RoomMessage{
 			Id:         common.GetNewUUID(),
 			Type:       sendRequest.MsgType,
 			Msg:        sendRequest.Msg,
@@ -224,5 +224,5 @@ type SendMessageRequest struct {
 }
 
 type RoomHistory struct {
-	RoomMessages []model.RoomMessage
+	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
 }
