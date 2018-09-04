@@ -36,37 +36,36 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				2. 存储聊天数据
 		*/
 		var (
-			msgType = string(msg.MsgType)
-			msgText = ""
+			msgType  = string(msg.MsgType) // 消息类型
+			MediaUrl = ""                  // 多媒体地址
+			msgText  = ""                  // 文本内容
 		)
 		switch msg.MsgType {
 		case message.MsgTypeText:
 			msgText = message.NewText(msg.Content).Content
 		case message.MsgTypeImage:
-			msgText = msg.PicURL
+			MediaUrl = msg.PicURL
 		case message.MsgTypeVoice:
+			msgText = msg.Recognition
 			material := c.wxContext.GetMaterial()
 			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
 				log.Printf("material.MsgTypeVoice is err: %#v", err)
 			} else {
-				msgText = mediaURL
-
+				MediaUrl = mediaURL
 			}
 		case message.MsgTypeVideo:
 			material := c.wxContext.GetMaterial()
 			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
 				log.Printf("material.MsgTypeVideo is err: %#v", err)
 			} else {
-				msgText = mediaURL
-
+				MediaUrl = mediaURL
 			}
 		case message.MsgTypeShortVideo:
 			material := c.wxContext.GetMaterial()
 			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
 				log.Printf("material.MsgTypeShortVideo is err: %#v", err)
 			} else {
-				msgText = mediaURL
-
+				MediaUrl = mediaURL
 			}
 		}
 
@@ -108,6 +107,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 						Id:         common.GetNewUUID(),
 						Type:       msgType,
 						Msg:        msgText,
+						MediaUrl:   MediaUrl,
 						OperCode:   common.MessageFromCustomer,
 						CreateTime: time.Now(),
 					},
@@ -121,6 +121,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 					Id:         common.GetNewUUID(),
 					Type:       msgType,
 					Msg:        msgText,
+					MediaUrl:   MediaUrl,
 					OperCode:   common.MessageFromCustomer,
 					CreateTime: time.Now(),
 				}}})

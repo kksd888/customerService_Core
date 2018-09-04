@@ -23,6 +23,7 @@ type RoomKf struct {
 type RoomMessage struct {
 	Id         string    `bson:"id"`
 	Type       string    `bson:"type"`
+	MediaUrl   string    `bson:"media_url"`
 	Msg        string    `bson:"msg"`
 	Ack        bool      `bson:"ack"`
 	OperCode   int       `bson:"oper_code"`

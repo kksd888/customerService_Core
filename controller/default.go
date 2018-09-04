@@ -103,6 +103,7 @@ type CustomerInfo struct {
 type RoomMessage struct {
 	Id         string    `bson:"id" json:"id"`
 	Type       string    `bson:"type" json:"message_type"`
+	MediaUrl   string    `bson:"media_url" json:"media_url"`
 	Msg        string    `bson:"msg" json:"message_content"`
 	OperCode   int       `bson:"oper_code" json:"message_oper_code"`
 	Ack        bool      `bson:"ack" json:"message_ack"`
