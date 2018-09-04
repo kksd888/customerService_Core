@@ -79,16 +79,16 @@ func main() {
 		// 会话操作
 		dialog := v1.Group("/dialog")
 		{
-			dialog.GET("/", dialogController.List)
-			dialog.POST("/", dialogController.SendMessage)
-			dialog.PUT("/ack", dialogController.Ack)
+			dialog.GET("", dialogController.List)
 			dialog.GET("/:customerId/:page/:limit", dialogController.History)
+			dialog.PUT("/ack", dialogController.Ack)
+			dialog.POST("", dialogController.SendMessage)
 		}
 
 		// 客服操作
 		kf := v1.Group("/kf")
 		{
-			kf.GET("/", kfController.Get)
+			kf.GET("", kfController.Get)
 			kf.PUT("/status", kfController.ChangeStatus)
 		}
 
@@ -100,8 +100,8 @@ func main() {
 			{
 				offlineReply.GET("", offlineReplyController.List)
 				offlineReply.POST("", offlineReplyController.Create)
-				offlineReply.PUT("/:replyId/", offlineReplyController.Update)
-				offlineReply.DELETE("/:replyId/", offlineReplyController.Delete)
+				offlineReply.PUT("/:replyId", offlineReplyController.Update)
+				offlineReply.DELETE("/:replyId", offlineReplyController.Delete)
 			}
 		}
 	}
