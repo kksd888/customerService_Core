@@ -39,7 +39,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 	var (
 		kf      model.Kf
 		kfId, _ = context.Get("KFID")
-		kfC     = model.Db.C("kf")
+		kfC     = model.Db.C("kefu")
 	)
 
 	if err := kfC.Find(bson.M{"id": kfId}).One(&kf); err != nil {
@@ -59,7 +59,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
 	var (
 		kfId, _ = context.Get("KFID")
-		kfC     = model.Db.C("kf")
+		kfC     = model.Db.C("kefu")
 		reqBind = struct {
 			Status bool `bson:"status" json:"status"`
 		}{}
@@ -88,7 +88,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}
 		tokenId      = context.Param("tokenId")
-		kfCollection = model.Db.C("kf")
+		kfCollection = model.Db.C("kefu")
 	)
 
 	if tokenId == "" {

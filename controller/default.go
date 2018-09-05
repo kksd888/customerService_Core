@@ -43,7 +43,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
 		kfId, _        = context.Get("KFID")
-		kfCollection   = model.Db.C("kf")
+		kfCollection   = model.Db.C("kefu")
 		roomCollection = model.Db.C("room")
 	)
 

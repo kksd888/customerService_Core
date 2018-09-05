@@ -86,7 +86,7 @@ func (c *DialogController) Access(context *gin.Context) {
 		kfModel        model.Kf
 		kfId, _        = context.Get("KFID")
 		roomCollection = model.Db.C("room")
-		kfCollection   = model.Db.C("kf")
+		kfCollection   = model.Db.C("kefu")
 	)
 
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {

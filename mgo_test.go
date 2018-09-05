@@ -68,7 +68,7 @@ func Test_Mongo_Select(t *testing.T) {
 
 func Test_InitKf(t *testing.T) {
 	defer session.Close()
-	collection := session.DB("test").C("kf")
+	collection := session.DB("test").C("kefu")
 	collection.Insert(&model.Kf{
 		Id:         common.GetNewUUID(),
 		TokenId:    "123",
