@@ -4,6 +4,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/controller"
 	_ "git.jsjit.cn/customerService/customerService_Core/docs"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/cache"
 	"github.com/gin-contrib/cors"
@@ -40,6 +41,7 @@ func init() {
 func main() {
 
 	//gin.SetMode(gin.ReleaseMode)
+	model.NewMongo()
 
 	router := gin.Default()
 

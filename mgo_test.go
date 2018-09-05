@@ -105,3 +105,27 @@ func Test_Sclient(t *testing.T) {
 		log.Printf("异常消息：%s", err.Error())
 	}
 }
+
+func Test_Sort(t *testing.T) {
+	defer session.Close()
+	roomCollection := session.DB("test").C("room")
+
+	var bsons []bson.M
+	roomCollection.Pipe([]bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": "40e9146c-653c-4d75-8a6e-993ca1a0b34f"},
+		},
+		{
+			"$project": bson.M{
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 1}},
+			},
+		},
+		{
+			"$sort": bson.M{"room_messages.create_time": -1},
+		},
+	}).All(&bsons)
+
+	for _, v := range bsons {
+		fmt.Printf("%#s \n", v["room_messages"])
+	}
+}

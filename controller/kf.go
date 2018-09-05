@@ -84,7 +84,7 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Produce  json
 // @Param tokenId path int true "客服的授权TokenId"
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/login/{tokenId} [post]
+// @Router /login/{tokenId} [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}

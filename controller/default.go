@@ -48,8 +48,30 @@ func (c *DefaultController) Init(context *gin.Context) {
 	)
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
-	roomCollection.Find(bson.M{"room_kf.kf_id": kfId}).All(&onlineCustomer)
-	roomCollection.Find(bson.M{"room_kf.kf_id": ""}).All(&waitCustomer)
+
+	// 获取聊天列表
+	roomCollection.Pipe([]bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": kfId},
+		},
+		{
+			"$project": bson.M{
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
+			},
+		},
+	}).All(&onlineCustomer)
+
+	// 获取排队列表
+	roomCollection.Pipe([]bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": ""},
+		},
+		{
+			"$project": bson.M{
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
+			},
+		},
+	}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
