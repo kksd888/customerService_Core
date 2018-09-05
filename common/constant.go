@@ -1,6 +1,9 @@
 package common
 
-import "github.com/satori/go.uuid"
+import (
+	"github.com/satori/go.uuid"
+	"strings"
+)
 
 const (
 	AES_KEY  = "80b11dc2dba242fd99b6bff28760c849"      //AES加密的KEY
@@ -19,5 +22,5 @@ const (
 
 func GetNewUUID() string {
 	uuids, _ := uuid.NewV4()
-	return uuids.String()
+	return strings.Replace(uuids.String(), "-", "", -1)
 }
