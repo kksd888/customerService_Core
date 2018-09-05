@@ -56,6 +56,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 		},
 		{
 			"$project": bson.M{
+				"room_customer": 1,
 				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
 			},
 		},
@@ -67,6 +68,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 			"$match": bson.M{"room_kf.kf_id": ""},
 		},
 		{
+			"room_customer": 1,
 			"$project": bson.M{
 				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
 			},

@@ -4,7 +4,6 @@ package controller
 
 import (
 	"encoding/base64"
-	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
@@ -97,11 +96,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 		return
 	}
 	if err := kfCollection.Find(bson.M{"token_id": tokenId}).One(&kf); err != nil {
-		ReturnErrInfo(context, err)
-	}
-
-	if kf.Id == "0" {
-		ReturnErrInfo(context, errors.New("客服登录授权失败"))
+		ReturnErrInfo(context, "客服登录授权失败")
 	}
 
 	s, _ := Make2Auth(kf.Id)
