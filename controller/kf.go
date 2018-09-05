@@ -23,11 +23,10 @@ type OnLineKf struct {
 }
 
 type KfServerController struct {
-	db *model.MongoDb
 }
 
-func InitKfServer(_db *model.MongoDb) *KfServerController {
-	return &KfServerController{db: _db}
+func InitKfServer() *KfServerController {
+	return &KfServerController{}
 }
 
 // @Summary 获取客服信息
@@ -41,7 +40,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 	var (
 		kf      model.Kf
 		kfId, _ = context.Get("KFID")
-		kfC     = c.db.C("kf")
+		kfC     = model.Db.C("kf")
 	)
 
 	if err := kfC.Find(bson.M{"id": kfId}).One(&kf); err != nil {
@@ -61,7 +60,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
 	var (
 		kfId, _ = context.Get("KFID")
-		kfC     = c.db.C("kf")
+		kfC     = model.Db.C("kf")
 		reqBind = struct {
 			Status bool `bson:"status" json:"status"`
 		}{}
@@ -90,7 +89,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}
 		tokenId      = context.Param("tokenId")
-		kfCollection = c.db.C("kf")
+		kfCollection = model.Db.C("kf")
 	)
 
 	if tokenId == "" {

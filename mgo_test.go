@@ -6,6 +6,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"log"
 	"testing"
 	"time"
 )
@@ -14,6 +15,7 @@ var session *mgo.Session
 
 func init() {
 	session, _ = mgo.Dial("172.16.14.52:27017")
+	mgo.SetDebug(true)
 }
 
 type User struct {
@@ -77,4 +79,29 @@ func Test_InitKf(t *testing.T) {
 		CreateTime: time.Now(),
 		UpdateTime: time.Now(),
 	})
+}
+
+func Test_Sclient(t *testing.T) {
+	defer session.Close()
+	roomCollection := session.DB("test").C("room")
+
+	query := bson.M{
+		"room_customer.customer_id": "ocnn-1PIPTsqqnRcVgUeIKCp2lKs",
+	}
+	changes := bson.M{
+		"$push": bson.M{"room_messages": bson.M{"$each": []model.Message{
+			{
+				Id:         common.GetNewUUID(),
+				Type:       "text",
+				Msg:        "数组增量控制测试",
+				MediaUrl:   "",
+				OperCode:   common.MessageFromCustomer,
+				CreateTime: time.Now(),
+			},
+		},
+			"$slice": -10}},
+	}
+	if err := roomCollection.Update(query, changes); err != nil {
+		log.Printf("异常消息：%s", err.Error())
+	}
 }

@@ -12,11 +12,10 @@ import (
 )
 
 type DefaultController struct {
-	db *model.MongoDb
 }
 
-func InitHealth(_db *model.MongoDb) *DefaultController {
-	return &DefaultController{db: _db}
+func InitHealth() *DefaultController {
+	return &DefaultController{}
 }
 
 // @Summary 健康检查
@@ -44,8 +43,8 @@ func (c *DefaultController) Init(context *gin.Context) {
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
 		kfId, _        = context.Get("KFID")
-		kfCollection   = c.db.C("kf")
-		roomCollection = c.db.C("room")
+		kfCollection   = model.Db.C("kf")
+		roomCollection = model.Db.C("room")
 	)
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)

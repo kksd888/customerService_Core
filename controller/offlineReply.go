@@ -8,7 +8,6 @@ import (
 )
 
 type OfflineReplyController struct {
-	db *model.MongoDb
 }
 
 func InitOfflineReply() *OfflineReplyController {
@@ -38,7 +37,7 @@ func (c *OfflineReplyController) Create(context *gin.Context) {
 			offLineMsg string `bson:"off_line_msg" json:"off_line_msg"`
 			operKfId   string `bson:"oper_kf_id" json:"oper_kf_id"`
 		}{}
-		replyC = c.db.C("offineReply")
+		replyC = model.Db.C("offineReply")
 	)
 
 	if err := replyC.Insert(&offline); err != nil {

@@ -13,12 +13,11 @@ import (
 )
 
 type WeiXinController struct {
-	db        *model.MongoDb
 	wxContext *wechat.Wechat
 }
 
-func InitWeiXin(wxContext *wechat.Wechat, _db *model.MongoDb) *WeiXinController {
-	return &WeiXinController{wxContext: wxContext, db: _db}
+func InitWeiXin(wxContext *wechat.Wechat) *WeiXinController {
+	return &WeiXinController{wxContext: wxContext}
 }
 
 // 微信通信接口
@@ -71,11 +70,14 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 
 		log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
 
-		roomCollection := c.db.C("room")
-		customerCollection := c.db.C("customer")
-		count, _ := roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).Count()
+		roomCollection := model.Db.C("room")
+		customerCollection := model.Db.C("customer")
+		var room = model.Room{}
+		if err := roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room); err != nil {
+			log.Printf("WeiXinController.Listen.roomCollection.Find err :%s", err.Error())
+		}
 
-		if count == 0 {
+		if room.RoomCustomer.CustomerId == "" {
 			// 新接入
 			userInfo, err := c.wxContext.GetUser().GetUserInfo(msg.FromUserName)
 			if err != nil {
@@ -92,6 +94,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
 			})
 
+			// 实时会话数据更新
 			roomCollection.Insert(&model.Room{
 				RoomCustomer: model.RoomCustomer{
 					CustomerId:         msg.FromUserName,
@@ -111,17 +114,39 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				CreateTime: time.Now(),
 			})
 		} else {
-			// 会话中的客户
-			roomCollection.Update(bson.M{"room_customer.customer_id": msg.FromUserName},
-				bson.M{"$push": bson.M{"room_messages": model.RoomMessage{
-					Id:         common.GetNewUUID(),
-					Type:       msgType,
-					Msg:        msgText,
-					MediaUrl:   MediaUrl,
-					OperCode:   common.MessageFromCustomer,
-					CreateTime: time.Now(),
-				}}})
+			// 实时会话数据更新
+			query := bson.M{
+				"room_customer.customer_id": msg.FromUserName,
+			}
+			changes := bson.M{
+				"$push": bson.M{"room_messages": bson.M{"$each": []model.Message{
+					{
+						Id:         common.GetNewUUID(),
+						Type:       msgType,
+						Msg:        msgText,
+						MediaUrl:   MediaUrl,
+						OperCode:   common.MessageFromCustomer,
+						CreateTime: time.Now(),
+					},
+				},
+					"$slice": -100}},
+			}
+			if err := roomCollection.Update(query, changes); err != nil {
+				log.Printf("实时房型数据更新异常：%s", err.Error())
+			}
 		}
+
+		// 存储历史消息
+		model.InsertMessage(model.Message{
+			Id:         common.GetNewUUID(),
+			Type:       msgType,
+			CustomerId: msg.FromUserName,
+			KfId:       room.RoomKf.KfId,
+			Msg:        msgText,
+			MediaUrl:   MediaUrl,
+			OperCode:   common.MessageFromCustomer,
+			CreateTime: time.Now(),
+		})
 
 		if len(OnlineKfs) == 0 {
 			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}

@@ -17,12 +17,11 @@ import (
 )
 
 type DialogController struct {
-	db        *model.MongoDb
 	wxContext *wechat.Wechat
 }
 
-func InitDialog(wxContext *wechat.Wechat, _db *model.MongoDb) *DialogController {
-	return &DialogController{wxContext: wxContext, db: _db}
+func InitDialog(wxContext *wechat.Wechat) *DialogController {
+	return &DialogController{wxContext: wxContext}
 }
 
 // @Summary 获取待回复消息列表 (5s轮询一次)
@@ -36,7 +35,7 @@ func (c *DialogController) List(context *gin.Context) {
 	var (
 		waitCustomer   = []WaitCustomer{}
 		kfId, _        = context.Get("KFID")
-		roomCollection = c.db.C("room")
+		roomCollection = model.Db.C("room")
 	)
 
 	if err := roomCollection.Find(bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false}).All(&waitCustomer); err != nil {
@@ -56,7 +55,7 @@ func (c *DialogController) List(context *gin.Context) {
 func (c *DialogController) Queue(context *gin.Context) {
 	var (
 		waitCustomer   = []WaitCustomer{}
-		roomCollection = c.db.C("room")
+		roomCollection = model.Db.C("room")
 	)
 
 	query := []bson.M{
@@ -86,8 +85,8 @@ func (c *DialogController) Access(context *gin.Context) {
 		aRequest       CustomerIdsRequest
 		kfModel        model.Kf
 		kfId, _        = context.Get("KFID")
-		roomCollection = c.db.C("room")
-		kfCollection   = c.db.C("kf")
+		roomCollection = model.Db.C("room")
+		kfCollection   = model.Db.C("kf")
 	)
 
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
@@ -122,7 +121,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 	var (
 		aRequest       CustomerIdsRequest
 		kfId, _        = context.Get("KFID")
-		roomCollection = c.db.C("room")
+		roomCollection = model.Db.C("room")
 	)
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
@@ -152,7 +151,7 @@ func (c *DialogController) History(context *gin.Context) {
 		customerId     = context.Param("customerId")
 		strPage        = context.Param("page")
 		strLimit       = context.Param("limit")
-		roomCollection = c.db.C("room")
+		roomCollection = model.Db.C("room")
 	)
 	if customerId == "" {
 		ReturnErrInfo(context, errors.New("缺少customerId"))
@@ -195,21 +194,45 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 	var (
 		sendRequest    SendMessageRequest
 		kfId, _        = context.Get("KFID")
-		roomCollection = c.db.C("room")
+		roomCollection = model.Db.C("room")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	roomCollection.Update(bson.M{"room_kf.kf_id": kfId, "room_customer.customer_id": sendRequest.CustomerId},
-		bson.M{"$push": bson.M{"room_messages": &model.RoomMessage{
-			Id:         common.GetNewUUID(),
-			Type:       sendRequest.MsgType,
-			Msg:        sendRequest.Msg,
-			OperCode:   common.MessageFromKf,
-			Ack:        true,
-			CreateTime: time.Now(),
-		}}})
+	// 实时存储
+	query := bson.M{
+		"room_kf.kf_id":             kfId,
+		"room_customer.customer_id": sendRequest.CustomerId,
+	}
+	changes := bson.M{
+		"$push": bson.M{"room_messages": bson.M{"$each": []model.Message{
+			{
+				Id:         common.GetNewUUID(),
+				Type:       sendRequest.MsgType,
+				Msg:        sendRequest.Msg,
+				OperCode:   common.MessageFromKf,
+				Ack:        true,
+				CreateTime: time.Now(),
+			},
+		},
+			"$slice": -100}},
+	}
+	if err := roomCollection.Update(query, changes); err != nil {
+		ReturnErrInfo(context, errors.New("发送消息异常，存储异常，未发送成功"))
+	}
+
+	// 历史存储
+	// 存储历史消息
+	model.InsertMessage(model.Message{
+		Id:         common.GetNewUUID(),
+		Type:       sendRequest.MsgType,
+		CustomerId: sendRequest.CustomerId,
+		Msg:        sendRequest.Msg,
+		OperCode:   common.MessageFromKf,
+		Ack:        true,
+		CreateTime: time.Now(),
+	})
 
 	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
 		ToUser:  sendRequest.CustomerId,

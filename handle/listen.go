@@ -2,6 +2,8 @@ package handle
 
 import (
 	"git.jsjit.cn/customerService/customerService_Core/controller"
+	"git.jsjit.cn/customerService/customerService_Core/model"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"os"
 	"os/signal"
@@ -33,8 +35,12 @@ func Listen() {
 				duration := time.Now().Sub(onLineKf.LastTime)
 				// 超时一小时则下线
 				if duration.Hours() > 1 {
-					log.Printf("客服[%s]超时，已经下线", onLineKf.KfId)
 					delete(controller.OnlineKfs, k)
+					if err := model.Db.C("room").Update(bson.M{"room_kf.kf_id": onLineKf.KfId}, bson.M{"$set": bson.M{"kf_status": "0"}}); err != nil {
+						log.Printf("客服[%s]超时，下线异常: %s", onLineKf.KfId, err.Error())
+					} else {
+						log.Printf("客服[%s]超时，已经下线", onLineKf.KfId)
+					}
 				}
 			}
 		}

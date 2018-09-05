@@ -4,7 +4,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/controller"
 	_ "git.jsjit.cn/customerService/customerService_Core/docs"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/cache"
 	"github.com/gin-contrib/cors"
@@ -55,12 +54,11 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	mongoDb := model.NewMongo()
-	defaultController := controller.InitHealth(mongoDb)
+	defaultController := controller.InitHealth()
 	offlineReplyController := controller.InitOfflineReply()
-	kfController := controller.InitKfServer(mongoDb)
-	weiXinController := controller.InitWeiXin(wxContext, mongoDb)
-	dialogController := controller.InitDialog(wxContext, mongoDb)
+	kfController := controller.InitKfServer()
+	weiXinController := controller.InitWeiXin(wxContext)
+	dialogController := controller.InitDialog(wxContext)
 	//customerController := controller.InitCustomer(wxContext, logic.RoomMap)
 
 	// API路由 (授权保护)
