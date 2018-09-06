@@ -10,16 +10,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
-	"time"
 )
-
-// 在线客服列表
-var OnlineKfs = make(map[string]*OnLineKf)
-
-type OnLineKf struct {
-	KfId     string
-	LastTime time.Time
-}
 
 type KfServerController struct {
 }
@@ -102,9 +93,10 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	s, _ := Make2Auth(kf.Id)
 
 	// 更新在线客服列表
-	OnlineKfs[s] = &OnLineKf{
-		KfId:     kf.Id,
-		LastTime: time.Now(),
+	changeKfModel := model.Kf{Id: kf.Id, IsOnline: true}
+	err := changeKfModel.ChangeStatus()
+	if err != nil {
+		ReturnErrInfo(context, err)
 	}
 
 	context.JSON(http.StatusOK, LoginInResponse{

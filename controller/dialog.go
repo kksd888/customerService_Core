@@ -82,15 +82,17 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Router /v1/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
 	var (
-		aRequest       CustomerIdsRequest
-		kfModel        model.Kf
-		kfId, _        = context.Get("KFID")
-		roomCollection = model.Db.C("room")
-		kfCollection   = model.Db.C("kefu")
+		err               error
+		aRequest          CustomerIdsRequest
+		kfModel           model.Kf
+		kfId, _           = context.Get("KFID")
+		roomCollection    = model.Db.C("room")
+		kfCollection      = model.Db.C("kefu")
+		messageCollection = model.Db.C("message")
 	)
 
-	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
-		ReturnErrInfo(context, bindErr)
+	if err = context.BindJSON(&aRequest); err != nil {
+		ReturnErrInfo(context, err)
 	}
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kfModel)
@@ -102,7 +104,12 @@ func (c *DialogController) Access(context *gin.Context) {
 			KfHeadImgUrl: kfModel.HeadImgUrl,
 			KfStatus:     common.KF_ONLINE,
 		}
-		if err := roomCollection.Update(bson.M{"room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_kf": roomKf}}); err != nil {
+		// 更新会话信息
+		if err = roomCollection.Update(bson.M{"room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_kf": roomKf}}); err != nil {
+			ReturnErrInfo(context, err)
+		}
+		// 归档历史会话
+		if err = messageCollection.Update(bson.M{"customer_id": v, "kf_id": ""}, bson.M{"$set": bson.M{"kf_id": roomKf.KfId}}); err != nil {
 			ReturnErrInfo(context, err)
 		}
 	}
@@ -206,13 +213,12 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		"room_customer.customer_id": sendRequest.CustomerId,
 	}
 	changes := bson.M{
-		"$push": bson.M{"room_messages": bson.M{"$each": []model.Message{
+		"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
 			{
 				Id:         common.GetNewUUID(),
 				Type:       sendRequest.MsgType,
 				Msg:        sendRequest.Msg,
 				OperCode:   common.MessageFromKf,
-				Ack:        true,
 				CreateTime: time.Now(),
 			},
 		},
@@ -230,7 +236,6 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		CustomerId: sendRequest.CustomerId,
 		Msg:        sendRequest.Msg,
 		OperCode:   common.MessageFromKf,
-		Ack:        true,
 		CreateTime: time.Now(),
 	})
 

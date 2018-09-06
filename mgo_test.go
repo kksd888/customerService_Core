@@ -50,20 +50,12 @@ func Test_Mongo_Update(t *testing.T) {
 
 func Test_Mongo_Select(t *testing.T) {
 	defer session.Close()
-	collection := session.DB("test").C("users")
-	query := collection.Find(bson.M{"msgs.id": 2})
-	//if n, err := query.Count(); err != nil {
-	//	t.Log(err)
-	//} else {
-	//	t.Log(n)
-	//}
+	var user model.Kf
 
-	iter := query.Iter()
-	defer iter.Close()
-	user := User{}
-	for iter.Next(&user) {
-		fmt.Printf("%v", user)
-	}
+	collection := session.DB("test").C("kefu")
+	collection.Find(bson.M{"id": "be74f7661bf4466aa368766b693e46bb"}).One(&user)
+
+	fmt.Printf("%v \n", user)
 }
 
 func Test_InitKf(t *testing.T) {

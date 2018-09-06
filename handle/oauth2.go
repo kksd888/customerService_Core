@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/controller"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -13,7 +13,12 @@ import (
 // OAuth2.0 授权认证
 func OauthMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("authentication")
+		var (
+			err   error
+			kfId  string
+			token = c.Request.Header.Get("authentication")
+		)
+
 		if token == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code": http.StatusUnauthorized,
@@ -23,7 +28,7 @@ func OauthMiddleWare() gin.HandlerFunc {
 			return
 		}
 
-		if kfId, err := AuthToken2Model(c); err != nil {
+		if kfId, err = AuthToken2Model(c); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code": http.StatusUnauthorized,
 				"msg":  err.Error(),
@@ -35,12 +40,14 @@ func OauthMiddleWare() gin.HandlerFunc {
 		}
 
 		// 更新在线客服列表时间
-		if online, exist := controller.OnlineKfs[token]; exist {
-			online.LastTime = time.Now()
+		contrastKf := model.Kf{Id: kfId, UpdateTime: time.Now()}
+		isExist := contrastKf.OnlineExist()
+		if isExist {
+			model.KfLastTimeChange <- &contrastKf
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code": http.StatusUnauthorized,
-				"msg":  "请重新登录",
+				"msg":  "授权过期，请重新登录",
 			})
 			c.Abort()
 			return

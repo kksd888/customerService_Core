@@ -148,7 +148,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			CreateTime: time.Now(),
 		})
 
-		if len(OnlineKfs) == 0 {
+		onlines, _ := model.Kf{}.QueryOnlines()
+		if len(onlines) == 0 {
 			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
 		}
 

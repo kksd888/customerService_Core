@@ -13,7 +13,6 @@ type Message struct {
 	Type       string    `bson:"type"`
 	MediaUrl   string    `bson:"media_url"`
 	Msg        string    `bson:"msg"`
-	Ack        bool      `bson:"ack"`
 	OperCode   int       `bson:"oper_code"`
 	CreateTime time.Time `bson:"create_time"`
 }
