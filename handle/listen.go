@@ -21,10 +21,10 @@ func Listen() {
 	go func() {
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 		<-sigs
-		// todo 所有客服强制下线
-		var kefuC = model.Db.C("kefu")
-		kefuC.Update(bson.M{"is_online": true}, bson.M{"$set": bson.M{"is_online": false}})
-		log.Println("优雅停机，所有客服已经强制下线")
+		// todo 所有客服强制下线，再议
+		//var kefuC = model.Db.C("kefu")
+		//kefuC.Update(bson.M{"is_online": true}, bson.M{"$set": bson.M{"is_online": false}})
+		//log.Println("优雅停机，所有客服已经强制下线")
 		os.Exit(0)
 	}()
 

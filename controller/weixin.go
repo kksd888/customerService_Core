@@ -119,7 +119,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				"room_customer.customer_id": msg.FromUserName,
 			}
 			changes := bson.M{
-				"$push": bson.M{"room_messages": bson.M{"$each": []model.Message{
+				"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
 					{
 						Id:         common.GetNewUUID(),
 						Type:       msgType,

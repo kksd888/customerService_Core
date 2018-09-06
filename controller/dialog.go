@@ -219,6 +219,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 				Type:       sendRequest.MsgType,
 				Msg:        sendRequest.Msg,
 				OperCode:   common.MessageFromKf,
+				Ack:        true,
 				CreateTime: time.Now(),
 			},
 		},
