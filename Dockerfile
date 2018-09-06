@@ -1,10 +1,6 @@
-FROM ubuntu:16.04
-
-ENV TZ=Asia/Shanghai
+FROM maven.jsjit.cn:9911/ubuntu:16.04.01
 
 COPY app /
-
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && apt update && apt install -y ca-certificates
 
 EXPOSE 5000/tcp
 
