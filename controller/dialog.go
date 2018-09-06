@@ -37,8 +37,28 @@ func (c *DialogController) List(context *gin.Context) {
 		kfId, _        = context.Get("KFID")
 		roomCollection = model.Db.C("room")
 	)
+	query := []bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false},
+		},
+		{
+			"$project": bson.M{
+				"room_customer": 1,
+				"room_messages": bson.M{
+					"$filter": bson.M{
+						"input": "$room_messages",
+						"as":    "room_message",
+						"cond": bson.M{
+							"$eq": []interface{}{"$$room_message.ack", false},
+						},
+					},
+				},
+			},
+		},
+	}
 
-	if err := roomCollection.Find(bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false}).All(&waitCustomer); err != nil {
+	err := roomCollection.Pipe(query).All(&waitCustomer)
+	if err != nil {
 		ReturnErrInfo(context, err)
 	}
 
@@ -65,10 +85,11 @@ func (c *DialogController) Queue(context *gin.Context) {
 		{
 			"$project": bson.M{
 				"room_customer": 1,
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 5}},
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 2}},
 			},
 		},
 	}
+
 	roomCollection.Pipe(query).All(&waitCustomer)
 	context.JSON(http.StatusOK, waitCustomer)
 }

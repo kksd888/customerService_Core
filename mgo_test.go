@@ -15,7 +15,6 @@ var session *mgo.Session
 
 func init() {
 	session, _ = mgo.Dial("172.16.14.52:27017")
-	mgo.SetDebug(true)
 }
 
 type User struct {
@@ -50,12 +49,37 @@ func Test_Mongo_Update(t *testing.T) {
 
 func Test_Mongo_Select(t *testing.T) {
 	defer session.Close()
-	var user model.Kf
 
-	collection := session.DB("test").C("kefu")
-	collection.Find(bson.M{"id": "be74f7661bf4466aa368766b693e46bb"}).One(&user)
+	var rooms []model.Room
+	collection := session.DB("test").C("room")
 
-	fmt.Printf("%v \n", user)
+	query := []bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_name": "小金同学", "room_messages.ack": false}, // , "room_messages.ack": false
+		},
+		{
+			"$project": bson.M{
+				"room_customer": 1,
+				"room_messages": bson.M{
+					"$filter": bson.M{
+						"input": "$room_messages",
+						"as":    "room_message",
+						"cond": bson.M{
+							"$eq": []interface{}{"$$room_message.ack", false},
+						},
+					},
+				},
+			},
+		},
+	}
+	err := collection.Pipe(query).All(&rooms)
+	for _, v := range rooms {
+		fmt.Printf("%#v \n", len(v.RoomMessages))
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func Test_InitKf(t *testing.T) {
