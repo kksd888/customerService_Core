@@ -53,15 +53,16 @@ func main() {
 		AllowCredentials: true,
 		AllowAllOrigins:  false,
 		AllowOriginFunc:  func(origin string) bool { return true },
-		MaxAge:           12 * time.Hour,
+		MaxAge:           30 * time.Minute,
 	}))
+
+	router.Static("/static", "./www")
 
 	defaultController := controller.InitHealth()
 	offlineReplyController := controller.InitOfflineReply()
 	kfController := controller.InitKfServer()
 	weiXinController := controller.InitWeiXin(wxContext)
 	dialogController := controller.InitDialog(wxContext)
-	//customerController := controller.InitCustomer(wxContext, logic.RoomMap)
 
 	// API路由 (授权保护)
 	v1 := router.Group("/v1", handle.OauthMiddleWare())
