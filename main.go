@@ -6,7 +6,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/cache"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/gin-swagger"
@@ -19,19 +18,19 @@ var (
 )
 
 func init() {
-	redis := cache.NewRedis(&cache.RedisOpts{
-		Host: "172.16.7.20:6379",
-	})
-
-	//配置微信参数
-	config := &wechat.Config{
-		AppID:          "wx6cfceff5167a6007",
-		AppSecret:      "1c1a365155e23b491f4878afbb87b918",
-		Token:          "1603411701",
-		EncodingAESKey: "fTrvMnac80fBHFP63KTLFZAhfxdSq7c126yftPw3HO1",
-		Cache:          redis,
-	}
-	wxContext = wechat.NewWechat(config)
+	//redis := cache.NewRedis(&cache.RedisOpts{
+	//	Host: "172.16.7.20:6379",
+	//})
+	//
+	////配置微信参数
+	//config := &wechat.Config{
+	//	AppID:          "wx6cfceff5167a6007",
+	//	AppSecret:      "1c1a365155e23b491f4878afbb87b918",
+	//	Token:          "1603411701",
+	//	EncodingAESKey: "fTrvMnac80fBHFP63KTLFZAhfxdSq7c126yftPw3HO1",
+	//	Cache:          redis,
+	//}
+	wxContext = wechat.NewWechat(&wechat.Config{})
 }
 
 // @title 在线客服API文档
