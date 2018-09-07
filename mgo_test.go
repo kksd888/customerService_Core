@@ -202,3 +202,7 @@ func Test_Sort(t *testing.T) {
 		fmt.Printf("%#s \n", v["room_messages"])
 	}
 }
+
+func Test_Times(t *testing.T) {
+	fmt.Println(time.Now().Unix())
+}
