@@ -9,8 +9,9 @@ import (
 // 客服模型
 type Kf struct {
 	Id         string    `json:"id" bson:"id"`
-	TokenId    string    `json:"token_id" bson:"token_id"`
+	JobNum     string    `json:"job_num" bson:"job_num"`
 	NickName   string    `json:"nick_name" bson:"nick_name"`
+	PassWord   string    `json:"-" bson:"pass_word"`
 	Type       int       `json:"type" bson:"type"`
 	HeadImgUrl string    `json:"head_img_url" bson:"head_img_url"`
 	IsOnline   bool      `json:"is_online" bson:"is_online"`

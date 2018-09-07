@@ -4,9 +4,11 @@ package controller
 
 import (
 	"encoding/base64"
+	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
@@ -72,21 +74,30 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param tokenId path int true "客服的授权TokenId"
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /login/{tokenId} [post]
+// @Router /login [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}
-		tokenId      = context.Param("tokenId")
 		kfCollection = model.Db.C("kefu")
+		loginStruct  = struct {
+			JobNum   string `json:"job_num"`
+			PassWord string `json:"pass_word"`
+		}{}
 	)
 
-	if tokenId == "" {
-		context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
-		return
+	if err := context.Bind(&loginStruct); err != nil {
+		ReturnErrInfo(context, errors.New(fmt.Sprintf("登录参数错误：%s", err.Error())))
 	}
-	if err := kfCollection.Find(bson.M{"token_id": tokenId}).One(&kf); err != nil {
+
+	if loginStruct.JobNum == "" || loginStruct.PassWord == "" {
+		ReturnErrInfo(context, "登录参数错误")
+	}
+
+	if err := kfCollection.Find(bson.M{
+		"job_num":   loginStruct.JobNum,
+		"pass_word": common.ToMd5(loginStruct.PassWord),
+	}).One(&kf); err != nil {
 		ReturnErrInfo(context, "客服登录授权失败")
 	}
 

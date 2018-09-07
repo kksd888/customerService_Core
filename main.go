@@ -108,7 +108,7 @@ func main() {
 	}
 
 	// 客服登录操作
-	router.POST("/login/:tokenId", kfController.LoginIn)
+	router.POST("/login", kfController.LoginIn)
 	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
 	router.GET("/health", defaultController.Health)
