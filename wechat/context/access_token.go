@@ -13,9 +13,9 @@ import (
 
 const (
 	//AccessTokenURL 获取access_token的接口
-	AccessTokenURL    = "https://api.weixin.qq.com/cgi-bin/token"
-	jsjAccessTokenURL = "http://172.16.5.63:9999/api/accesstoken?timestamp=%s&sign=%s"
-	//jsjAccessTokenURL = "http://wechat-mall.jsj.com.cn/api/accesstoken?timestamp=%s&sign=%s"
+	AccessTokenURL = "https://api.weixin.qq.com/cgi-bin/token"
+	//jsjAccessTokenURL = "http://172.16.5.63:9999/api/accesstoken?timestamp=%s&sign=%s"
+	jsjAccessTokenURL = "http://wechat-mall.jsj.com.cn/api/accesstoken?timestamp=%s&sign=%s"
 )
 
 //ResAccessToken struct
