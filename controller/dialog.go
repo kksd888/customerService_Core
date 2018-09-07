@@ -13,6 +13,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type DialogController struct {
@@ -219,46 +220,46 @@ func (c *DialogController) History(context *gin.Context) {
 // @Router /v1/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
 	var (
-		sendRequest SendMessageRequest
-		//kfId, _        = context.Get("KFID")
-		//roomCollection = model.Db.C("room")
+		sendRequest    SendMessageRequest
+		kfId, _        = context.Get("KFID")
+		roomCollection = model.Db.C("room")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
 	}
 
-	//// 实时存储
-	//query := bson.M{
-	//	"room_kf.kf_id":             kfId,
-	//	"room_customer.customer_id": sendRequest.CustomerId,
-	//}
-	//changes := bson.M{
-	//	"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
-	//		{
-	//			Id:         common.GetNewUUID(),
-	//			Type:       sendRequest.MsgType,
-	//			Msg:        sendRequest.Msg,
-	//			OperCode:   common.MessageFromKf,
-	//			Ack:        true,
-	//			CreateTime: time.Now(),
-	//		},
-	//	},
-	//		"$slice": -100}},
-	//}
-	//if err := roomCollection.Update(query, changes); err != nil {
-	//	ReturnErrInfo(context, errors.New("发送消息异常，存储异常，未发送成功"))
-	//}
-	//
-	//// 历史存储
-	//// 存储历史消息
-	//model.InsertMessage(model.Message{
-	//	Id:         common.GetNewUUID(),
-	//	Type:       sendRequest.MsgType,
-	//	CustomerId: sendRequest.CustomerId,
-	//	Msg:        sendRequest.Msg,
-	//	OperCode:   common.MessageFromKf,
-	//	CreateTime: time.Now(),
-	//})
+	// 实时存储
+	query := bson.M{
+		"room_kf.kf_id":             kfId,
+		"room_customer.customer_id": sendRequest.CustomerId,
+	}
+	changes := bson.M{
+		"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
+			{
+				Id:         common.GetNewUUID(),
+				Type:       sendRequest.MsgType,
+				Msg:        sendRequest.Msg,
+				OperCode:   common.MessageFromKf,
+				Ack:        true,
+				CreateTime: time.Now(),
+			},
+		},
+			"$slice": -100}},
+	}
+	if err := roomCollection.Update(query, changes); err != nil {
+		ReturnErrInfo(context, errors.New("发送消息异常，存储异常，未发送成功"))
+	}
+
+	// 历史存储
+	// 存储历史消息
+	model.InsertMessage(model.Message{
+		Id:         common.GetNewUUID(),
+		Type:       sendRequest.MsgType,
+		CustomerId: sendRequest.CustomerId,
+		Msg:        sendRequest.Msg,
+		OperCode:   common.MessageFromKf,
+		CreateTime: time.Now(),
+	})
 
 	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
 		ToUser:  sendRequest.CustomerId,
