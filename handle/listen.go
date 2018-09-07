@@ -31,6 +31,7 @@ func Listen() {
 	// 客服超时下线
 	go func() {
 		var kefuC = model.Db.C("kefu")
+		//var roomC = model.Db.C("room")
 		for {
 			time.Sleep(time.Second * 1)
 
@@ -52,6 +53,7 @@ func Listen() {
 					} else {
 						log.Printf("客服[%s]超时，已经下线", singeKf.Id)
 					}
+					//roomC.Update(bson.M{"room_kf.kf_id": singeKf.Id}, bson.M{"$set": bson.M{"room_kf.kf_id": ""}})
 				}
 			}
 		}

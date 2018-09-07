@@ -87,9 +87,9 @@ func Test_InitKf(t *testing.T) {
 	collection := session.DB("test").C("kefu")
 	collection.Insert(&model.Kf{
 		Id:         common.GetNewUUID(),
-		JobNum:     "004",
-		NickName:   "小金同学",
-		PassWord:   common.ToMd5("123"),
+		JobNum:     "111",
+		NickName:   "小金同学2",
+		PassWord:   common.ToMd5("111"),
 		HeadImgUrl: "http://thirdwx.qlogo.cn/mmopen/Q3auHgzwzM68w5nLXXsKOhFPqpB8wAyTz5TjXIHZ1ZfaroNrmPCjAJenrlrypP0XHl7WNf1vSW3AARJhNUryvoXTFsppf4ty3NicoA07kRQM/132",
 		Type:       1,
 		IsOnline:   false,

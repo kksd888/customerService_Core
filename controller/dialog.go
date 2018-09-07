@@ -58,11 +58,19 @@ func (c *DialogController) List(context *gin.Context) {
 	}
 
 	err := roomCollection.Pipe(query).All(&waitCustomer)
+	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": ""}).Count()
+
 	if err != nil {
 		ReturnErrInfo(context, err)
 	}
 
-	context.JSON(http.StatusOK, waitCustomer)
+	context.JSON(http.StatusOK, struct {
+		WaitReplyLists []WaitCustomer `json:"wait_reply_lists"`
+		WaitQueueCount int            `json:"wait_queue_count"`
+	}{
+		WaitReplyLists: waitCustomer,
+		WaitQueueCount: count,
+	})
 }
 
 // @Summary 待接入列表
