@@ -73,9 +73,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 		roomCollection := model.Db.C("room")
 		customerCollection := model.Db.C("customer")
 		var room = model.Room{}
-		if err := roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room); err != nil {
-			log.Printf("WeiXinController.Listen.roomCollection.Find err :%s", err.Error())
-		}
+		roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room)
 
 		if room.RoomCustomer.CustomerId == "" {
 			// 新接入
