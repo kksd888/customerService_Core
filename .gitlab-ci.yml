@@ -19,6 +19,6 @@ deploy-test-kefu:
   - server_port=20700
   - if [ $(docker ps -q -f "name=$name" | wc -l) -eq 1] ; then docker stop $(docker ps -q -f "name=$name") ; fi
   - if [ $(docker images -q maven.jsjit.cn:9911/kefu/$name | wc -l) -eq 1] ; then docker rmi $(docker images -q maven.jsjit.cn:9911/kefu/$name); fi
-  - docker run -i --rm -v /opt/gopath/src:/go/src -v $(pwd):/go/src/git.jsjit.cn/customerService/customerService_Core -w /go/src/git.jsjit.cn/customerService/customerService_Core golang:1.10.3 sh -c "CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app ."
+  - docker run -i --rm -v /opt/gopath/src:/go/src -v $(pwd):/go/src/git.jsjit.cn/customerService/customerService_Core -w /go/src/git.jsjit.cn/customerService/customerService_Core golang:1.10.3 go build -o app
   - docker build --rm -t maven.jsjit.cn:9911/kefu/$name:$docker_image_version . && docker push maven.jsjit.cn:9911/kefu/$name:$docker_image_version
   - docker run -d --rm -p $server_port:5000 -v /opt/www:/www --name $name maven.jsjit.cn:9911/kefu/$name:$docker_image_version
