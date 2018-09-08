@@ -139,7 +139,8 @@ func (c *DialogController) Access(context *gin.Context) {
 		}
 		// 归档历史会话
 		if err = messageCollection.Update(bson.M{"customer_id": v, "kf_id": ""}, bson.M{"$set": bson.M{"kf_id": roomKf.KfId}}); err != nil {
-			ReturnErrInfo(context, err)
+			// 暂停历史回话报错
+			//ReturnErrInfo(context, err)
 		}
 	}
 
