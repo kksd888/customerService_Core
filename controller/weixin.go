@@ -114,6 +114,20 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				CreateTime: time.Now(),
 			})
 		} else {
+			var (
+				kefuColection = model.Db.C("kefu")
+				kefuModel     = model.Kf{}
+			)
+			if err := kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel); err != nil {
+				log.Printf("kefuColection.Find(bson.M{\"id\": room.RoomKf.KfId}).One(&kefuModel), err: %s ", err.Error())
+			}
+			if kefuModel.Id != "" && kefuModel.IsOnline == false {
+				// 若接待的客服已经下线，则将用户重新放入待接入
+				roomCollection.Update(
+					bson.M{"room_customer.customer_id": msg.FromUserName},
+					bson.M{"$set": bson.M{"room_kf": &model.Kf{}}})
+			}
+
 			// 实时会话数据更新
 			query := bson.M{
 				"room_customer.customer_id": msg.FromUserName,

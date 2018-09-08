@@ -11,6 +11,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -291,6 +292,8 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		},
 	})
 	ReturnErrInfo(context, err)
+
+	log.Printf("客服[%s]发送信息：%s \n", kfId, sendRequest.Msg)
 
 	if msgResponse.ErrCode == 0 {
 		ReturnSuccessInfo(context)

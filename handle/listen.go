@@ -31,12 +31,12 @@ func Listen() {
 	// 客服超时下线
 	go func() {
 		var kefuC = model.Db.C("kefu")
-		//var roomC = model.Db.C("room")
+
 		for {
 			time.Sleep(time.Second * 1)
 
 			var (
-				duration, _ = time.ParseDuration("-1h")
+				duration, _ = time.ParseDuration("-1m")
 				targetTime  = time.Now().Add(duration)
 				allOffKefu  = []model.Kf{}
 			)
@@ -45,7 +45,7 @@ func Listen() {
 				log.Printf(err.Error())
 			}
 
-			// 超时一小时则下线
+			// 超时1分钟则下线
 			if len(allOffKefu) > 0 {
 				for _, singeKf := range allOffKefu {
 					if upErr := kefuC.Update(bson.M{"id": singeKf.Id}, bson.M{"$set": bson.M{"is_online": false, "update_time": time.Now()}}); upErr != nil {
@@ -53,7 +53,6 @@ func Listen() {
 					} else {
 						log.Printf("客服[%s]超时，已经下线", singeKf.Id)
 					}
-					//roomC.Update(bson.M{"room_kf.kf_id": singeKf.Id}, bson.M{"$set": bson.M{"room_kf.kf_id": ""}})
 				}
 			}
 		}
