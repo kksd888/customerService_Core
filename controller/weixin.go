@@ -125,7 +125,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				// 若接待的客服已经下线，则将用户重新放入待接入
 				roomCollection.Update(
 					bson.M{"room_customer.customer_id": msg.FromUserName},
-					bson.M{"$set": bson.M{"room_kf": &model.Kf{}}})
+					bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
 			}
 
 			// 实时会话数据更新
