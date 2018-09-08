@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/controller"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -183,26 +184,31 @@ func Test_Sort(t *testing.T) {
 	defer session.Close()
 	roomCollection := session.DB("test").C("room")
 
-	var bsons []bson.M
+	var bsons []model.Room
 	roomCollection.Pipe([]bson.M{
 		{
-			"$match": bson.M{"room_kf.kf_id": "40e9146c-653c-4d75-8a6e-993ca1a0b34f"},
+			"$match": bson.M{"room_kf.kf_id": "f24f257b370f4a6a9b703a35ea06f5b7"},
 		},
 		{
 			"$project": bson.M{
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 1}},
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
 			},
 		},
 		{
 			"$sort": bson.M{"room_messages.create_time": -1},
 		},
+		{
+			"$limit": 100,
+		},
 	}).All(&bsons)
 
 	for _, v := range bsons {
-		fmt.Printf("%#s \n", v["room_messages"])
+		fmt.Printf("%v \n", v.RoomMessages)
 	}
 }
 
 func Test_Times(t *testing.T) {
-	fmt.Println(time.Now().Unix())
+	fmt.Println(common.ToMd5("123JKD"))
+	s, _ := controller.Make2Auth("5d893a28f68a4945a89a3f2db5f496f0")
+	log.Println(s)
 }

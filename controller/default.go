@@ -49,7 +49,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
 
-	// 获取聊天列表
+	// 获取聊天列表 (最多输出100条)
 	roomCollection.Pipe([]bson.M{
 		{
 			"$match": bson.M{"room_kf.kf_id": kfId},
@@ -59,6 +59,12 @@ func (c *DefaultController) Init(context *gin.Context) {
 				"room_customer": 1,
 				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
 			},
+		},
+		{
+			"$sort": bson.M{"create_time": -1},
+		},
+		{
+			"$limit": 100,
 		},
 	}).All(&onlineCustomer)
 
