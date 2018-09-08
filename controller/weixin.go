@@ -90,6 +90,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				Sex:          userInfo.Sex,
 				HeadImgUrl:   userInfo.Headimgurl,
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
+				CreateTime:   time.Now(),
+				UpdateTime:   time.Now(),
 			})
 
 			// 实时会话数据更新
