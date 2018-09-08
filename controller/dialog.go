@@ -212,6 +212,9 @@ func (c *DialogController) History(context *gin.Context) {
 				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", (page - 1) * limit, limit}},
 			},
 		},
+		{
+			"$sort": bson.M{"create_time": -1},
+		},
 	}
 	if err := roomCollection.Pipe(query).One(&roomHistory); err != nil {
 		ReturnErrInfo(context, err)
