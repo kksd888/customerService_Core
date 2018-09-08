@@ -208,12 +208,22 @@ func (c *DialogController) History(context *gin.Context) {
 			"$match": bson.M{"room_customer.customer_id": customerId},
 		},
 		{
-			"$project": bson.M{
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", (page - 1) * limit, limit}},
-			},
+			"$unwind": "$room_messages",
 		},
 		{
-			"$sort": bson.M{"create_time": -1},
+			"$sort": bson.M{"room_messages.create_time": -1},
+		},
+		{
+			"$skip": (page - 1) * limit,
+		},
+		{
+			"$limit": limit,
+		},
+		{
+			"$group": bson.M{
+				"_id":           "$_id",
+				"room_messages": bson.M{"$push": "$room_messages"},
+			},
 		},
 	}
 	if err := roomCollection.Pipe(query).One(&roomHistory); err != nil {

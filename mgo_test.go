@@ -184,26 +184,51 @@ func Test_Sort(t *testing.T) {
 	defer session.Close()
 	roomCollection := session.DB("test").C("room")
 
-	var bsons []model.Room
+	//var bsons []bson.M
+	//roomCollection.Pipe([]bson.M{
+	//	{
+	//		"$match": bson.M{"room_kf.kf_id": "f24f257b370f4a6a9b703a35ea06f5b7"},
+	//	},
+	//	{
+	//		"$project": bson.M{
+	//			"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
+	//		},
+	//	},
+	//	{
+	//		"$sort": bson.M{"room_messages.create_time": -1},
+	//	},
+	//	{
+	//		"$limit": 100,
+	//	},
+	//}).All(&bsons)
+
+	var bsons controller.RoomHistory
 	roomCollection.Pipe([]bson.M{
 		{
-			"$match": bson.M{"room_kf.kf_id": "f24f257b370f4a6a9b703a35ea06f5b7"},
+			"$match": bson.M{"room_customer.customer_nick_name": "只源有你"},
 		},
 		{
-			"$project": bson.M{
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
-			},
+			"$unwind": "$room_messages",
 		},
 		{
 			"$sort": bson.M{"room_messages.create_time": -1},
 		},
 		{
-			"$limit": 100,
+			"$skip": 0,
 		},
-	}).All(&bsons)
+		{
+			"$limit": 10,
+		},
+		{
+			"$group": bson.M{
+				"_id":           "$_id",
+				"room_messages": bson.M{"$push": "$room_messages"},
+			},
+		},
+	}).One(&bsons)
 
-	for _, v := range bsons {
-		fmt.Printf("%v \n", v.RoomMessages)
+	for _, v := range bsons.RoomMessages {
+		fmt.Printf("%v \n", v)
 	}
 }
 
