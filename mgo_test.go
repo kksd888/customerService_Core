@@ -83,78 +83,6 @@ func Test_Mongo_Select(t *testing.T) {
 	}
 }
 
-func Test_InitKf(t *testing.T) {
-	defer session.Close()
-	collection := session.DB("test").C("kefu")
-	collection.Insert(&model.Kf{
-		Id:         common.GetNewUUID(),
-		JobNum:     "111",
-		NickName:   "小金同学2",
-		PassWord:   common.ToMd5("111"),
-		HeadImgUrl: "http://thirdwx.qlogo.cn/mmopen/Q3auHgzwzM68w5nLXXsKOhFPqpB8wAyTz5TjXIHZ1ZfaroNrmPCjAJenrlrypP0XHl7WNf1vSW3AARJhNUryvoXTFsppf4ty3NicoA07kRQM/132",
-		Type:       1,
-		IsOnline:   false,
-		CreateTime: time.Now(),
-		UpdateTime: time.Now(),
-	},
-	//&model.Kf{
-	//	Id:         common.GetNewUUID(),
-	//	JobNum:     "6064",
-	//	NickName:   "贺丹",
-	//	PassWord:   "5d5c4a131bbfb118bd785da57913",
-	//	HeadImgUrl: "",
-	//	Type:       1,
-	//	IsOnline:   false,
-	//	CreateTime: time.Now(),
-	//	UpdateTime: time.Now(),
-	//},
-	//&model.Kf{
-	//	Id:         common.GetNewUUID(),
-	//	JobNum:     "6070",
-	//	NickName:   "张冬梅",
-	//	PassWord:   "d4c0805d96f16bf25fe5c2cf69665",
-	//	HeadImgUrl: "",
-	//	Type:       1,
-	//	IsOnline:   false,
-	//	CreateTime: time.Now(),
-	//	UpdateTime: time.Now(),
-	//},
-	//&model.Kf{
-	//	Id:         common.GetNewUUID(),
-	//	JobNum:     "6094",
-	//	NickName:   "赵婷婷",
-	//	PassWord:   "957430181397d0d357ca35e29a7e56a8",
-	//	HeadImgUrl: "",
-	//	Type:       1,
-	//	IsOnline:   false,
-	//	CreateTime: time.Now(),
-	//	UpdateTime: time.Now(),
-	//},
-	//&model.Kf{
-	//	Id:         common.GetNewUUID(),
-	//	JobNum:     "6110",
-	//	NickName:   "霍元东",
-	//	PassWord:   "df23b22b6fc78dee2f88d9f2798b",
-	//	HeadImgUrl: "",
-	//	Type:       1,
-	//	IsOnline:   false,
-	//	CreateTime: time.Now(),
-	//	UpdateTime: time.Now(),
-	//},
-	//&model.Kf{
-	//	Id:         common.GetNewUUID(),
-	//	JobNum:     "6542",
-	//	NickName:   "张建平",
-	//	PassWord:   "e52534702fa81c9a289335443eeb564",
-	//	HeadImgUrl: "",
-	//	Type:       1,
-	//	IsOnline:   false,
-	//	CreateTime: time.Now(),
-	//	UpdateTime: time.Now(),
-	//},
-	)
-}
-
 func Test_Sclient(t *testing.T) {
 	defer session.Close()
 	roomCollection := session.DB("test").C("room")
@@ -236,4 +164,20 @@ func Test_Times(t *testing.T) {
 	fmt.Println(common.ToMd5("123JKD"))
 	s, _ := controller.Make2Auth("5d893a28f68a4945a89a3f2db5f496f0")
 	log.Println(s)
+}
+
+func Test_InitKf(t *testing.T) {
+	defer session.Close()
+	collection := session.DB("test").C("kefu")
+	collection.Insert(&model.Kf{
+		Id:         common.GetNewUUID(),
+		JobNum:     "111",
+		NickName:   "小金同学2",
+		PassWord:   common.ToMd5("111"),
+		HeadImgUrl: "http://thirdwx.qlogo.cn/mmopen/Q3auHgzwzM68w5nLXXsKOhFPqpB8wAyTz5TjXIHZ1ZfaroNrmPCjAJenrlrypP0XHl7WNf1vSW3AARJhNUryvoXTFsppf4ty3NicoA07kRQM/132",
+		Type:       1,
+		IsOnline:   false,
+		CreateTime: time.Now(),
+		UpdateTime: time.Now(),
+	})
 }

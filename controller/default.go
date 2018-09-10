@@ -61,7 +61,7 @@ func (c *DefaultController) Init(context *gin.Context) {
 			},
 		},
 		{
-			"$sort": bson.M{"create_time": -1},
+			"$sort": bson.M{"room_messages.create_time": -1},
 		},
 		{
 			"$limit": 100,
