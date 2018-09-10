@@ -1,4 +1,4 @@
-FROM golang:1.10.3 AS build
+FROM golang:1.10.3 as build
 
 WORKDIR /go/src/git.jsjit.cn/customerService/customerService_Core
 
@@ -8,12 +8,12 @@ ADD . .
 
 RUN CGO_ENABLED=0 GOOS=linux godep go build -a -installsuffix cgo -o app .
 
-FROM maven.jsjit.cn:9911/ubuntu:16.04.01 as certs
+FROM maven.jsjit.cn:9911/alpine-cert:1.0 as certs
 
-FROM scratch AS prod
+FROM scratch as prod
 
+COPY --from=certs /etc/localtime /etc/localtime
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
 COPY --from=build /go/src/git.jsjit.cn/customerService/customerService_Core/app .
 
 EXPOSE 5000/tcp

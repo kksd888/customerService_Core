@@ -21,5 +21,5 @@ deploy-test-kefu:
   - if [ $(docker ps -q -f "name=$name" | wc -l) -eq 1 ] ; then docker stop $(docker ps -a -q -f "name=$name"); fi
   - if [ $(docker images -q maven.jsjit.cn:9911/kefu/$name | wc -l) -eq 1 ] ; then docker rmi $(docker images -q maven.jsjit.cn:9911/kefu/$name); fi
   - docker build --rm -t maven.jsjit.cn:9911/kefu/$name:$docker_image_version . && docker push maven.jsjit.cn:9911/kefu/$name:$docker_image_version
-  - docker rmi $(docker images -f "dangling=true" -q)
   - docker run -d --rm -p $server_port:5000 -v /opt/www:/www --name $name maven.jsjit.cn:9911/kefu/$name:$docker_image_version
+  - docker rmi $(docker images -f "dangling=true" -q)
