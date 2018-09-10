@@ -212,7 +212,7 @@ func (c *DialogController) History(context *gin.Context) {
 			"$unwind": "$room_messages",
 		},
 		{
-			"$sort": bson.M{"room_messages.create_time": -1},
+			"$sort": bson.M{"room_messages.create_time": 1},
 		},
 		{
 			"$skip": (page - 1) * limit,
