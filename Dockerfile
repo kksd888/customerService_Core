@@ -18,6 +18,10 @@ COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifica
 
 COPY --from=build /go/src/git.jsjit.cn/customerService/customerService_Core/app .
 
+ENV TZ=Asia/Shanghai
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 EXPOSE 5000/tcp
 
 CMD ["/app"]
