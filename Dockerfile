@@ -8,9 +8,7 @@ ADD . .
 
 RUN CGO_ENABLED=0 GOOS=linux godep go build -a -installsuffix cgo -o app .
 
-FROM alpine:latest as certs
-
-RUN apk --update add ca-certificates
+FROM maven.jsjit.cn:9911/ubuntu:16.04.01 as certs
 
 FROM scratch AS prod
 
