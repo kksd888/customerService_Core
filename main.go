@@ -44,7 +44,7 @@ func main() {
 
 	router := gin.Default()
 
-	// CORS同源规则配置
+	// CORS规则配置
 	router.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host", "Authentication"},
@@ -108,7 +108,6 @@ func main() {
 
 	// 客服登录操作
 	router.POST("/login", kfController.LoginIn)
-	//login.DELETE("/:tokenId", kfController.LoginOut)
 	// 健康检查
 	router.GET("/health", defaultController.Health)
 	// API文档地址
