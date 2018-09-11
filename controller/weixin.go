@@ -118,9 +118,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				kefuColection = model.Db.C("kefu")
 				kefuModel     = model.Kf{}
 			)
-			if err := kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel); err != nil {
-				log.Printf("kefuColection.Find(bson.M{\"id\": room.RoomKf.KfId}).One(&kefuModel), err: %s ", err.Error())
-			}
+			kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
 			if kefuModel.Id != "" && kefuModel.IsOnline == false {
 				// 若接待的客服已经下线，则将用户重新放入待接入
 				roomCollection.Update(

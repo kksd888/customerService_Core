@@ -17,7 +17,7 @@ func NewMongo() {
 	if err != nil {
 		panic(err.Error())
 	}
-	Db = session.DB("test")
+	Db = session.DB("customer_service_db")
 
 	go DbJob()
 }
