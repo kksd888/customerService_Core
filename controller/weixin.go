@@ -79,13 +79,13 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 
 		if aiDialogue != "" {
 			log.Printf("用户[%s]发来信息：[%s] %s；小金推荐回复：%s \n", msg.FromUserName, msgType, msgText, aiDialogue)
+
+			if strings.HasPrefix(strings.ToUpper(msgText), "#T") {
+				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(aiDialogue)}
+			}
+
 		} else {
 			log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
-		}
-
-		if strings.HasPrefix(strings.ToUpper(msgText), "#T") {
-			log.Println("小金直接回复")
-			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(aiDialogue)}
 		}
 
 		roomCollection := model.Db.C("room")
