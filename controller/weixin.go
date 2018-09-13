@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -71,17 +72,25 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			}
 		}
 
-		log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
+		// 尝试机器人回答
+		if msgText != "" {
+			aiDialogue = c.aiModule.Dialogue(msgText)
+		}
+
+		if aiDialogue != "" {
+			log.Printf("用户[%s]发来信息：[%s] %s；小金推荐回复：%s \n", msg.FromUserName, msgType, msgText, aiDialogue)
+		} else {
+			log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
+		}
+
+		if strings.HasPrefix(aiDialogue, "#T") {
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(aiDialogue)}
+		}
 
 		roomCollection := model.Db.C("room")
 		customerCollection := model.Db.C("customer")
 		var room = model.Room{}
 		roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room)
-
-		// 尝试机器人回答
-		if msgText != "" {
-			aiDialogue = c.aiModule.Dialogue(msgText)
-		}
 
 		if room.RoomCustomer.CustomerId == "" {
 			// 新接入
