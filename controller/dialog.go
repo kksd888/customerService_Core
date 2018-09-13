@@ -21,7 +21,7 @@ type DialogController struct {
 	wxContext *wechat.Wechat
 }
 
-func InitDialog(wxContext *wechat.Wechat) *DialogController {
+func NewDialog(wxContext *wechat.Wechat) *DialogController {
 	return &DialogController{wxContext: wxContext}
 }
 

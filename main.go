@@ -55,13 +55,26 @@ func main() {
 		MaxAge:           30 * time.Minute,
 	}))
 
-	router.Static("/static", "./www")
+	// 注册外部服务
+	aiModule := handle.NewAiSemantic("http://172.16.14.54:20800/semantic")
 
-	defaultController := controller.InitHealth()
-	offlineReplyController := controller.InitOfflineReply()
-	kfController := controller.InitKfServer()
-	weiXinController := controller.InitWeiXin(wxContext)
-	dialogController := controller.InitDialog(wxContext)
+	// 注册控制器
+	defaultController := controller.NewHealth()
+	offlineReplyController := controller.NewOfflineReply()
+	kfController := controller.NewKfServer()
+	dialogController := controller.NewDialog(wxContext)
+	weiXinController := controller.NewWeiXin(wxContext, aiModule)
+
+	// 静态文件
+	router.Static("/static", "./www")
+	// 客服登录操作
+	router.POST("/login", kfController.LoginIn)
+	// 健康检查
+	router.GET("/health", defaultController.Health)
+	// API文档地址
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// 微信通信地址
+	router.Any("/listen", weiXinController.Listen)
 
 	// API路由 (授权保护)
 	v1 := router.Group("/v1", handle.OauthMiddleWare())
@@ -105,15 +118,6 @@ func main() {
 			}
 		}
 	}
-
-	// 客服登录操作
-	router.POST("/login", kfController.LoginIn)
-	// 健康检查
-	router.GET("/health", defaultController.Health)
-	// API文档地址
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	// 微信通信地址
-	router.Any("/listen", weiXinController.Listen)
 
 	go handle.Listen()
 

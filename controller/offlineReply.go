@@ -10,7 +10,7 @@ import (
 type OfflineReplyController struct {
 }
 
-func InitOfflineReply() *OfflineReplyController {
+func NewOfflineReply() *OfflineReplyController {
 	return &OfflineReplyController{}
 }
 

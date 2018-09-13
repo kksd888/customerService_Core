@@ -17,7 +17,7 @@ import (
 type KfServerController struct {
 }
 
-func InitKfServer() *KfServerController {
+func NewKfServer() *KfServerController {
 	return &KfServerController{}
 }
 

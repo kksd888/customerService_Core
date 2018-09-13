@@ -25,6 +25,7 @@ type RoomMessage struct {
 	Type       string    `json:"type" bson:"type"`
 	MediaUrl   string    `json:"media_url" bson:"media_url"`
 	Msg        string    `json:"msg" bson:"msg"`
+	AiMsg      string    `json:"ai_msg" bson:"ai_msg"`
 	Ack        bool      `json:"ack" bson:"ack"`
 	OperCode   int       `json:"oper_code" bson:"oper_code"`
 	CreateTime time.Time `json:"create_time" bson:"create_time"`

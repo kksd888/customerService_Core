@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
@@ -14,10 +15,11 @@ import (
 
 type WeiXinController struct {
 	wxContext *wechat.Wechat
+	aiModule  *handle.AiSemantic
 }
 
-func InitWeiXin(wxContext *wechat.Wechat) *WeiXinController {
-	return &WeiXinController{wxContext: wxContext}
+func NewWeiXin(wxContext *wechat.Wechat, aiModule *handle.AiSemantic) *WeiXinController {
+	return &WeiXinController{wxContext: wxContext, aiModule: aiModule}
 }
 
 // 微信通信接口
@@ -35,9 +37,10 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				2. 存储聊天数据
 		*/
 		var (
-			msgType  = string(msg.MsgType) // 消息类型
-			MediaUrl = ""                  // 多媒体地址
-			msgText  = ""                  // 文本内容
+			msgType    = string(msg.MsgType) // 消息类型
+			MediaUrl   = ""                  // 多媒体地址
+			msgText    = ""                  // 文本内容
+			aiDialogue = ""                  // AI答复
 		)
 		switch msg.MsgType {
 		case message.MsgTypeText:
@@ -75,6 +78,11 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 		var room = model.Room{}
 		roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room)
 
+		// 尝试机器人回答
+		if msgText != "" {
+			aiDialogue = c.aiModule.Dialogue(msgText)
+		}
+
 		if room.RoomCustomer.CustomerId == "" {
 			// 新接入
 			userInfo, err := c.wxContext.GetUser().GetUserInfo(msg.FromUserName)
@@ -106,6 +114,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 						Id:         common.GetNewUUID(),
 						Type:       msgType,
 						Msg:        msgText,
+						AiMsg:      aiDialogue,
 						MediaUrl:   MediaUrl,
 						OperCode:   common.MessageFromCustomer,
 						CreateTime: time.Now(),
@@ -136,6 +145,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 						Id:         common.GetNewUUID(),
 						Type:       msgType,
 						Msg:        msgText,
+						AiMsg:      aiDialogue,
 						MediaUrl:   MediaUrl,
 						OperCode:   common.MessageFromCustomer,
 						CreateTime: time.Now(),
@@ -155,6 +165,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			CustomerId: msg.FromUserName,
 			KfId:       room.RoomKf.KfId,
 			Msg:        msgText,
+			AiMsg:      aiDialogue,
 			MediaUrl:   MediaUrl,
 			OperCode:   common.MessageFromCustomer,
 			CreateTime: time.Now(),

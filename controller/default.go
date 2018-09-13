@@ -14,7 +14,7 @@ import (
 type DefaultController struct {
 }
 
-func InitHealth() *DefaultController {
+func NewHealth() *DefaultController {
 	return &DefaultController{}
 }
 
