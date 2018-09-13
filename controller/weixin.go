@@ -83,7 +83,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
 		}
 
-		if strings.HasPrefix(aiDialogue, "#T") {
+		if strings.HasPrefix(strings.ToUpper(aiDialogue), "#T") {
+			log.Println("小金直接回复")
 			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(aiDialogue)}
 		}
 
