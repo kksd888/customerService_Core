@@ -2,7 +2,7 @@ package handle
 
 import (
 	"fmt"
-	"github.com/silenceper/wechat/util"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/util"
 	"log"
 	"net/url"
 )
