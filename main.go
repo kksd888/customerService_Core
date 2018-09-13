@@ -56,7 +56,7 @@ func main() {
 	}))
 
 	// 注册外部服务
-	aiModule := handle.NewAiSemantic("http://172.16.14.54:20800/semantic")
+	aiModule := handle.NewAiSemantic("http://172.16.14.55:20600/semantic")
 
 	// 注册控制器
 	defaultController := controller.NewHealth()
