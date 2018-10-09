@@ -26,7 +26,7 @@ func NewHealth() *DefaultController {
 // @Success 200 {string} json ""
 // @Router /v1/health [get]
 func (c *DefaultController) Health(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{"status": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
+	context.JSON(http.StatusOK, gin.H{"code": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
 }
 
 // @Summary 系统初始化
