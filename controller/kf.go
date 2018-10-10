@@ -27,7 +27,7 @@ func NewKfServer() *KfServerController {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/kf [get]
+// @Router /admin/kf [get]
 func (c *KfServerController) Get(context *gin.Context) {
 	var (
 		kf      model.Kf
@@ -48,7 +48,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/kf/status [post]
+// @Router /admin/kf/status [post]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
 	var (
 		kfId, _ = context.Get("KFID")
@@ -75,7 +75,7 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /login [post]
+// @Router /admin/login [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}

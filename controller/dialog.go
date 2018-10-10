@@ -31,7 +31,7 @@ func NewDialog(wxContext *wechat.Wechat) *DialogController {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/dialog [get]
+// @Router /admin/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
 	var (
 		waitCustomer   = []WaitCustomer{}
@@ -80,7 +80,7 @@ func (c *DialogController) List(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/wait_queue [get]
+// @Router /admin/wait_queue [get]
 func (c *DialogController) Queue(context *gin.Context) {
 	var (
 		waitCustomer   = []WaitCustomer{}
@@ -109,7 +109,7 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/wait_queue/access [post]
+// @Router /admin/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
 	var (
 		err               error
@@ -154,7 +154,7 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/dialog/ack [put]
+// @Router /admin/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
 	var (
 		aRequest       CustomerIdsRequest
@@ -182,7 +182,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 // @page customerId path int true "第几页"
 // @limit customerId path int true "页容量"
 // @Success 200 {string} json ""
-// @Router /v1/dialog/{customerId}/{page}/{limit} [get]
+// @Router /admin/dialog/{customerId}/{page}/{limit} [get]
 func (c *DialogController) History(context *gin.Context) {
 	var (
 		roomHistory    RoomHistory
@@ -240,7 +240,7 @@ func (c *DialogController) History(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/dialog [post]
+// @Router /admin/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
 	var (
 		sendRequest    SendMessageRequest

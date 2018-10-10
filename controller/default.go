@@ -24,7 +24,7 @@ func NewHealth() *DefaultController {
 // @Accept json
 // @Produce json
 // @Success 200 {string} json ""
-// @Router /v1/health [get]
+// @Router /admin/health [get]
 func (c *DefaultController) Health(context *gin.Context) {
 	context.JSON(http.StatusOK, gin.H{"code": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
 }
@@ -35,7 +35,7 @@ func (c *DefaultController) Health(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/init [get]
+// @Router /admin/init [get]
 func (c *DefaultController) Init(context *gin.Context) {
 	// 获取访问客服信息
 	var (

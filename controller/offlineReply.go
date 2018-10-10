@@ -20,7 +20,7 @@ func NewOfflineReply() *OfflineReplyController {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/setting/offline_reply [get]
+// @Router /admin/setting/offline_reply [get]
 func (c *OfflineReplyController) List(context *gin.Context) {
 }
 
@@ -30,7 +30,7 @@ func (c *OfflineReplyController) List(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/setting/offline_reply [post]
+// @Router /admin/setting/offline_reply [post]
 func (c *OfflineReplyController) Create(context *gin.Context) {
 	var (
 		offline = struct {
@@ -52,7 +52,7 @@ func (c *OfflineReplyController) Create(context *gin.Context) {
 // @Produce  json
 // @Param id path int true "自动回复语句的ID"
 // @Success 200 {string} json ""
-// @Router /v1/setting/offline_reply/{id} [delete]
+// @Router /admin/setting/offline_reply/{id} [delete]
 func (c *OfflineReplyController) Delete(context *gin.Context) {
 }
 
@@ -63,6 +63,6 @@ func (c *OfflineReplyController) Delete(context *gin.Context) {
 // @Produce  json
 // @Param id path int true "自动回复语句的ID"
 // @Success 200 {string} json ""
-// @Router /v1/setting/offline_reply/{id} [put]
+// @Router /admin/setting/offline_reply/{id} [put]
 func (c *OfflineReplyController) Update(context *gin.Context) {
 }

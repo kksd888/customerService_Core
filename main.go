@@ -67,17 +67,17 @@ func main() {
 
 	// 静态文件
 	router.Static("/static", "./www")
-	// 客服登录操作
-	router.POST("/login", kfController.LoginIn)
 	// 健康检查
 	router.GET("/health", defaultController.Health)
 	// API文档地址
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
+	// 客服登录操作
+	router.POST("/admin/login", kfController.LoginIn)
 
 	// API路由 (授权保护)
-	v1 := router.Group("/v1", handle.OauthMiddleWare())
+	v1 := router.Group("/admin", handle.OauthMiddleWare())
 	{
 		// 初始化
 		v1.GET("/init", defaultController.Init)
