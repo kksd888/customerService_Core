@@ -3,11 +3,9 @@
 package controller
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/logic"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
 	"time"
@@ -16,7 +14,7 @@ import (
 type DefaultController struct {
 }
 
-func InitHealth() *DefaultController {
+func NewHealth() *DefaultController {
 	return &DefaultController{}
 }
 
@@ -26,9 +24,9 @@ func InitHealth() *DefaultController {
 // @Accept json
 // @Produce json
 // @Success 200 {string} json ""
-// @Router /v1/health [get]
+// @Router /admin/health [get]
 func (c *DefaultController) Health(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{"status": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
+	context.JSON(http.StatusOK, gin.H{"code": "ok", "time": time.Now().Format("2006-01-02 15:04:05")})
 }
 
 // @Summary 系统初始化
@@ -37,82 +35,61 @@ func (c *DefaultController) Health(context *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} json ""
-// @Router /v1/init [get]
+// @Router /admin/init [get]
 func (c *DefaultController) Init(context *gin.Context) {
 	// 获取访问客服信息
-	roomKf, err := handle.AuthToken2Model(context)
-	ReturnErrInfo(context, err)
-	kfDb := &model.Kf{Id: roomKf.KfId}
-	if err := kfDb.Get(); err != nil {
-		ReturnErrInfo(context, err.Error())
-	}
+	var (
+		kf             = model.Kf{}
+		waitCustomer   = []WaitCustomer{}
+		onlineCustomer = []OnlineCustomer{}
+		kfId, _        = context.Get("KFID")
+		kfCollection   = model.Db.C("kefu")
+		roomCollection = model.Db.C("room")
+	)
 
-	// 获取聊天历史记录
-	messageDb := model.MessageLinkCustomer{Message: model.Message{KfId: kfDb.Id}}
-	messages, err := messageDb.GetKfHistoryMsg()
-	ReturnErrInfo(context, err)
+	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
 
-	var initOnlineCustomers []InitOnlineCustomer
-	var mapCus = map[int]*InitOnlineCustomer{}
+	// 获取聊天列表 (最多输出100条)
+	roomCollection.Pipe([]bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": kfId},
+		},
+		{
+			"$project": bson.M{
+				"room_customer": 1,
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
+			},
+		},
+		{
+			"$sort": bson.M{"room_messages.create_time": -1},
+		},
+		{
+			"$limit": 100,
+		},
+	}).All(&onlineCustomer)
 
-	// 组织数据
-	for _, singeMsg := range messages {
-		if _, ok := mapCus[singeMsg.KfId]; ok {
-			mapCus[singeMsg.KfId].CustomerMessages = append(mapCus[singeMsg.KfId].CustomerMessages, InitMessage{
-				Id:                singeMsg.Id,
-				MessageType:       singeMsg.MsgType,
-				MessageContent:    singeMsg.Msg,
-				MessageOperCode:   singeMsg.OperCode,
-				MessageAck:        singeMsg.KfAck,
-				MessageCteateTime: singeMsg.CreateTime,
-			})
-		} else {
-			mapCus[singeMsg.KfId] = &InitOnlineCustomer{
-				RoomToken:          singeMsg.CustomerToken,
-				CustomerNickName:   singeMsg.CustomerNickName,
-				CustomerHeadImgUrl: singeMsg.CustomerHeadImgUrl,
-				CustomerMessages: []InitMessage{
-					{
-						Id:                singeMsg.Id,
-						MessageType:       singeMsg.MsgType,
-						MessageContent:    singeMsg.Msg,
-						MessageOperCode:   singeMsg.OperCode,
-						MessageAck:        singeMsg.KfAck,
-						MessageCteateTime: singeMsg.CreateTime,
-					},
-				},
-			}
-		}
-	}
-	for _, v := range mapCus {
-		initOnlineCustomers = append(initOnlineCustomers, *v)
-	}
-
-	// 组织排队数据
-	var waitQueues []WaitQueueResponse
-	if waitQueueRooms, err := logic.GetWaitQueue(); err != nil {
-		ReturnErrInfo(context, err)
-	} else {
-		for _, value := range waitQueueRooms {
-			waitQueues = append(waitQueues, WaitQueueResponse{
-				CustomerId:         value.CustomerId,
-				CustomerNickName:   value.CustomerNickName,
-				CustomerHeadImgUrl: value.CustomerHeadImgUrl,
-				//Messages:           value.CustomerMsgs,
-				PreviousKf: WaitQueuePreviousKf{},
-			})
-		}
-	}
+	// 获取排队列表
+	roomCollection.Pipe([]bson.M{
+		{
+			"$match": bson.M{"room_kf.kf_id": ""},
+		},
+		{
+			"$project": bson.M{
+				"room_customer": 1,
+				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
+			},
+		},
+	}).All(&waitCustomer)
 
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
-			Id:         kfDb.Id,
-			UserName:   kfDb.NickName,
-			HeadImgUrl: kfDb.HeadImgUrl,
-			Status:     string(common.KF_ONLINE),
+			Id:         kf.Id,
+			UserName:   kf.NickName,
+			HeadImgUrl: kf.HeadImgUrl,
+			IsOnline:   kf.IsOnline,
 		},
-		InitOnlineCustomer: initOnlineCustomers,
-		WaitQueueResponse:  waitQueues,
+		OnlineCustomer: onlineCustomer,
+		WaitCustomer:   waitCustomer,
 	})
 }
 
@@ -122,7 +99,7 @@ func ReturnErrInfo(context *gin.Context, err interface{}) {
 		log.Printf("发生异常：%#v", err)
 		context.JSON(http.StatusBadRequest, gin.H{
 			"code": http.StatusBadRequest,
-			"msg":  "接口调用异常，或联系管理员",
+			"msg":  err.(error).Error(),
 		})
 		panic(err)
 	}
@@ -130,34 +107,34 @@ func ReturnErrInfo(context *gin.Context, err interface{}) {
 
 // 成功返回
 func ReturnSuccessInfo(context *gin.Context) {
-	context.JSON(http.StatusInternalServerError, gin.H{
+	context.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
 		"msg":  "ok",
 	})
 }
 
 type InitResponse struct {
-	Mine               InitMine             `json:"mine"`
-	InitOnlineCustomer []InitOnlineCustomer `json:"init_online_customer"`
-	WaitQueueResponse  []WaitQueueResponse  `json:"wait_queue_response"`
+	Mine           InitMine         `bson:"mine" json:"mine"`
+	OnlineCustomer []OnlineCustomer `bson:"online_customer" json:"online_customer"`
+	WaitCustomer   []WaitCustomer   `bson:"wait_customer" json:"wait_customer"`
 }
 type InitMine struct {
-	Id         int    `json:"id"`
-	UserName   string `json:"user_name"`
-	HeadImgUrl string `json:"head_img_url"`
-	Status     string `json:"status"`
+	Id         string `bson:"id" json:"id"`
+	UserName   string `bson:"user_name" json:"user_name"`
+	HeadImgUrl string `bson:"head_img_url" json:"head_img_url"`
+	IsOnline   bool   `bson:"is_online" json:"status"`
 }
-type InitOnlineCustomer struct {
-	RoomToken          string        `json:"room_token"` // 会话的Token，实际上就是用户的OpenId
-	CustomerNickName   string        `json:"customer_nick_name"`
-	CustomerHeadImgUrl string        `json:"customer_head_img_url"`
-	CustomerMessages   []InitMessage `json:"customer_messages"`
+type CustomerInfo struct {
+	CustomerId         string `bson:"customer_id" json:"customer_id"`
+	CustomerNickName   string `bson:"customer_nick_name" json:"customer_nick_name"`
+	CustomerHeadImgUrl string `bson:"customer_head_img_url" json:"customer_head_img_url"`
 }
-type InitMessage struct {
-	Id                int       `json:"id"`
-	MessageType       string    `json:"message_type"`
-	MessageContent    string    `json:"message_content"`
-	MessageOperCode   int       `json:"message_oper_code"`
-	MessageAck        bool      `json:"message_ack"`
-	MessageCteateTime time.Time `json:"message_cteate_time"`
+type OnlineCustomer struct {
+	RoomCustomer CustomerInfo        `bson:"room_customer" json:"room_customer"`
+	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
+}
+type WaitCustomer struct {
+	RoomCustomer CustomerInfo        `bson:"room_customer" json:"room_customer"`
+	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
+	//PreviousKf         WaitQueuePreviousKf
 }

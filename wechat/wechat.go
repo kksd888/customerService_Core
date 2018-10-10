@@ -4,6 +4,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat/cache"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/context"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
+	"git.jsjit.cn/customerService/customerService_Core/wechat/material"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/server"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/user"
 	"net/http"
@@ -39,6 +40,11 @@ func copyConfigToContext(cfg *Config, context *context.Context) {
 	context.Cache = cfg.Cache
 	context.SetAccessTokenLock(new(sync.RWMutex))
 	context.SetJsAPITicketLock(new(sync.RWMutex))
+}
+
+// GetMaterial 素材管理
+func (wc *Wechat) GetMaterial() *material.Material {
+	return material.NewMaterial(wc.Context)
 }
 
 // GetServer 消息管理

@@ -2,49 +2,74 @@ package handle
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
+	"time"
 )
 
 // OAuth2.0 授权认证
 func OauthMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := c.Request.Header.Get("authentication")
+		var (
+			err   error
+			kfId  string
+			token = c.Request.Header.Get("authentication")
+		)
+
 		if token == "" {
-			c.JSON(http.StatusUnauthorized, "API token required")
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized,
+				"msg":  "API token required",
+			})
 			c.Abort()
 			return
 		}
 
-		if roomKf, err := AuthToken2Model(c); err != nil {
-			c.JSON(http.StatusUnauthorized, err.Error())
+		if kfId, err = AuthToken2Model(c); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized,
+				"msg":  err.Error(),
+			})
 			c.Abort()
 			return
 		} else {
-			c.Set("roomKf", roomKf)
+			c.Set("KFID", kfId)
 		}
+
+		// 更新在线客服列表时间
+		contrastKf := model.Kf{Id: kfId, UpdateTime: time.Now()}
+		isExist := contrastKf.OnlineExist()
+		if isExist {
+			model.KfLastTimeChange <- &contrastKf
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": http.StatusUnauthorized,
+				"msg":  "授权过期，请重新登录",
+			})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }
 
 // 鉴权Token解码为模型
-func AuthToken2Model(c *gin.Context) (roomKf *logic.RoomKf, err error) {
-	token := c.Request.Header.Get("authentication")
+func AuthToken2Model(c *gin.Context) (kfId string, err error) {
+	var (
+		token = c.Request.Header.Get("authentication")
+		aes   = common.AesEncrypt{}
+	)
+
 	decodeBytes, err := base64.StdEncoding.DecodeString(token)
-	aes := common.AesEncrypt{}
 	if bytes, err := aes.Decrypt(decodeBytes); err != nil {
 		err = errors.New("API token Authentication failed")
 	} else {
-		if err := json.Unmarshal(bytes, &roomKf); err != nil {
-			log.Printf("string json :%s, err %#v", string(bytes), err.Error())
-			err = errors.New("API token Authentication failed")
-		}
-		if &roomKf == nil {
+		kfId = string(bytes)
+		if kfId == "" {
 			err = errors.New("API token Authentication failed")
 		}
 	}

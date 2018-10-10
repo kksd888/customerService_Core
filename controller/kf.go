@@ -3,16 +3,21 @@
 package controller
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"encoding/base64"
+	"fmt"
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	"gopkg.in/mgo.v2/bson"
+	"log"
 	"net/http"
 )
 
 type KfServerController struct {
 }
 
-func InitKfServer() *KfServerController {
+func NewKfServer() *KfServerController {
 	return &KfServerController{}
 }
 
@@ -21,10 +26,20 @@ func InitKfServer() *KfServerController {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param kfId path int true "客服的ID"
 // @Success 200 {string} json ""
-// @Router /v1/kf/{kfId} [get]
+// @Router /admin/kf [get]
 func (c *KfServerController) Get(context *gin.Context) {
+	var (
+		kf      model.Kf
+		kfId, _ = context.Get("KFID")
+		kfC     = model.Db.C("kefu")
+	)
+
+	if err := kfC.Find(bson.M{"id": kfId}).One(&kf); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	context.JSON(http.StatusOK, kf)
 }
 
 // @Summary 客服修改在线状态
@@ -32,10 +47,26 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param kfId path int true "客服的ID"
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/kf/{kfId}/status [put]
+// @Router /admin/kf/status [post]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
+	var (
+		kfId, _ = context.Get("KFID")
+		kfC     = model.Db.C("kefu")
+		reqBind = struct {
+			Status bool `bson:"status" json:"status"`
+		}{}
+	)
+
+	if err := context.Bind(&reqBind); err != nil {
+		ReturnErrInfo(context, err)
+	}
+
+	if err := kfC.Update(bson.M{"id": kfId}, bson.M{"$set": bson.M{"is_online": reqBind.Status}}); err != nil {
+		ReturnErrInfo(context, err)
+	} else {
+		ReturnSuccessInfo(context)
+	}
 }
 
 // @Summary 客服登入
@@ -43,32 +74,55 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Tags Kf
 // @Accept  json
 // @Produce  json
-// @Param tokenId path int true "客服的授权TokenId"
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
-// @Router /v1/login/{tokenId} [post]
+// @Router /admin/login [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
-	tokenId := context.Param("tokenId")
-	if tokenId == "" {
-		context.JSON(http.StatusOK, gin.H{"code": http.StatusUnauthorized, "msg": "缺少授权客服的token"})
-		return
+	var (
+		kf           = model.Kf{}
+		kfCollection = model.Db.C("kefu")
+		loginStruct  = struct {
+			JobNum   string `json:"job_num"`
+			PassWord string `json:"pass_word"`
+		}{}
+	)
+
+	if err := context.Bind(&loginStruct); err != nil {
+		ReturnErrInfo(context, errors.New(fmt.Sprintf("登录参数错误：%s", err.Error())))
 	}
 
-	kf := model.Kf{}
-	if err := kf.GetByTokenId(tokenId); err != nil {
+	if loginStruct.JobNum == "" || loginStruct.PassWord == "" {
+		ReturnErrInfo(context, "登录参数错误")
+	}
+
+	if err := kfCollection.Find(bson.M{
+		"job_num":   loginStruct.JobNum,
+		"pass_word": common.ToMd5(loginStruct.PassWord),
+	}).One(&kf); err != nil {
+		ReturnErrInfo(context, "客服登录授权失败")
+	}
+
+	s, _ := Make2Auth(kf.Id)
+
+	// 更新在线客服列表
+	changeKfModel := model.Kf{Id: kf.Id, IsOnline: true}
+	err := changeKfModel.ChangeStatus()
+	if err != nil {
 		ReturnErrInfo(context, err)
-	} else {
-		logic.AddOnlineKf(kf)
-
-		s, _ := logic.RoomKf{
-			KfId:         kf.Id,
-			KfName:       kf.NickName,
-			KfHeadImgUrl: kf.HeadImgUrl,
-			KfStatus:     0,
-		}.Make2Auth()
-		context.JSON(http.StatusOK, LoginInResponse{
-			Authentication: s,
-		})
 	}
+
+	context.JSON(http.StatusOK, LoginInResponse{
+		Authentication: s,
+	})
+}
+
+func Make2Auth(kfId string) (string, error) {
+	encrypt := common.AesEncrypt{}
+	byteInfo, err := encrypt.Encrypt([]byte(kfId))
+	if err != nil {
+		log.Printf("common.NewGoAES() err：%v", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(byteInfo), err
 }
 
 type LoginInResponse struct {

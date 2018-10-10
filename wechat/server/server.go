@@ -42,9 +42,9 @@ func NewServer(context *context.Context) *Server {
 
 //Serve 处理微信的请求消息
 func (srv *Server) Serve() error {
-	if !srv.Validate() {
-		return fmt.Errorf("请求校验失败")
-	}
+	//if !srv.Validate() {
+	//	return fmt.Errorf("请求校验失败")
+	//}
 
 	echostr, exists := srv.GetQuery("echostr")
 	if exists {

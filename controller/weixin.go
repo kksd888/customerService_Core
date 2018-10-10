@@ -3,21 +3,24 @@ package controller
 import (
 	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/logic"
+	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/mgo.v2/bson"
 	"log"
+	"strings"
+	"time"
 )
 
 type WeiXinController struct {
 	wxContext *wechat.Wechat
-	rooms     map[string]*logic.Room
+	aiModule  *handle.AiSemantic
 }
 
-func InitWeiXin(wxContext *wechat.Wechat, rooms map[string]*logic.Room) *WeiXinController {
-	return &WeiXinController{wxContext: wxContext, rooms: rooms}
+func NewWeiXin(wxContext *wechat.Wechat, aiModule *handle.AiSemantic) *WeiXinController {
+	return &WeiXinController{wxContext: wxContext, aiModule: aiModule}
 }
 
 // 微信通信接口
@@ -34,52 +37,156 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				1. 检索已分配的房间
 				2. 存储聊天数据
 		*/
-		text := message.NewText(msg.Content)
-		log.Printf("用户[%s]发来信息：%s \n", msg.FromUserName, text.Content)
+		var (
+			msgType    = string(msg.MsgType) // 消息类型
+			MediaUrl   = ""                  // 多媒体地址
+			msgText    = ""                  // 文本内容
+			aiDialogue = ""                  // AI答复
+		)
+		switch msg.MsgType {
+		case message.MsgTypeText:
+			msgText = message.NewText(msg.Content).Content
+		case message.MsgTypeImage:
+			MediaUrl = msg.PicURL
+		case message.MsgTypeVoice:
+			msgText = msg.Recognition
+			material := c.wxContext.GetMaterial()
+			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
+				log.Printf("material.MsgTypeVoice is err: %#v", err)
+			} else {
+				MediaUrl = mediaURL
+			}
+		case message.MsgTypeVideo:
+			material := c.wxContext.GetMaterial()
+			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
+				log.Printf("material.MsgTypeVideo is err: %#v", err)
+			} else {
+				MediaUrl = mediaURL
+			}
+		case message.MsgTypeShortVideo:
+			material := c.wxContext.GetMaterial()
+			if mediaURL, err := material.GetMediaURL(msg.MediaID); err != nil {
+				log.Printf("material.MsgTypeShortVideo is err: %#v", err)
+			} else {
+				MediaUrl = mediaURL
+			}
+		}
 
-		// 通信注册
-		room, isNew := logic.InitRoom(msg.FromUserName)
-		log.Printf("%#v", room)
+		// 尝试机器人回答
+		if msgText != "" {
+			aiDialogue = c.aiModule.Dialogue(msgText)
+		}
 
-		// 存储消息
-		model.Message{
-			CustomerToken: room.CustomerId,
-			KfId:          room.KfId,
-			KfAck:         false,
-			Msg:           msg.Content,
-			MsgType:       string(msg.MsgType),
-			OperCode:      common.MessageFromCustomer,
-		}.Insert()
+		if aiDialogue != "" {
+			log.Printf("用户[%s]发来信息：[%s] %s；小金推荐回复：%s \n", msg.FromUserName, msgType, msgText, aiDialogue)
 
-		// 首次访问的客户
-		if isNew {
+			if strings.HasPrefix(strings.ToUpper(msgText), "#T") {
+				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(aiDialogue)}
+			}
+
+		} else {
+			log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
+		}
+
+		roomCollection := model.Db.C("room")
+		customerCollection := model.Db.C("customer")
+		var room = model.Room{}
+		roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room)
+
+		if room.RoomCustomer.CustomerId == "" {
+			// 新接入
 			userInfo, err := c.wxContext.GetUser().GetUserInfo(msg.FromUserName)
 			if err != nil {
 				log.Printf("WeiXinController.wxContext.GetUser().GetUserInfo() is err：%v", err.Error())
 			}
 
 			// 客户数据持久化
-			model.Customer{
-				OpenId:       msg.FromUserName,
+			customerCollection.Insert(&model.Customer{
+				CustomerId:   msg.FromUserName,
 				NickName:     userInfo.Nickname,
 				CustomerType: common.NormalCustomer,
 				Sex:          userInfo.Sex,
 				HeadImgUrl:   userInfo.Headimgurl,
 				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
-			}.InsertOrUpdate()
+				CreateTime:   time.Now(),
+				UpdateTime:   time.Now(),
+			})
 
-			if _, isOk := logic.GetOnlineKf(); !isOk {
-				return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
+			// 实时会话数据更新
+			roomCollection.Insert(&model.Room{
+				RoomCustomer: model.RoomCustomer{
+					CustomerId:         msg.FromUserName,
+					CustomerNickName:   userInfo.Nickname,
+					CustomerHeadImgUrl: userInfo.Headimgurl,
+				},
+				RoomMessages: []model.RoomMessage{
+					{
+						Id:         common.GetNewUUID(),
+						Type:       msgType,
+						Msg:        msgText,
+						AiMsg:      aiDialogue,
+						MediaUrl:   MediaUrl,
+						OperCode:   common.MessageFromCustomer,
+						CreateTime: time.Now(),
+					},
+				},
+				CreateTime: time.Now(),
+			})
+		} else {
+			var (
+				kefuColection = model.Db.C("kefu")
+				kefuModel     = model.Kf{}
+			)
+			kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
+			if kefuModel.Id != "" && kefuModel.IsOnline == false {
+				// 若接待的客服已经下线，则将用户重新放入待接入
+				roomCollection.Update(
+					bson.M{"room_customer.customer_id": msg.FromUserName},
+					bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
 			}
 
-			// 更新内存中的客户信息
-			room.CustomerNickName = userInfo.Nickname
-			room.CustomerHeadImgUrl = userInfo.Headimgurl
+			// 实时会话数据更新
+			query := bson.M{
+				"room_customer.customer_id": msg.FromUserName,
+			}
+			changes := bson.M{
+				"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
+					{
+						Id:         common.GetNewUUID(),
+						Type:       msgType,
+						Msg:        msgText,
+						AiMsg:      aiDialogue,
+						MediaUrl:   MediaUrl,
+						OperCode:   common.MessageFromCustomer,
+						CreateTime: time.Now(),
+					},
+				},
+					"$slice": -100}},
+			}
+			if err := roomCollection.Update(query, changes); err != nil {
+				log.Printf("实时房型数据更新异常：%s", err.Error())
+			}
 		}
 
-		//logic.PrintRoomMap()
+		// 存储历史消息
+		model.InsertMessage(model.Message{
+			Id:         common.GetNewUUID(),
+			Type:       msgType,
+			CustomerId: msg.FromUserName,
+			KfId:       room.RoomKf.KfId,
+			Msg:        msgText,
+			AiMsg:      aiDialogue,
+			MediaUrl:   MediaUrl,
+			OperCode:   common.MessageFromCustomer,
+			CreateTime: time.Now(),
+		})
 
-		return &message.Reply{message.MsgTypeText, nil}
+		onlines, _ := model.Kf{}.QueryOnlines()
+		if len(onlines) == 0 {
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: message.NewText(common.KF_REPLY)}
+		}
+
+		return
 	})
 
 	//处理消息接收以及回复
