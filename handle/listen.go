@@ -36,7 +36,7 @@ func Listen() {
 			time.Sleep(time.Second * 1)
 
 			var (
-				duration, _ = time.ParseDuration("-10m")
+				duration, _ = time.ParseDuration("-10s")
 				targetTime  = time.Now().Add(duration)
 				allOffKefu  = []model.Kf{}
 			)
@@ -45,7 +45,7 @@ func Listen() {
 				log.Printf(err.Error())
 			}
 
-			// 超时10分钟则下线
+			// 超时10秒则下线
 			if len(allOffKefu) > 0 {
 				for _, singeKf := range allOffKefu {
 					if upErr := kefuC.Update(bson.M{"id": singeKf.Id}, bson.M{"$set": bson.M{"is_online": false, "update_time": time.Now()}}); upErr != nil {
