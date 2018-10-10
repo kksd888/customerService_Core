@@ -17,6 +17,18 @@ var (
 // 监听 优雅停服、客服下线，用户消息过期
 func Listen() {
 
+	// 跟新最后活动时间
+	go func() {
+		kefuC := model.Db.C("kefu")
+		for {
+			k := <-model.KfLastTimeChange
+			log.Printf("更新客服[%s]最后活动时间，%s", k.Id, k.UpdateTime)
+			if err := kefuC.Update(bson.M{"id": k.Id}, bson.M{"$set": bson.M{"update_time": k.UpdateTime}}); err != nil {
+				log.Printf("异步更新客服最后活动时间异常: %s", err.Error())
+			}
+		}
+	}()
+
 	// 优雅停机
 	go func() {
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

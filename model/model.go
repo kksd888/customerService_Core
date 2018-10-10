@@ -2,33 +2,17 @@ package model
 
 import (
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-	"log"
 )
 
 var (
 	Db *mgo.Database
-
-	KfLastTimeChange = make(chan *Kf, 10)
 )
 
-func NewMongo() {
-	session, err := mgo.Dial("172.16.14.52:27017")
+// mongodb项目中当做类似于Redis一类的直读缓存介质，用来维护数据的最终一致性
+func NewMongo(conn string) {
+	session, err := mgo.Dial(conn)
 	if err != nil {
 		panic(err.Error())
 	}
 	Db = session.DB("customer_service_db")
-
-	go DbJob()
-}
-
-func DbJob() {
-	kefuC := Db.C("kefu")
-	for {
-		k := <-KfLastTimeChange
-		//log.Printf("更新客服[%s]最后活动时间，%s", k.Id, k.UpdateTime)
-		if err := kefuC.Update(bson.M{"id": k.Id}, bson.M{"$set": bson.M{"update_time": k.UpdateTime}}); err != nil {
-			log.Printf("异步更新客服最后活动时间异常: %s", err.Error())
-		}
-	}
 }

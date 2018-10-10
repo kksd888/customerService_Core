@@ -40,7 +40,7 @@ func init() {
 func main() {
 
 	//gin.SetMode(gin.ReleaseMode)
-	model.NewMongo()
+	model.NewMongo("172.16.14.52:27017")
 
 	router := gin.Default()
 
