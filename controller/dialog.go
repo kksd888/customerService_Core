@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -288,7 +289,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		ToUser:  sendRequest.CustomerId,
 		MsgType: sendRequest.MsgType,
 		Text: message.Text{
-			Content: sendRequest.Msg,
+			Content: strings.Replace(sendRequest.Msg, "<br>", "\n", -1),
 		},
 	})
 	ReturnErrInfo(context, err)
