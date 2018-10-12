@@ -64,6 +64,7 @@ func main() {
 	kfController := controller.NewKfServer()
 	dialogController := controller.NewDialog(wxContext)
 	weiXinController := controller.NewWeiXin(wxContext, aiModule)
+	mobileController := controller.NewMobile(wxContext, aiModule)
 
 	// 静态文件
 	router.Static("/static", "./www")
@@ -73,6 +74,8 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
+	// 移动系统通信地址
+	router.POST("/mobile", mobileController.Listen)
 	// 客服登录操作
 	router.POST("/admin/login", kfController.LoginIn)
 
