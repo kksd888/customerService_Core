@@ -1,13 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/admin"
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/open"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"time"
 )
 
@@ -24,9 +29,17 @@ func init() {
 // @description  在线客服API文档的文档，接管了微信公众号聊天
 // @BasePath /
 func main() {
+	yamlFile, err := ioutil.ReadFile("conf.yaml")
+	if err != nil {
+		log.Fatal("未找到配置文件conf.yaml", err)
+	}
+	config := common.GinConfig{}
+	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
+		log.Fatal("配置文件格式错误", err)
+	}
 
-	//gin.SetMode(gin.ReleaseMode)
-	model.NewMongo("172.16.14.52:27018")
+	gin.SetMode(config.RunModel)
+	model.NewMongo(config.Mongodb)
 
 	router := gin.Default()
 
@@ -42,7 +55,7 @@ func main() {
 	}))
 
 	// 注册外部服务
-	aiModule := handle.NewAiSemantic("http://172.16.14.55:20600/semantic")
+	aiModule := handle.NewAiSemantic(config.AiSemantic)
 
 	// Admin 注册控制器
 	defaultController := admin.NewHealth()
@@ -125,5 +138,5 @@ func main() {
 	go handle.Listen()
 
 	// GO GO GO!!!
-	router.Run(":5000")
+	router.Run(fmt.Sprintf(":%s", config.Port))
 }
