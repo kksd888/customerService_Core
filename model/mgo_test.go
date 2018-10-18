@@ -2,8 +2,8 @@ package model
 
 import (
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/admin"
 	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

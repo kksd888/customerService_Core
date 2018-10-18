@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/admin"
 	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
+	"git.jsjit.cn/customerService/customerService_Core/controller/open"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
-	"git.jsjit.cn/customerService/customerService_Core/open"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
