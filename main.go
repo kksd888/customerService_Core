@@ -58,8 +58,7 @@ func main() {
 	aiModule := handle.NewAiSemantic(config.AiSemantic)
 
 	// Admin 注册控制器
-	defaultController := admin.NewHealth()
-	offlineReplyController := admin.NewOfflineReply()
+	adminController := admin.NewHealth()
 	kfController := admin.NewKfServer()
 	dialogController := admin.NewDialog(wxContext)
 	weiXinController := admin.NewWeiXin(wxContext, aiModule)
@@ -68,7 +67,7 @@ func main() {
 	openDialogController := open.NewDialog(aiModule)
 
 	// 健康检查
-	router.GET("/health", defaultController.Health)
+	router.GET("/health", openController.Health)
 	// 静态文件
 	router.Static("/static", "./www")
 	// 静态多媒体文件
@@ -82,7 +81,7 @@ func main() {
 	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
 	{
 		// 初始化
-		adminGroup.GET("/init", defaultController.Init)
+		adminGroup.GET("/init", adminController.Init)
 
 		// 待接入列表
 		waitQueue := adminGroup.Group("/wait_queue")
@@ -105,19 +104,6 @@ func main() {
 		{
 			kf.GET("", kfController.Get)
 			kf.PUT("/status", kfController.ChangeStatus)
-		}
-
-		// 设置操作
-		setting := adminGroup.Group("/setting")
-		{
-			// 离线自动回复设置
-			offlineReply := setting.Group("/offline_reply")
-			{
-				offlineReply.GET("", offlineReplyController.List)
-				offlineReply.POST("", offlineReplyController.Create)
-				offlineReply.PUT("/:replyId", offlineReplyController.Update)
-				offlineReply.DELETE("/:replyId", offlineReplyController.Delete)
-			}
 		}
 	}
 

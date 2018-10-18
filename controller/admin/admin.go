@@ -10,22 +10,11 @@ import (
 	"net/http"
 )
 
-type DefaultController struct {
+type AdminController struct {
 }
 
-func NewHealth() *DefaultController {
-	return &DefaultController{}
-}
-
-// @Summary 健康检查
-// @Description 应用程序健康检查接口
-// @Tags Default
-// @Accept json
-// @Produce json
-// @Success 200 {string} json ""
-// @Router /admin/health [get]
-func (c *DefaultController) Health(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{"code": 100})
+func NewHealth() *AdminController {
+	return &AdminController{}
 }
 
 // @Summary 系统初始化
@@ -35,7 +24,7 @@ func (c *DefaultController) Health(context *gin.Context) {
 // @Produce  json
 // @Success 200 {string} json ""
 // @Router /admin/init [get]
-func (c *DefaultController) Init(context *gin.Context) {
+func (c *AdminController) Init(context *gin.Context) {
 	// 获取访问客服信息
 	var (
 		kf             = model.Kf{}

@@ -6,6 +6,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
+	"net/http"
 	"time"
 )
 
@@ -14,6 +15,12 @@ type OpenController struct {
 
 func NewOpen() *OpenController {
 	return &OpenController{}
+}
+
+// 健康检查
+// /health
+func (c *OpenController) Health(context *gin.Context) {
+	context.JSON(http.StatusOK, gin.H{"code": 100})
 }
 
 // 认证授权
