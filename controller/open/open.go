@@ -28,13 +28,15 @@ func (c *OpenController) Health(context *gin.Context) {
 func (open *OpenController) Access(ctx *gin.Context) {
 	var (
 		input = struct {
-			DeviceId   string    `json:"device_id" bson:"device_id" binding:"required"` // 设备编号
-			CustomerId string    `json:"customer_id" bson:"customer_id"`                // 用户编号
-			NickName   string    `json:"nick_name" bson:"nick_name"`                    // 用户昵称
-			HeadImgUrl string    `json:"head_img_url" bson:"head_img_url"`              // 用户头像
-			CreateTime time.Time `json:"-" bson:"create_time"`                          // DB创建时间
-			UpdateTime time.Time `json:"-" bson:"update_time"`                          // DB更新时间
+			DeviceId   string                    `json:"device_id" bson:"device_id" binding:"required"` // 设备编号
+			CustomerId string                    `json:"customer_id" bson:"customer_id"`                // 用户编号
+			NickName   string                    `json:"nick_name" bson:"nick_name"`                    // 用户昵称
+			HeadImgUrl string                    `json:"head_img_url" bson:"head_img_url"`              // 用户头像
+			Source     common.CustomerSourceType `json:"-" bson:"source"`                               // 来源
+			CreateTime time.Time                 `json:"-" bson:"create_time"`                          // DB创建时间
+			UpdateTime time.Time                 `json:"-" bson:"update_time"`                          // DB更新时间
 		}{
+			Source:     common.FromAPP,
 			CreateTime: time.Now(),
 			UpdateTime: time.Now(),
 		}
@@ -43,6 +45,7 @@ func (open *OpenController) Access(ctx *gin.Context) {
 		}
 
 		customerCollection = model.Db.C("customer")
+		roomCollection     = model.Db.C("room")
 	)
 
 	// 验证并绑定到模型
@@ -64,7 +67,18 @@ func (open *OpenController) Access(ctx *gin.Context) {
 	if err != nil {
 		common.ReturnErr(ctx, err)
 	}
-
 	output.Authorization = auth
+
+	// 实时会话数据更新
+	roomCollection.Insert(&model.Room{
+		RoomCustomer: model.RoomCustomer{
+			CustomerId:         input.CustomerId,
+			CustomerNickName:   input.NickName,
+			CustomerHeadImgUrl: input.HeadImgUrl,
+			CustomerSource:     input.Source,
+		},
+		CreateTime: time.Now(),
+	})
+
 	common.ReturnSuccess(ctx, output)
 }

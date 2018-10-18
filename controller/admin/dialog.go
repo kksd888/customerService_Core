@@ -244,9 +244,10 @@ func (c *DialogController) History(context *gin.Context) {
 // @Router /admin/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
 	var (
-		sendRequest    SendMessageRequest
-		kfId, _        = context.Get("KFID")
-		roomCollection = model.Db.C("room")
+		sendRequest        SendMessageRequest
+		kfId, _            = context.Get("KFID")
+		roomCollection     = model.Db.C("room")
+		customerCollection = model.Db.C("customer")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
@@ -285,21 +286,25 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		CreateTime: time.Now(),
 	})
 
-	msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
-		ToUser:  sendRequest.CustomerId,
-		MsgType: sendRequest.MsgType,
-		Text: message.Text{
-			Content: strings.Replace(sendRequest.Msg, "<br>", "\n", -1),
-		},
-	})
-	ReturnErrInfo(context, err)
-
-	log.Printf("客服[%s]发送信息：%s \n", kfId, sendRequest.Msg)
-
-	if msgResponse.ErrCode == 0 {
-		ReturnSuccessInfo(context)
+	customer := model.Customer{}
+	customerCollection.Find(bson.M{"customer_id": sendRequest.CustomerId}).One(&customer)
+	if customer.CustomerSourceType == common.FromWeixin {
+		msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
+			ToUser:  sendRequest.CustomerId,
+			MsgType: sendRequest.MsgType,
+			Text: message.Text{
+				Content: strings.Replace(sendRequest.Msg, "<br>", "\n", -1),
+			},
+		})
+		ReturnErrInfo(context, err)
+		log.Printf("客服[%s]发送信息：%s \n", kfId, sendRequest.Msg)
+		if msgResponse.ErrCode == 0 {
+			ReturnSuccessInfo(context)
+		} else {
+			ReturnErrInfo(context, errors.New("发送消息失败"))
+		}
 	} else {
-		ReturnErrInfo(context, errors.New("发送消息失败"))
+		ReturnSuccessInfo(context)
 	}
 }
 

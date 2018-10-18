@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"git.jsjit.cn/customerService/customerService_Core/common"
+	"time"
+)
 
 type Room struct {
 	RoomCustomer RoomCustomer  `json:"room_customer" bson:"room_customer"`
@@ -9,10 +12,11 @@ type Room struct {
 	CreateTime   time.Time     `json:"create_time" bson:"create_time"`
 }
 type RoomCustomer struct {
-	CustomerId           string `json:"customer_id" bson:"customer_id"`
-	CustomerNickName     string `json:"customer_nick_name" bson:"customer_nick_name"`
-	CustomerHeadImgUrl   string `json:"customer_head_img_url" bson:"customer_head_img_url"`
-	CustomerPreviousKfId string `json:"customer_previous_kf_id" bson:"customer_previous_kf_id"`
+	CustomerId           string                    `json:"customer_id" bson:"customer_id"`
+	CustomerNickName     string                    `json:"customer_nick_name" bson:"customer_nick_name"`
+	CustomerHeadImgUrl   string                    `json:"customer_head_img_url" bson:"customer_head_img_url"`
+	CustomerSource       common.CustomerSourceType `json:"customer_source" bson:"customer_source"`
+	CustomerPreviousKfId string                    `json:"customer_previous_kf_id" bson:"customer_previous_kf_id"`
 }
 type RoomKf struct {
 	KfId         string `json:"kf_id" bson:"kf_id"`

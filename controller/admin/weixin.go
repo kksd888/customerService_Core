@@ -102,14 +102,15 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 
 			// 客户数据持久化
 			customerCollection.Insert(&model.Customer{
-				CustomerId:   msg.FromUserName,
-				NickName:     userInfo.Nickname,
-				CustomerType: common.NormalCustomer,
-				Sex:          userInfo.Sex,
-				HeadImgUrl:   userInfo.Headimgurl,
-				Address:      fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
-				CreateTime:   time.Now(),
-				UpdateTime:   time.Now(),
+				CustomerId:         msg.FromUserName,
+				NickName:           userInfo.Nickname,
+				CustomerType:       common.NormalCustomer,
+				CustomerSourceType: common.FromWeixin,
+				Sex:                userInfo.Sex,
+				HeadImgUrl:         userInfo.Headimgurl,
+				Address:            fmt.Sprintf("%s_%s", userInfo.Province, userInfo.City),
+				CreateTime:         time.Now(),
+				UpdateTime:         time.Now(),
 			})
 
 			// 实时会话数据更新
@@ -118,6 +119,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 					CustomerId:         msg.FromUserName,
 					CustomerNickName:   userInfo.Nickname,
 					CustomerHeadImgUrl: userInfo.Headimgurl,
+					CustomerSource:     common.FromWeixin,
 				},
 				RoomMessages: []model.RoomMessage{
 					{

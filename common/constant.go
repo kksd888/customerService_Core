@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+// 客户来源
+type CustomerSourceType string
+
 const (
 	AES_KEY  = "80b11dc2dba242fd99b6bff28760c849"                //AES加密的KEY
 	KF_REPLY = "您好，现在时段暂无人工客服为您服务，如您有任何问题可致电24小时服务热线4008101688。" // 自动回复
@@ -18,6 +21,9 @@ const (
 
 	MessageFromCustomer = 2002 // 客户发送的消息
 	MessageFromKf       = 2003 // 客服发送的消息
+
+	FromAPP    CustomerSourceType = "app"
+	FromWeixin CustomerSourceType = "weixin"
 )
 
 func GetNewUUID() string {

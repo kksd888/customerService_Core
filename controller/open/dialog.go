@@ -56,7 +56,7 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 	for _, v := range dbResult {
 		v.RoomMessages.CreateTime2Timestamp()
 		if v.RoomMessages.MediaUrl != "" {
-			v.RoomMessages.MediaUrl += "http://kf.api.7u1.cn/"
+			v.RoomMessages.MediaUrl = "http://kf.api.7u1.cn/" + v.RoomMessages.MediaUrl
 		}
 		output = append(output, v.RoomMessages)
 	}
@@ -104,7 +104,7 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 	for _, v := range dbResult {
 		v.RoomMessages.CreateTime2Timestamp()
 		if v.RoomMessages.MediaUrl != "" {
-			v.RoomMessages.MediaUrl += "http://kf.api.7u1.cn/"
+			v.RoomMessages.MediaUrl = "http://kf.api.7u1.cn/" + v.RoomMessages.MediaUrl
 		}
 		output = append(output, v.RoomMessages)
 	}
@@ -113,8 +113,7 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 	if updateErr := roomCollection.Update(
 		bson.M{"room_customer.customer_id": customerId},
 		bson.M{"$set": bson.M{"room_messages.$[].ack": true}}); updateErr != nil {
-		common.ReturnErr(ctx, updateErr)
-		log.Error(updateErr)
+		log.Warn(updateErr)
 	}
 
 	common.ReturnSuccess(ctx, output)

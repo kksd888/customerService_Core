@@ -22,7 +22,7 @@ func Listen() {
 		kefuC := model.Db.C("kefu")
 		for {
 			k := <-model.KfLastTimeChange
-			log.Printf("更新客服[%s]最后活动时间，%s", k.Id, k.UpdateTime)
+			//log.Printf("更新客服[%s]最后活动时间，%s", k.Id, k.UpdateTime)
 			if err := kefuC.Update(bson.M{"id": k.Id}, bson.M{"$set": bson.M{"update_time": k.UpdateTime}}); err != nil {
 				log.Printf("异步更新客服最后活动时间异常: %s", err.Error())
 			}

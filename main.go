@@ -75,7 +75,7 @@ func main() {
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
 	// 客服登录操作
-	router.POST("/adminGroup/login", kfController.LoginIn)
+	router.POST("/admin/login", kfController.LoginIn)
 
 	// 后台Admin API路由 (授权保护)
 	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
