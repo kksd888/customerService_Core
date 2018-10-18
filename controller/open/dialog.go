@@ -7,9 +7,9 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"github.com/globalsign/mgo/bson"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -87,7 +87,10 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 						"input": "$room_messages",
 						"as":    "room_message",
 						"cond": bson.M{
-							"$eq": []interface{}{"$$room_message.ack", false},
+							"$and": []bson.M{
+								{"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromKf}},
+								{"$eq": []interface{}{"$$room_message.ack", false}},
+							},
 						},
 					},
 				},
@@ -110,9 +113,11 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 	}
 
 	// 确认已读的消息
-	if updateErr := roomCollection.Update(
+	if _, updateErr := roomCollection.UpdateWithArrayFilters(
 		bson.M{"room_customer.customer_id": customerId},
-		bson.M{"$set": bson.M{"room_messages.$[].ack": true}}); updateErr != nil {
+		bson.M{"$set": bson.M{"room_messages.$[e].ack": true}},
+		[]bson.M{{"e.oper_code": common.MessageFromKf}},
+		true); updateErr != nil {
 		log.Warn(updateErr)
 	}
 

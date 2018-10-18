@@ -5,7 +5,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 	"net/http"
 	"time"
 )
@@ -69,13 +69,22 @@ func (open *OpenController) Access(ctx *gin.Context) {
 	}
 	output.Authorization = auth
 
-	// 实时会话数据更新
+	// 更新默认欢迎消息
 	roomCollection.Insert(&model.Room{
 		RoomCustomer: model.RoomCustomer{
 			CustomerId:         input.CustomerId,
 			CustomerNickName:   input.NickName,
 			CustomerHeadImgUrl: input.HeadImgUrl,
 			CustomerSource:     input.Source,
+		},
+		RoomMessages: []model.RoomMessage{
+			{
+				Id:         common.GetNewUUID(),
+				Type:       string(common.MsgTypeText),
+				Msg:        "你好",
+				OperCode:   common.MessageFromCustomer,
+				CreateTime: time.Now(),
+			},
 		},
 		CreateTime: time.Now(),
 	})

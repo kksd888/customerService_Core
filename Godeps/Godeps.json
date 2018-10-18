@@ -43,6 +43,31 @@
 			"Rev": "0da5b0c85ac2539e775a7e63aebf3e0b5808dab4"
 		},
 		{
+			"ImportPath": "github.com/globalsign/mgo",
+			"Comment": "r2018.06.15-10-gcb161a6",
+			"Rev": "cb161a6d62beae8c332cd1c5f6152c901f5514ec"
+		},
+		{
+			"ImportPath": "github.com/globalsign/mgo/bson",
+			"Comment": "r2018.06.15-10-gcb161a6",
+			"Rev": "cb161a6d62beae8c332cd1c5f6152c901f5514ec"
+		},
+		{
+			"ImportPath": "github.com/globalsign/mgo/internal/json",
+			"Comment": "r2018.06.15-10-gcb161a6",
+			"Rev": "cb161a6d62beae8c332cd1c5f6152c901f5514ec"
+		},
+		{
+			"ImportPath": "github.com/globalsign/mgo/internal/sasl",
+			"Comment": "r2018.06.15-10-gcb161a6",
+			"Rev": "cb161a6d62beae8c332cd1c5f6152c901f5514ec"
+		},
+		{
+			"ImportPath": "github.com/globalsign/mgo/internal/scram",
+			"Comment": "r2018.06.15-10-gcb161a6",
+			"Rev": "cb161a6d62beae8c332cd1c5f6152c901f5514ec"
+		},
+		{
 			"ImportPath": "github.com/golang/protobuf/proto",
 			"Comment": "v1.2.0-2-gb27b920",
 			"Rev": "b27b920f9e71b439b873b17bf99f56467623814a"
@@ -108,31 +133,6 @@
 			"ImportPath": "gopkg.in/go-playground/validator.v8",
 			"Comment": "v8.18.2",
 			"Rev": "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
-		},
-		{
-			"ImportPath": "gopkg.in/mgo.v2",
-			"Comment": "r2016.08.01-7-g9856a29",
-			"Rev": "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
-		},
-		{
-			"ImportPath": "gopkg.in/mgo.v2/bson",
-			"Comment": "r2016.08.01-7-g9856a29",
-			"Rev": "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
-		},
-		{
-			"ImportPath": "gopkg.in/mgo.v2/internal/json",
-			"Comment": "r2016.08.01-7-g9856a29",
-			"Rev": "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
-		},
-		{
-			"ImportPath": "gopkg.in/mgo.v2/internal/sasl",
-			"Comment": "r2016.08.01-7-g9856a29",
-			"Rev": "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
-		},
-		{
-			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
-			"Comment": "r2016.08.01-7-g9856a29",
-			"Rev": "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

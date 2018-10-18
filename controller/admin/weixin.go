@@ -8,7 +8,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 	"log"
 	"strings"
 	"time"

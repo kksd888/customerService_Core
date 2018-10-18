@@ -8,8 +8,8 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
+	"github.com/globalsign/mgo/bson"
 	"github.com/pkg/errors"
-	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net/http"
 )

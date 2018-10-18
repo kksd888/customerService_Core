@@ -10,8 +10,8 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
 	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/mgo.v2/bson"
-	"log"
+	"github.com/globalsign/mgo/bson"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,7 +51,10 @@ func (c *DialogController) List(context *gin.Context) {
 						"input": "$room_messages",
 						"as":    "room_message",
 						"cond": bson.M{
-							"$eq": []interface{}{"$$room_message.ack", false},
+							"$and": []bson.M{
+								{"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromCustomer}},
+								{"$eq": []interface{}{"$$room_message.ack", false}},
+							},
 						},
 					},
 				},
@@ -61,7 +64,6 @@ func (c *DialogController) List(context *gin.Context) {
 
 	err := roomCollection.Pipe(query).All(&waitCustomer)
 	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": ""}).Count()
-
 	if err != nil {
 		ReturnErrInfo(context, err)
 	}
@@ -140,9 +142,9 @@ func (c *DialogController) Access(context *gin.Context) {
 			ReturnErrInfo(context, err)
 		}
 		// 归档历史会话
-		if err = messageCollection.Update(bson.M{"customer_id": v, "kf_id": ""}, bson.M{"$set": bson.M{"kf_id": roomKf.KfId}}); err != nil {
+		if err = messageCollection.Update(bson.M{"customer_id": v}, bson.M{"$set": bson.M{"kf_id": roomKf.KfId}}); err != nil {
 			// 暂停历史回话报错
-			//ReturnErrInfo(context, err)
+			log.Warn(err)
 		}
 	}
 
@@ -167,8 +169,12 @@ func (c *DialogController) Ack(context *gin.Context) {
 	}
 
 	for _, v := range aRequest.CustomerIds {
-		if updateErr := roomCollection.Update(bson.M{"room_kf.kf_id": kfId, "room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_messages.$[].ack": true}}); updateErr != nil {
-			ReturnErrInfo(context, updateErr)
+		if _, updateErr := roomCollection.UpdateWithArrayFilters(
+			bson.M{"room_kf.kf_id": kfId, "room_customer.customer_id": v, "room_messages.oper_code": common.MessageFromCustomer},
+			bson.M{"$set": bson.M{"room_messages.$[e].ack": true}},
+			[]bson.M{{"e.oper_code": common.MessageFromCustomer}},
+			true); updateErr != nil {
+			log.Warn(updateErr)
 		}
 	}
 	ReturnSuccessInfo(context)
@@ -229,7 +235,7 @@ func (c *DialogController) History(context *gin.Context) {
 		},
 	}
 	if err := roomCollection.Pipe(query).One(&roomHistory); err != nil {
-		ReturnErrInfo(context, err)
+		log.Warn(err)
 	}
 
 	context.JSON(http.StatusOK, roomHistory)
@@ -265,7 +271,6 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 				Type:       sendRequest.MsgType,
 				Msg:        sendRequest.Msg,
 				OperCode:   common.MessageFromKf,
-				Ack:        true,
 				CreateTime: time.Now(),
 			},
 		},

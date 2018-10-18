@@ -2,7 +2,7 @@ package handle
 
 import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 	"log"
 	"os"
 	"os/signal"
