@@ -1,15 +1,13 @@
 package main
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/controller"
-	_ "git.jsjit.cn/customerService/customerService_Core/docs"
+	"git.jsjit.cn/customerService/customerService_Core/admin"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
+	"git.jsjit.cn/customerService/customerService_Core/open"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"time"
 )
 
@@ -18,18 +16,6 @@ var (
 )
 
 func init() {
-	//redis := cache.NewRedis(&cache.RedisOpts{
-	//	Host: "172.16.7.20:6379",
-	//})
-	//
-	////配置微信参数
-	//config := &wechat.Config{
-	//	AppID:          "wx6cfceff5167a6007",
-	//	AppSecret:      "1c1a365155e23b491f4878afbb87b918",
-	//	Token:          "1603411701",
-	//	EncodingAESKey: "fTrvMnac80fBHFP63KTLFZAhfxdSq7c126yftPw3HO1",
-	//	Cache:          redis,
-	//}
 	wxContext = wechat.NewWechat(&wechat.Config{})
 }
 
@@ -40,11 +26,11 @@ func init() {
 func main() {
 
 	//gin.SetMode(gin.ReleaseMode)
-	model.NewMongo("172.16.14.52:27017")
+	model.NewMongo("172.16.14.52:27018")
 
 	router := gin.Default()
 
-	// CORS规则配置
+	// cors规则配置
 	router.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host", "Authentication"},
@@ -58,42 +44,42 @@ func main() {
 	// 注册外部服务
 	aiModule := handle.NewAiSemantic("http://172.16.14.55:20600/semantic")
 
-	// 注册控制器
-	defaultController := controller.NewHealth()
-	offlineReplyController := controller.NewOfflineReply()
-	kfController := controller.NewKfServer()
-	dialogController := controller.NewDialog(wxContext)
-	weiXinController := controller.NewWeiXin(wxContext, aiModule)
-	mobileController := controller.NewMobile(wxContext, aiModule)
+	// Admin 注册控制器
+	defaultController := admin.NewHealth()
+	offlineReplyController := admin.NewOfflineReply()
+	kfController := admin.NewKfServer()
+	dialogController := admin.NewDialog(wxContext)
+	weiXinController := admin.NewWeiXin(wxContext, aiModule)
+	// OpenAPI注册控制器
+	openController := open.NewOpen()
+	openDialogController := open.NewDialog(aiModule)
 
-	// 静态文件
-	router.Static("/static", "./www")
 	// 健康检查
 	router.GET("/health", defaultController.Health)
-	// API文档地址
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// 静态文件
+	router.Static("/static", "./www")
+	// 静态多媒体文件
+	router.Static("/upload", "./upload")
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
-	// 移动系统通信地址
-	router.POST("/mobile", mobileController.Listen)
 	// 客服登录操作
-	router.POST("/admin/login", kfController.LoginIn)
+	router.POST("/adminGroup/login", kfController.LoginIn)
 
-	// API路由 (授权保护)
-	v1 := router.Group("/admin", handle.OauthMiddleWare())
+	// 后台Admin API路由 (授权保护)
+	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
 	{
 		// 初始化
-		v1.GET("/init", defaultController.Init)
+		adminGroup.GET("/init", defaultController.Init)
 
 		// 待接入列表
-		waitQueue := v1.Group("/wait_queue")
+		waitQueue := adminGroup.Group("/wait_queue")
 		{
 			waitQueue.GET("", dialogController.Queue)
 			waitQueue.POST("/access", dialogController.Access)
 		}
 
 		// 会话操作
-		dialog := v1.Group("/dialog")
+		dialog := adminGroup.Group("/dialog")
 		{
 			dialog.GET("", dialogController.List)
 			dialog.GET("/:customerId/:page/:limit", dialogController.History)
@@ -102,14 +88,14 @@ func main() {
 		}
 
 		// 客服操作
-		kf := v1.Group("/kf")
+		kf := adminGroup.Group("/kf")
 		{
 			kf.GET("", kfController.Get)
 			kf.PUT("/status", kfController.ChangeStatus)
 		}
 
 		// 设置操作
-		setting := v1.Group("/setting")
+		setting := adminGroup.Group("/setting")
 		{
 			// 离线自动回复设置
 			offlineReply := setting.Group("/offline_reply")
@@ -119,6 +105,20 @@ func main() {
 				offlineReply.PUT("/:replyId", offlineReplyController.Update)
 				offlineReply.DELETE("/:replyId", offlineReplyController.Delete)
 			}
+		}
+	}
+
+	// API路由
+	v1 := router.Group("/v1/app")
+	{
+		v1.POST("/access", openController.Access)
+
+		// 授权保护
+		d := v1.Group("/dialog", handle.OpenApiOauthMiddleWare())
+		{
+			d.GET("", openDialogController.Get)
+			d.POST("", openDialogController.Create)
+			d.GET("/history", openDialogController.History)
 		}
 	}
 
