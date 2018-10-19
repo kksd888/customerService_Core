@@ -65,7 +65,7 @@ func (c *DialogController) List(context *gin.Context) {
 	err := roomCollection.Pipe(query).All(&waitCustomer)
 	returnwaitCustomer := waitCustomer[:0]
 	for _, waitC := range waitCustomer {
-		if len(waitC.RoomMessages) > 1 {
+		if len(waitC.RoomMessages) > 0 {
 			returnwaitCustomer = append(returnwaitCustomer, waitC)
 		}
 	}
