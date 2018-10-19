@@ -2,7 +2,7 @@ package common
 
 // 配置文件
 type GinConfig struct {
-	RunModel   string `yaml:"RunModel"`
+	GoModel    string `yaml:"GoModel"`
 	Port       string `yaml:"Port"`
 	Mongodb    string `yaml:"Mongodb"`
 	AiSemantic string `yaml:"AiSemantic"`

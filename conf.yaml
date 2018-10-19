@@ -1,4 +1,4 @@
 GoModel: debug
 Port: 5000
-Mongodb: 172.16.14.52:27017
+Mongodb: 172.16.14.52:27018
 AiSemantic: http://172.16.14.55:20600/semantic

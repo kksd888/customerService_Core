@@ -60,7 +60,28 @@ func (open *OpenController) Access(ctx *gin.Context) {
 	}
 
 	// 存储用户信息
-	customerCollection.Upsert(bson.M{"customer_id": input.CustomerId}, input)
+	changeInfo, _ := customerCollection.Upsert(bson.M{"customer_id": input.CustomerId}, input)
+	if changeInfo.Matched == 0 {
+		// 更新默认欢迎消息
+		roomCollection.Insert(&model.Room{
+			RoomCustomer: model.RoomCustomer{
+				CustomerId:         input.CustomerId,
+				CustomerNickName:   input.NickName,
+				CustomerHeadImgUrl: input.HeadImgUrl,
+				CustomerSource:     input.Source,
+			},
+			RoomMessages: []model.RoomMessage{
+				{
+					Id:         common.GetNewUUID(),
+					Type:       string(common.MsgTypeText),
+					Msg:        "你好",
+					OperCode:   common.MessageFromCustomer,
+					CreateTime: time.Now(),
+				},
+			},
+			CreateTime: time.Now(),
+		})
+	}
 
 	// 生成授权码
 	auth, err := handle.OpenMake2Auth(input.CustomerId)
@@ -68,26 +89,6 @@ func (open *OpenController) Access(ctx *gin.Context) {
 		common.ReturnErr(ctx, err)
 	}
 	output.Authorization = auth
-
-	// 更新默认欢迎消息
-	roomCollection.Insert(&model.Room{
-		RoomCustomer: model.RoomCustomer{
-			CustomerId:         input.CustomerId,
-			CustomerNickName:   input.NickName,
-			CustomerHeadImgUrl: input.HeadImgUrl,
-			CustomerSource:     input.Source,
-		},
-		RoomMessages: []model.RoomMessage{
-			{
-				Id:         common.GetNewUUID(),
-				Type:       string(common.MsgTypeText),
-				Msg:        "你好",
-				OperCode:   common.MessageFromCustomer,
-				CreateTime: time.Now(),
-			},
-		},
-		CreateTime: time.Now(),
-	})
 
 	common.ReturnSuccess(ctx, output)
 }

@@ -55,9 +55,6 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 	}
 	for _, v := range dbResult {
 		v.RoomMessages.CreateTime2Timestamp()
-		if v.RoomMessages.MediaUrl != "" {
-			v.RoomMessages.MediaUrl = "http://kf.api.7u1.cn/" + v.RoomMessages.MediaUrl
-		}
 		output = append(output, v.RoomMessages)
 	}
 	common.ReturnSuccess(ctx, output)
@@ -106,9 +103,6 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 	}
 	for _, v := range dbResult {
 		v.RoomMessages.CreateTime2Timestamp()
-		if v.RoomMessages.MediaUrl != "" {
-			v.RoomMessages.MediaUrl = "http://kf.api.7u1.cn/" + v.RoomMessages.MediaUrl
-		}
 		output = append(output, v.RoomMessages)
 	}
 
@@ -176,7 +170,7 @@ func (dialog *DialogController) Create(ctx *gin.Context) {
 		FromUserName: customerId,
 		Msg:          input.Msg,
 		MsgType:      string(input.Type),
-		MediaUrl:     strings.TrimLeft(fileAddress, "./"), // 去掉虚拟路径的前缀
+		MediaUrl:     "http://kf.api.7u1.cn/" + strings.TrimLeft(fileAddress, "./"), // 去掉虚拟路径的前缀
 	})
 
 	if sendReply != "" {

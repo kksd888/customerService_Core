@@ -38,7 +38,7 @@ func main() {
 		log.Fatal("配置文件格式错误", err)
 	}
 
-	gin.SetMode(config.RunModel)
+	gin.SetMode(config.GoModel)
 	model.NewMongo(config.Mongodb)
 
 	router := gin.Default()
@@ -122,6 +122,12 @@ func main() {
 	}
 
 	go handle.Listen()
+
+	// 打印配置信息
+	log.Info("模式", config.GoModel)
+	log.Info("开放端口", config.Port)
+	log.Info("数据库地址", config.Mongodb)
+	log.Info("AI接口地址", config.AiSemantic)
 
 	// GO GO GO!!!
 	router.Run(fmt.Sprintf(":%s", config.Port))
