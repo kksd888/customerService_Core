@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// 历史存储的消息
+// 历史存储的消息，存档，仅共查询
 type Message struct {
 	Id         string    `bson:"id"`
 	CustomerId string    `bson:"customer_id"`

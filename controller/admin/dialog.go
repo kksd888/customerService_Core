@@ -135,7 +135,6 @@ func (c *DialogController) Access(context *gin.Context) {
 			KfId:         kfModel.Id,
 			KfName:       kfModel.NickName,
 			KfHeadImgUrl: kfModel.HeadImgUrl,
-			KfStatus:     common.KF_ONLINE,
 		}
 		// 更新会话信息
 		if err = roomCollection.Update(bson.M{"room_customer.customer_id": v}, bson.M{"$set": bson.M{"room_kf": roomKf}}); err != nil {

@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// 聊天室，在mongodb中用room文档来维护和存储对话数据，聊天数据也将保留100条，用来隔离用户，在并发下安全
 type Room struct {
 	RoomCustomer RoomCustomer  `json:"room_customer" bson:"room_customer"`
 	RoomKf       RoomKf        `json:"room_kf" bson:"room_kf"`
@@ -22,7 +23,6 @@ type RoomKf struct {
 	KfId         string `json:"kf_id" bson:"kf_id"`
 	KfName       string `json:"kf_name" bson:"kf_name"`
 	KfHeadImgUrl string `json:"kf_head_img_url" bson:"kf_head_img_url"`
-	KfStatus     int    `json:"kf_status" bson:"kf_status"`
 }
 type RoomMessage struct {
 	Id         string    `json:"id" bson:"id"`
