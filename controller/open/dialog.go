@@ -74,7 +74,7 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 	)
 	query := []bson.M{
 		{
-			"$match": bson.M{"room_customer.customer_id": customerId, "room_messages.ack": false},
+			"$match": bson.M{"room_customer.customer_id": customerId, "room_messages.oper_code": common.MessageFromKf, "room_messages.ack": false},
 		},
 		{
 			"$project": bson.M{

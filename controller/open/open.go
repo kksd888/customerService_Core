@@ -56,6 +56,8 @@ func (open *OpenController) Access(ctx *gin.Context) {
 	// 游客配置
 	if input.CustomerId == "" {
 		input.CustomerId = input.DeviceId
+	}
+	if input.NickName == "" {
 		input.NickName = "游客"
 	}
 

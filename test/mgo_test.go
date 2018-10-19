@@ -122,7 +122,13 @@ func Test_Mongo_Select01(t *testing.T) {
 
 	query := []bson.M{
 		{
-			"$match": bson.M{"room_kf.kf_id": "06f17d3d66194b24a72a3400db3fb9e9"},
+			"$match": bson.M{
+				"$and": []bson.M{
+					{"room_kf.kf_id": "06f17d3d66194b24a72a3400db3fb9e9"},
+					{"room_messages.oper_code": bson.M{"$eq": common.MessageFromCustomer}},
+					{"room_messages.ack": bson.M{"$eq": false}},
+				},
+			},
 		},
 		{
 			"$project": bson.M{
@@ -132,11 +138,10 @@ func Test_Mongo_Select01(t *testing.T) {
 						"input": "$room_messages",
 						"as":    "room_message",
 						"cond": bson.M{
-							//"$and": []bson.M{
-							//	{"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromCustomer}},
-							//	{"$eq": []interface{}{"$$room_message.ack", false}},
-							//},
-							"$eq": []interface{}{"$$room_message.ack", false},
+							"$and": []bson.M{
+								{"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromCustomer}},
+								{"$eq": []interface{}{"$$room_message.ack", false}},
+							},
 						},
 					},
 				},
@@ -144,8 +149,18 @@ func Test_Mongo_Select01(t *testing.T) {
 		},
 	}
 
-	roomCollection.Pipe(query).All(&rooms)
-	for _, room := range rooms {
+	if e := roomCollection.Pipe(query).All(&rooms); e != nil {
+		log.Error(e)
+	}
+
+	newRoom := rooms[:0]
+	for k, room := range rooms {
+		if len(room.RoomMessages) > 1 {
+			rooms = append(rooms[:k], rooms[(k+1):]...)
+			newRoom = append(newRoom, room)
+		}
+	}
+	for _, room := range newRoom {
 		fmt.Println(room)
 	}
 }

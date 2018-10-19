@@ -63,6 +63,12 @@ func (c *DialogController) List(context *gin.Context) {
 	}
 
 	err := roomCollection.Pipe(query).All(&waitCustomer)
+	returnwaitCustomer := waitCustomer[:0]
+	for _, waitC := range waitCustomer {
+		if len(waitC.RoomMessages) > 1 {
+			returnwaitCustomer = append(returnwaitCustomer, waitC)
+		}
+	}
 	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": ""}).Count()
 	if err != nil {
 		ReturnErrInfo(context, err)
@@ -72,7 +78,7 @@ func (c *DialogController) List(context *gin.Context) {
 		WaitReplyLists []WaitCustomer `json:"wait_reply_lists"`
 		WaitQueueCount int            `json:"wait_queue_count"`
 	}{
-		WaitReplyLists: waitCustomer,
+		WaitReplyLists: returnwaitCustomer,
 		WaitQueueCount: count,
 	})
 }

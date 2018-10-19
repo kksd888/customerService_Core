@@ -69,6 +69,15 @@ func (c *AdminController) Init(context *gin.Context) {
 		},
 	}).All(&waitCustomer)
 
+	// mongodb查询问题，此处手动修补数据
+	//for _, v := range onlineCustomer {
+	//	for _, rm := range v.RoomMessages {
+	//		if rm.OperCode == common.MessageFromKf {
+	//			rm.Ack = true
+	//		}
+	//	}
+	//}
+
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
 			Id:         kf.Id,
