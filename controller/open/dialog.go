@@ -57,6 +57,16 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 		v.RoomMessages.CreateTime2Timestamp()
 		output = append(output, v.RoomMessages)
 	}
+
+	// 将所有未读的客服消息进行已读操作
+	if _, updateErr := roomCollection.UpdateWithArrayFilters(
+		bson.M{"room_customer.customer_id": customerId},
+		bson.M{"$set": bson.M{"room_messages.$[e].ack": true}},
+		[]bson.M{{"e.oper_code": common.MessageFromKf}},
+		true); updateErr != nil {
+		log.Warn(updateErr)
+	}
+
 	common.ReturnSuccess(ctx, output)
 }
 
