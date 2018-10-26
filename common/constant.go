@@ -19,6 +19,7 @@ const (
 	NormalCustomer        // 普通客户
 	VipCustomer           // VIP客户
 
+	MessageFromSys      = 2001 // 系统信息
 	MessageFromCustomer = 2002 // 客户发送的消息
 	MessageFromKf       = 2003 // 客服发送的消息
 

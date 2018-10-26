@@ -1,6 +1,7 @@
 package open
 
 import (
+	"fmt"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
@@ -46,6 +47,7 @@ func (open *OpenController) Access(ctx *gin.Context) {
 
 		customerCollection = model.Db.C("customer")
 		roomCollection     = model.Db.C("room")
+		kefuCollection     = model.Db.C("kefu")
 	)
 
 	// 验证并绑定到模型
@@ -59,6 +61,22 @@ func (open *OpenController) Access(ctx *gin.Context) {
 	}
 	if input.NickName == "" {
 		input.NickName = "游客"
+	}
+	if input.HeadImgUrl == "" {
+		input.HeadImgUrl = common.RandomHeadImg()
+	}
+
+	lineMsg := ""
+	onlineKefuCount, _ := kefuCollection.Find(bson.M{"is_online": true}).Count()
+	lineCount, _ := roomCollection.Find(bson.M{"room_kf.kf_id": ""}).Count()
+	if onlineKefuCount == 0 {
+		lineMsg = common.KF_REPLY
+	} else {
+		if lineCount == 0 {
+			lineMsg = "正在为您分配客服，请稍后..."
+		} else {
+			lineMsg = fmt.Sprintf("正有%d人排队，请稍后...", lineCount)
+		}
 	}
 
 	// 存储用户信息
@@ -76,8 +94,9 @@ func (open *OpenController) Access(ctx *gin.Context) {
 				{
 					Id:         common.GetNewUUID(),
 					Type:       string(common.MsgTypeText),
-					Msg:        "你好",
-					OperCode:   common.MessageFromCustomer,
+					Msg:        lineMsg,
+					OperCode:   common.MessageFromSys,
+					Ack:        true,
 					CreateTime: time.Now(),
 				},
 			},

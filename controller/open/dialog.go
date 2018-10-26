@@ -226,7 +226,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 	)
 	// 小金尝试回答
 	if msg.Msg != "" {
-		aiDialogue = dialog.aiModule.Dialogue(msg.Msg)
+		aiDialogue = dialog.aiModule.Dialogue(msg.Msg, msg.FromUserName)
 	}
 
 	if aiDialogue != "" {

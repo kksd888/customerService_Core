@@ -74,7 +74,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 
 		// 尝试机器人回答
 		if msgText != "" {
-			aiDialogue = c.aiModule.Dialogue(msgText)
+			aiDialogue = c.aiModule.Dialogue(msgText, msg.FromUserName)
 		}
 
 		if aiDialogue != "" {
