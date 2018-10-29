@@ -273,6 +273,15 @@ func (dialog *DialogController) send(msg SendModel) string {
 					OperCode:   common.MessageFromCustomer,
 					CreateTime: time.Now(),
 				},
+				{
+					Id:         common.GetNewUUID(),
+					Type:       "text",
+					Msg:        aiDialogue,
+					AiMsg:      "",
+					MediaUrl:   "",
+					OperCode:   common.MessageFromKf,
+					CreateTime: time.Now(),
+				},
 			},
 				"$slice": -100}},
 		}
