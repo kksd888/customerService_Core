@@ -3,7 +3,6 @@ package handle
 import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat/util"
 	"log"
-	"net/url"
 )
 
 // AI语义处理
@@ -16,7 +15,6 @@ func NewAiSemantic(aiHost string) *AiSemantic {
 }
 
 func (ai *AiSemantic) Dialogue(msg, token string) string {
-	msg = url.QueryEscape(msg)
 	bytes, err := util.PostJSON(ai.hostUrl, struct {
 		Msg   string `json:"msg"`
 		Token string `json:"token"`
