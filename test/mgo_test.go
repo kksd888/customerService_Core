@@ -15,7 +15,7 @@ import (
 var session *mgo.Session
 
 func init() {
-	session, _ = mgo.Dial("172.16.14.52:27018") // 测试数据库
+	session, _ = mgo.Dial("172.16.14.52:27018") // 测试数据库，此处永远不准改成线上数据库
 }
 
 type User struct {
@@ -162,6 +162,17 @@ func Test_Mongo_Select01(t *testing.T) {
 	}
 	for _, room := range newRoom {
 		fmt.Println(room)
+	}
+}
+
+func Test_Mongo_Del01(t *testing.T) {
+	defer session.Close()
+
+	roomCollection := session.DB("customer_service_db").C("room")
+	updateErr := roomCollection.Update(bson.M{"room_customer.customer_id": "C272E348914F4BF2A3DEB3B5262800E5"},
+		bson.M{"$pull": bson.M{"room_messages": bson.M{"oper_code": 2002}}})
+	if updateErr != nil {
+		log.Error(updateErr)
 	}
 }
 

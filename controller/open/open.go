@@ -102,6 +102,25 @@ func (open *OpenController) Access(ctx *gin.Context) {
 			},
 			CreateTime: time.Now(),
 		})
+	} else {
+		// 更新默认欢迎消息
+		query := bson.M{
+			"room_customer.customer_id": input.CustomerId,
+		}
+		changes := bson.M{
+			"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
+				{
+					Id:         common.GetNewUUID(),
+					Type:       string(common.MsgTypeText),
+					Msg:        lineMsg,
+					OperCode:   common.MessageFromSys,
+					Ack:        true,
+					CreateTime: time.Now(),
+				},
+			},
+				"$slice": -100}},
+		}
+		roomCollection.Update(query, changes)
 	}
 
 	// 生成授权码

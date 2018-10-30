@@ -69,7 +69,7 @@ func (c *DialogController) List(context *gin.Context) {
 			returnwaitCustomer = append(returnwaitCustomer, waitC)
 		}
 	}
-	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": ""}).Count()
+	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer}).Count()
 	if err != nil {
 		ReturnErrInfo(context, err)
 	}
@@ -98,7 +98,7 @@ func (c *DialogController) Queue(context *gin.Context) {
 
 	query := []bson.M{
 		{
-			"$match": bson.M{"room_kf.kf_id": ""},
+			"$match": bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer},
 		},
 		{
 			"$project": bson.M{

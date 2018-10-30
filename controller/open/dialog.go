@@ -67,6 +67,10 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 		log.Warn(updateErr)
 	}
 
+	// 清除系统提示消息
+	roomCollection.Update(bson.M{"room_customer.customer_id": customerId},
+		bson.M{"$pull": bson.M{"room_messages": bson.M{"oper_code": common.MessageFromSys}}})
+
 	common.ReturnSuccess(ctx, output)
 }
 

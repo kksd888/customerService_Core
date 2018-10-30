@@ -3,6 +3,7 @@
 package admin
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
@@ -59,7 +60,7 @@ func (c *AdminController) Init(context *gin.Context) {
 	// 获取排队列表
 	roomCollection.Pipe([]bson.M{
 		{
-			"$match": bson.M{"room_kf.kf_id": ""},
+			"$match": bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer},
 		},
 		{
 			"$project": bson.M{
