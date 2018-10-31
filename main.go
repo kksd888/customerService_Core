@@ -1,15 +1,18 @@
 package main
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/controller"
-	_ "git.jsjit.cn/customerService/customerService_Core/docs"
+	"fmt"
+	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
+	"git.jsjit.cn/customerService/customerService_Core/controller/open"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"time"
 )
 
@@ -18,18 +21,6 @@ var (
 )
 
 func init() {
-	//redis := cache.NewRedis(&cache.RedisOpts{
-	//	Host: "172.16.7.20:6379",
-	//})
-	//
-	////配置微信参数
-	//config := &wechat.Config{
-	//	AppID:          "wx6cfceff5167a6007",
-	//	AppSecret:      "1c1a365155e23b491f4878afbb87b918",
-	//	Token:          "1603411701",
-	//	EncodingAESKey: "fTrvMnac80fBHFP63KTLFZAhfxdSq7c126yftPw3HO1",
-	//	Cache:          redis,
-	//}
 	wxContext = wechat.NewWechat(&wechat.Config{})
 }
 
@@ -38,13 +29,21 @@ func init() {
 // @description  在线客服API文档的文档，接管了微信公众号聊天
 // @BasePath /
 func main() {
+	yamlFile, err := ioutil.ReadFile("conf.yaml")
+	if err != nil {
+		log.Fatal("未找到配置文件conf.yaml", err)
+	}
+	config := common.GinConfig{}
+	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
+		log.Fatal("配置文件格式错误", err)
+	}
 
-	//gin.SetMode(gin.ReleaseMode)
-	model.NewMongo("172.16.14.52:27017")
+	gin.SetMode(config.GoModel)
+	model.NewMongo(config.Mongodb)
 
 	router := gin.Default()
 
-	// CORS规则配置
+	// cors规则配置
 	router.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "User-Agent", "Referrer", "Host", "Authentication"},
@@ -56,44 +55,43 @@ func main() {
 	}))
 
 	// 注册外部服务
-	aiModule := handle.NewAiSemantic("http://172.16.14.55:20600/semantic")
+	aiModule := handle.NewAiSemantic(config.AiSemantic)
 
-	// 注册控制器
-	defaultController := controller.NewHealth()
-	offlineReplyController := controller.NewOfflineReply()
-	kfController := controller.NewKfServer()
-	dialogController := controller.NewDialog(wxContext)
-	weiXinController := controller.NewWeiXin(wxContext, aiModule)
-	mobileController := controller.NewMobile(wxContext, aiModule)
+	// Admin 注册控制器
+	adminController := admin.NewHealth()
+	kfController := admin.NewKfServer()
+	dialogController := admin.NewDialog(wxContext)
+	weiXinController := admin.NewWeiXin(wxContext, aiModule)
+	// OpenAPI注册控制器
+	openController := open.NewOpen()
+	openDialogController := open.NewDialog(aiModule)
 
+	// 健康检查
+	router.GET("/health", openController.Health)
 	// 静态文件
 	router.Static("/static", "./www")
-	// 健康检查
-	router.GET("/health", defaultController.Health)
-	// API文档地址
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// 静态多媒体文件
+	router.Static("/upload", "./upload")
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
-	// 移动系统通信地址
-	router.POST("/mobile", mobileController.Listen)
 	// 客服登录操作
 	router.POST("/admin/login", kfController.LoginIn)
 
-	// API路由 (授权保护)
-	v1 := router.Group("/admin", handle.OauthMiddleWare())
+	// 后台Admin API路由 (授权保护)
+	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
 	{
 		// 初始化
-		v1.GET("/init", defaultController.Init)
+		adminGroup.GET("/init", adminController.Init)
 
 		// 待接入列表
-		waitQueue := v1.Group("/wait_queue")
+		waitQueue := adminGroup.Group("/wait_queue")
 		{
 			waitQueue.GET("", dialogController.Queue)
 			waitQueue.POST("/access", dialogController.Access)
 		}
 
 		// 会话操作
-		dialog := v1.Group("/dialog")
+		dialog := adminGroup.Group("/dialog")
 		{
 			dialog.GET("", dialogController.List)
 			dialog.GET("/:customerId/:page/:limit", dialogController.History)
@@ -102,28 +100,35 @@ func main() {
 		}
 
 		// 客服操作
-		kf := v1.Group("/kf")
+		kf := adminGroup.Group("/kf")
 		{
 			kf.GET("", kfController.Get)
 			kf.PUT("/status", kfController.ChangeStatus)
 		}
+	}
 
-		// 设置操作
-		setting := v1.Group("/setting")
+	// API路由
+	v1 := router.Group("/v1/app")
+	{
+		v1.POST("/access", openController.Access)
+
+		// 授权保护
+		d := v1.Group("/dialog", handle.OpenApiOauthMiddleWare())
 		{
-			// 离线自动回复设置
-			offlineReply := setting.Group("/offline_reply")
-			{
-				offlineReply.GET("", offlineReplyController.List)
-				offlineReply.POST("", offlineReplyController.Create)
-				offlineReply.PUT("/:replyId", offlineReplyController.Update)
-				offlineReply.DELETE("/:replyId", offlineReplyController.Delete)
-			}
+			d.GET("", openDialogController.Get)
+			d.POST("", openDialogController.Create)
+			d.GET("/history", openDialogController.History)
 		}
 	}
 
 	go handle.Listen()
 
+	// 打印配置信息
+	log.Info("模式", config.GoModel)
+	log.Info("开放端口", config.Port)
+	log.Info("数据库地址", config.Mongodb)
+	log.Info("AI接口地址", config.AiSemantic)
+
 	// GO GO GO!!!
-	router.Run(":5000")
+	router.Run(fmt.Sprintf(":%s", config.Port))
 }
