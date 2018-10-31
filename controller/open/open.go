@@ -68,7 +68,7 @@ func (open *OpenController) Access(ctx *gin.Context) {
 
 	lineMsg := ""
 	onlineKefuCount, _ := kefuCollection.Find(bson.M{"is_online": true}).Count()
-	lineCount, _ := roomCollection.Find(bson.M{"room_kf.kf_id": ""}).Count()
+	lineCount, _ := roomCollection.Find(bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer}).Count()
 	if onlineKefuCount == 0 {
 		lineMsg = common.KF_REPLY
 	} else {
