@@ -33,7 +33,7 @@ func (open *OpenController) Access(ctx *gin.Context) {
 			CustomerId string                    `json:"customer_id" bson:"customer_id"`                // 用户编号
 			NickName   string                    `json:"nick_name" bson:"nick_name"`                    // 用户昵称
 			HeadImgUrl string                    `json:"head_img_url" bson:"head_img_url"`              // 用户头像
-			Source     common.CustomerSourceType `json:"-" bson:"source"`                               // 来源
+			Source     common.CustomerSourceType `json:"-" bson:"customer_source_type"`                 // 来源
 			CreateTime time.Time                 `json:"-" bson:"create_time"`                          // DB创建时间
 			UpdateTime time.Time                 `json:"-" bson:"update_time"`                          // DB更新时间
 		}{
