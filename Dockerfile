@@ -15,6 +15,7 @@ FROM scratch as prod
 COPY --from=certs /etc/localtime /etc/localtime
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /go/src/git.jsjit.cn/customerService/customerService_Core/app .
+COPY --from=build /go/src/git.jsjit.cn/customerService/customerService_Core/conf.yaml .
 
 EXPOSE 5000/tcp
 
