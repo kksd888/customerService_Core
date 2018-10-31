@@ -103,24 +103,58 @@ func (open *OpenController) Access(ctx *gin.Context) {
 			CreateTime: time.Now(),
 		})
 	} else {
-		// 更新默认欢迎消息
-		query := bson.M{
-			"room_customer.customer_id": input.CustomerId,
-		}
-		changes := bson.M{
-			"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
-				{
-					Id:         common.GetNewUUID(),
-					Type:       string(common.MsgTypeText),
-					Msg:        lineMsg,
-					OperCode:   common.MessageFromSys,
-					Ack:        true,
-					CreateTime: time.Now(),
+		var (
+			kefuColection = model.Db.C("kefu")
+			kefuModel     = model.Kf{}
+			room          = model.Room{}
+		)
+		roomCollection.Find(bson.M{"room_customer.customer_id": input.CustomerId}).One(&room)
+		kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
+		if kefuModel.Id != "" && kefuModel.IsOnline == false {
+			// 若接待的客服已经下线，则将用户重新放入待接入
+			roomCollection.Update(
+				bson.M{"room_customer.customer_id": input.CustomerId},
+				bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
+
+			// 更新默认欢迎消息
+			query := bson.M{
+				"room_customer.customer_id": input.CustomerId,
+			}
+			changes := bson.M{
+				"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
+					{
+						Id:         common.GetNewUUID(),
+						Type:       string(common.MsgTypeText),
+						Msg:        lineMsg,
+						OperCode:   common.MessageFromSys,
+						Ack:        true,
+						CreateTime: time.Now(),
+					},
 				},
-			},
-				"$slice": -100}},
+					"$slice": -100}},
+			}
+			roomCollection.Update(query, changes)
 		}
-		roomCollection.Update(query, changes)
+		if kefuModel.Id == "" {
+			// 更新默认欢迎消息
+			query := bson.M{
+				"room_customer.customer_id": input.CustomerId,
+			}
+			changes := bson.M{
+				"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
+					{
+						Id:         common.GetNewUUID(),
+						Type:       string(common.MsgTypeText),
+						Msg:        lineMsg,
+						OperCode:   common.MessageFromSys,
+						Ack:        true,
+						CreateTime: time.Now(),
+					},
+				},
+					"$slice": -100}},
+			}
+			roomCollection.Update(query, changes)
+		}
 	}
 
 	// 生成授权码
