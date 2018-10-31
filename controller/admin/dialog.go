@@ -298,7 +298,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 
 	customer := model.Customer{}
 	customerCollection.Find(bson.M{"customer_id": sendRequest.CustomerId}).One(&customer)
-	if customer.CustomerSourceType == "" || customer.CustomerSourceType == common.FromWeixin {
+	if customer.CustomerSourceType == common.FromWeixin {
 		msgResponse, err := c.wxContext.GetKf().Send(kf.KfSendMsgRequest{
 			ToUser:  sendRequest.CustomerId,
 			MsgType: sendRequest.MsgType,
