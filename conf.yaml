@@ -1,4 +1,4 @@
 GoModel: release
 Port: 5000
 Mongodb: 172.16.14.52:27017
-AiSemantic: http://172.16.14.55:20700/semantic
+AiSemantic: http://172.16.7.23:20700/semantic
