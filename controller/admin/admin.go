@@ -56,6 +56,11 @@ func (c *AdminController) Init(context *gin.Context) {
 			"$limit": 100,
 		},
 	}).All(&onlineCustomer)
+	for _, v := range onlineCustomer {
+		for _, mv := range v.RoomMessages {
+			mv.CreateTime = mv.CreateTime.In(common.LocalLocation)
+		}
+	}
 
 	// 获取排队列表
 	roomCollection.Pipe([]bson.M{
@@ -69,6 +74,11 @@ func (c *AdminController) Init(context *gin.Context) {
 			},
 		},
 	}).All(&waitCustomer)
+	for _, v := range waitCustomer {
+		for _, mv := range v.RoomMessages {
+			mv.CreateTime = mv.CreateTime.In(common.LocalLocation)
+		}
+	}
 
 	context.JSON(http.StatusOK, InitResponse{
 		Mine: InitMine{
@@ -119,8 +129,8 @@ type CustomerInfo struct {
 	CustomerHeadImgUrl string `bson:"customer_head_img_url" json:"customer_head_img_url"`
 }
 type OnlineCustomer struct {
-	RoomCustomer CustomerInfo        `bson:"room_customer" json:"room_customer"`
-	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
+	RoomCustomer CustomerInfo         `bson:"room_customer" json:"room_customer"`
+	RoomMessages []*model.RoomMessage `bson:"room_messages" json:"room_messages"`
 }
 type WaitCustomer struct {
 	RoomCustomer CustomerInfo         `bson:"room_customer" json:"room_customer"`
