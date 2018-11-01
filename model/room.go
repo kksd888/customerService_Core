@@ -34,3 +34,11 @@ type RoomMessage struct {
 	OperCode   int       `json:"oper_code" bson:"oper_code"`
 	CreateTime time.Time `json:"create_time" bson:"create_time"`
 }
+
+func (r *Room) FormatterTimeLocation() {
+	r.CreateTime = r.CreateTime.In(common.LocalLocation)
+}
+
+func (r *RoomMessage) FormatterTimeLocation() {
+	r.CreateTime = r.CreateTime.In(common.LocalLocation)
+}

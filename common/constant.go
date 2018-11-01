@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // 客户来源
@@ -43,6 +44,11 @@ const (
 	MsgTypeImage = "image"
 	//MsgTypeVoice 表示语音消息
 	MsgTypeVoice = "voice"
+)
+
+var (
+	// 本地时区
+	LocalLocation, _ = time.LoadLocation("Local")
 )
 
 type MsgType string

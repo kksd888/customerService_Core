@@ -123,7 +123,6 @@ type OnlineCustomer struct {
 	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
 }
 type WaitCustomer struct {
-	RoomCustomer CustomerInfo        `bson:"room_customer" json:"room_customer"`
-	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
-	//PreviousKf         WaitQueuePreviousKf
+	RoomCustomer CustomerInfo         `bson:"room_customer" json:"room_customer"`
+	RoomMessages []*model.RoomMessage `bson:"room_messages" json:"room_messages"`
 }

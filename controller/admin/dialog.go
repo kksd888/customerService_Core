@@ -66,6 +66,9 @@ func (c *DialogController) List(context *gin.Context) {
 	returnwaitCustomer := waitCustomer[:0]
 	for _, waitC := range waitCustomer {
 		if len(waitC.RoomMessages) > 0 {
+			for _, v := range waitC.RoomMessages {
+				v.CreateTime = v.CreateTime.In(common.LocalLocation)
+			}
 			returnwaitCustomer = append(returnwaitCustomer, waitC)
 		}
 	}
@@ -243,6 +246,10 @@ func (c *DialogController) History(context *gin.Context) {
 		log.Warn(err)
 	}
 
+	for _, v := range roomHistory.RoomMessages {
+		v.FormatterTimeLocation()
+	}
+
 	context.JSON(http.StatusOK, roomHistory)
 }
 
@@ -329,5 +336,5 @@ type SendMessageRequest struct {
 }
 
 type RoomHistory struct {
-	RoomMessages []model.RoomMessage `bson:"room_messages" json:"room_messages"`
+	RoomMessages []*model.RoomMessage `bson:"room_messages" json:"room_messages"`
 }

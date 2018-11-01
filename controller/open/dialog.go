@@ -216,6 +216,7 @@ type MessageModel struct {
 
 // 创建时间转时间戳
 func (m *MessageModel) CreateTime2Timestamp() {
+	m.CreateTime = m.CreateTime.In(common.LocalLocation) // 修正时区
 	m.Timestamp = m.CreateTime.Unix()
 }
 
