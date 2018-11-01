@@ -182,7 +182,7 @@ func (dialog *DialogController) Create(ctx *gin.Context) {
 	// 发送给客服调度模块
 	var mediaUrl = ""
 	if fileAddress != "" {
-		mediaUrl = "http://kf.api.7u1.cn/" + strings.TrimLeft(fileAddress, "./") // 去掉虚拟路径的前缀
+		mediaUrl = common.AppConfig.Multimedia + strings.TrimLeft(fileAddress, "./") // 去掉虚拟路径的前缀
 	}
 
 	sendReply := dialog.send(SendModel{
