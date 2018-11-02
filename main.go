@@ -10,9 +10,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"time"
 )
 
@@ -29,17 +26,11 @@ func init() {
 // @description  在线客服API文档的文档，接管了微信公众号聊天
 // @BasePath /
 func main() {
-	yamlFile, err := ioutil.ReadFile("conf.yaml")
-	if err != nil {
-		log.Fatal("未找到配置文件conf.yaml", err)
-	}
-	config := common.GinConfig{}
-	if err := yaml.Unmarshal(yamlFile, &config); err != nil {
-		log.Fatal("配置文件格式错误", err)
-	}
+	// 加载配置
+	common.NewGinConfig()
 
-	gin.SetMode(config.GoModel)
-	model.NewMongo(config.Mongodb)
+	gin.SetMode(common.AppConfig.GoModel)
+	model.NewMongo(common.AppConfig.Mongodb)
 
 	router := gin.Default()
 
@@ -55,7 +46,7 @@ func main() {
 	}))
 
 	// 注册外部服务
-	aiModule := handle.NewAiSemantic(config.AiSemantic)
+	aiModule := handle.NewAiSemantic(common.AppConfig.AiSemantic)
 
 	// Admin 注册控制器
 	adminController := admin.NewHealth()
@@ -123,12 +114,6 @@ func main() {
 
 	go handle.Listen()
 
-	// 打印配置信息
-	log.Info("模式", config.GoModel)
-	log.Info("开放端口", config.Port)
-	log.Info("数据库地址", config.Mongodb)
-	log.Info("AI接口地址", config.AiSemantic)
-
 	// GO GO GO!!!
-	router.Run(fmt.Sprintf(":%s", config.Port))
+	router.Run(fmt.Sprintf(":%s", common.AppConfig.Port))
 }
