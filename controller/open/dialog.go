@@ -263,22 +263,33 @@ func (dialog *DialogController) send(msg SendModel) string {
 				bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
 		}
 
+		roomMsgs := []model.RoomMessage{{
+			Id:         common.GetNewUUID(),
+			Type:       string(msg.MsgType),
+			Msg:        msg.Msg,
+			AiMsg:      aiDialogue,
+			MediaUrl:   msg.MediaUrl,
+			OperCode:   common.MessageFromCustomer,
+			CreateTime: time.Now(),
+		}}
+		if common.AppConfig.AutomaticReply && aiDialogue != "" {
+			// 启动自动回复
+			roomMsgs = append(roomMsgs, model.RoomMessage{
+				Id:         common.GetNewUUID(),
+				Type:       string(msg.MsgType),
+				Msg:        aiDialogue,
+				OperCode:   common.MessageFromKf,
+				CreateTime: time.Now(),
+			})
+		}
+
 		// 实时会话数据更新
 		query := bson.M{
 			"room_customer.customer_id": msg.FromUserName,
 		}
 		changes := bson.M{
-			"$push": bson.M{"room_messages": bson.M{"$each": []model.RoomMessage{
-				{
-					Id:         common.GetNewUUID(),
-					Type:       string(msg.MsgType),
-					Msg:        msg.Msg,
-					AiMsg:      aiDialogue,
-					MediaUrl:   msg.MediaUrl,
-					OperCode:   common.MessageFromCustomer,
-					CreateTime: time.Now(),
-				},
-			},
+			"$push": bson.M{"room_messages": bson.M{
+				"$each":  roomMsgs,
 				"$slice": -100}},
 		}
 		if err := roomCollection.Update(query, changes); err != nil {
