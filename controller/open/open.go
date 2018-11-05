@@ -73,9 +73,9 @@ func (open *OpenController) Access(ctx *gin.Context) {
 		lineMsg = common.KF_REPLY
 	} else {
 		if lineCount == 0 {
-			lineMsg = "正在为您分配客服，请稍后..."
+			lineMsg = common.WELCOME_REPLY
 		} else {
-			lineMsg = fmt.Sprintf("正有%d人排队，请稍后...", lineCount)
+			lineMsg = fmt.Sprintf(common.LINE_UP_REPLY, lineCount)
 		}
 	}
 
