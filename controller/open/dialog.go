@@ -276,7 +276,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 			// 启动自动回复
 			roomMsgs = append(roomMsgs, model.RoomMessage{
 				Id:         common.GetNewUUID(),
-				Type:       string(msg.MsgType),
+				Type:       string(common.MsgTypeText),
 				Msg:        aiDialogue,
 				OperCode:   common.MessageFromKf,
 				CreateTime: time.Now(),
