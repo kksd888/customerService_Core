@@ -17,7 +17,7 @@ const (
 
 	KF_REPLY      = "您好，现在时段暂无人工客服为您服务，如您有任何问题可致电24小时服务热线4008101688"
 	WELCOME_REPLY = "您好，请发送您要咨询的问题"
-	LINE_UP_REPLY = "正有%d人排队，请稍后..."
+	LINE_UP_REPLY = "正有%d人排队，请先发送您要咨询的问题"
 
 	_              = iota // 客户类型
 	NormalCustomer        // 普通客户
