@@ -8,11 +8,12 @@ import (
 
 // 配置文件
 type GinConfig struct {
-	GoModel    string `yaml:"GoModel"`
-	Port       string `yaml:"Port"`
-	Mongodb    string `yaml:"Mongodb"`
-	Multimedia string `yaml:"Multimedia"`
-	AiSemantic string `yaml:"AiSemantic"`
+	GoModel        string `yaml:"GoModel"`
+	Port           string `yaml:"Port"`
+	Mongodb        string `yaml:"Mongodb"`
+	Multimedia     string `yaml:"Multimedia"`
+	AiSemantic     string `yaml:"AiSemantic"`
+	AutomaticReply bool   `yaml:"AutomaticReply"`
 }
 
 var AppConfig GinConfig
@@ -33,4 +34,5 @@ func NewGinConfig() {
 	log.Info("数据库地址：", AppConfig.Mongodb)
 	log.Info("多媒体资源地址：", AppConfig.Multimedia)
 	log.Info("AI接口地址：", AppConfig.AiSemantic)
+	log.Info("AI自动回复是否启动：", AppConfig.AutomaticReply)
 }
