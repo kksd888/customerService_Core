@@ -117,3 +117,9 @@ func main() {
 	// GO GO GO!!!
 	router.Run(fmt.Sprintf(":%s", common.AppConfig.Port))
 }
+
+// 统计数据
+// 时间区间内，客服回复的信息总量
+// db.getCollection('message').find({'oper_code':2003, 'create_time':{ "$gte" : ISODate("2018-10-01T00:00:00Z"), "$lt" : ISODate("2018-10-31T00:00:00Z")}}).count()
+// 时间区间内，接待的客户数量
+// db.getCollection('message').distinct('customer_id',{'oper_code':2003, 'create_time':{ "$gte" : ISODate("2018-10-01T00:00:00Z"), "$lt" : ISODate("2018-10-31T00:00:00Z")}})
