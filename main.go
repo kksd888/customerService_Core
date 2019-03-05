@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
 	"git.jsjit.cn/customerService/customerService_Core/controller/open"
@@ -10,7 +12,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 var (
@@ -123,3 +124,5 @@ func main() {
 // db.getCollection('message').find({'oper_code':2003, 'create_time':{ "$gte" : ISODate("2018-10-01T00:00:00Z"), "$lt" : ISODate("2018-10-31T00:00:00Z")}}).count()
 // 时间区间内，接待的客户数量
 // db.getCollection('message').distinct('customer_id',{'oper_code':2003, 'create_time':{ "$gte" : ISODate("2018-10-01T00:00:00Z"), "$lt" : ISODate("2018-10-31T00:00:00Z")}})
+// 员工登录的线上API文档
+// http://memberapi.jsjinfo.cn/hosts/Jmember.aspx?help&m1=Member.API.API.JUser.LoginEmployee&rsdll=Member.API.dll&rqdll=Member.API.dll
