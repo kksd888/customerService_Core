@@ -53,6 +53,7 @@ func main() {
 	adminController := admin.NewHealth()
 	kfController := admin.NewKfServer()
 	dialogController := admin.NewDialog(wxContext)
+	statisticsController := admin.NewStatistics()
 	weiXinController := admin.NewWeiXin(wxContext, aiModule)
 	// OpenAPI注册控制器
 	openController := open.NewOpen()
@@ -70,7 +71,7 @@ func main() {
 	router.POST("/admin/login", kfController.LoginIn)
 
 	// 后台Admin API路由 (授权保护)
-	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
+	adminGroup := router.Group("/admin")
 	{
 		// 初始化
 		adminGroup.GET("/init", adminController.Init)
@@ -89,6 +90,14 @@ func main() {
 			dialog.GET("/:customerId/:page/:limit", dialogController.History)
 			dialog.PUT("/ack", dialogController.Ack)
 			dialog.POST("", dialogController.SendMessage)
+		}
+
+		// 统计操作
+		statistics := adminGroup.Group("/statistics")
+		{
+			statistics.GET("/mesbykf/:kfid/:starTime/:endTime", statisticsController.MessageCountByKf)
+			statistics.GET("/cusbykf/:kfid/:starTime/:endTime", statisticsController.CustomerCountByKf)
+			statistics.GET("/mescount/:kfid/:starTime/:endTime", statisticsController.MessageCount)
 		}
 
 		// 客服操作
