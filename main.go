@@ -95,9 +95,7 @@ func main() {
 		// 统计操作
 		statistics := adminGroup.Group("/statistics")
 		{
-			statistics.GET("/mesbykf/:kfid/:starTime/:endTime", statisticsController.MessageCountByKf)
-			statistics.GET("/cusbykf/:kfid/:starTime/:endTime", statisticsController.CustomerCountByKf)
-			statistics.GET("/mescount/:kfid/:starTime/:endTime", statisticsController.MessageCount)
+			statistics.GET("/:starTime/:endTime/:page/:limit", statisticsController.Statistics)
 		}
 
 		// 客服操作

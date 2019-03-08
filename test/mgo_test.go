@@ -5,7 +5,6 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
 	"git.jsjit.cn/customerService/customerService_Core/model"
-	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	log "github.com/sirupsen/logrus"
@@ -276,125 +275,7 @@ func Test_InitKf(t *testing.T) {
 	})
 }
 
-func Test_MessageCount_ByKf(t *testing.T) {
-	defer session.Close()
-
-	customerId := "o1NTgjoJdk49OC7pogphJzVpqz4s"
-	starTime := "2018-01-01"
-	endTime := "2018-12-31"
-	query := bson.M{"room_customer.customer_id": customerId, "room_messages.create_time": bson.M{"$gte": starTime, "$lte": endTime}}
-	roomCollection := session.DB("customer_service_db").C("room_messages")
-	kefuMessageCount, _ := roomCollection.Find(query).Count()
-	log.Println(kefuMessageCount)
-	t.Log(kefuMessageCount)
-
-	redis := admin.NewStatistics()
-	context := &gin.Context{
-		Params: nil,
-	}
-	redis.MessageCountByKf(context)
-
-	//var (
-	//	kfid = ""
-	//	starTimeStr = "2018-09-07 00:00:00"
-	//	endTimeStr = "2018-09-08 00:00:00"
-	//)
-	//if kfid == "" {
-	//	kfid = "06f17d3d66194b24a72a3400db3fb9e9"
-	//}
-	//
-	////timestamp := time.Now().Unix()
-	////tm := time.Unix(timestamp, 0)
-	//
-	// starTime,err := time.Parse("2006-01-02 15:04:05",starTimeStr)
-	//if err!=nil {
-	//
-	//}
-	// endTime,err :=  time.Parse("2006-01-02 15:04:05",endTimeStr)
-	//if err!=nil {
-	//
-	//}
-	//
-	//var (
-	//	query          = bson.M{"kf_id": kfid,"create_time": bson.M{"$gte": starTime, "$lt": endTime}}
-	//	roomCollection = session.DB("customer_service_db").C("message")
-	//)
-	//onlineKefuCount, _ := roomCollection.Find(query).Count()
-	//println(onlineKefuCount)
-}
-
-func Test_CustomerCount_ByKf(t *testing.T) {
-	defer session.Close()
-
-	redis := admin.NewStatistics()
-	context := &gin.Context{
-		Params: nil,
-	}
-	redis.CustomerCountByKf(context)
-
-	//var (
-	//	kfid = ""
-	//	starTimeStr = "2018-09-07 00:00:00"
-	//	endTimeStr  = "2018-09-08 00:00:00"
-	//)
-	//if kfid == "" {
-	//	kfid = "06f17d3d66194b24a72a3400db3fb9e9"
-	//}
-	//
-	////timestamp := time.Now().Unix()
-	////tm := time.Unix(timestamp, 0)
-	//
-	//starTime, err := time.Parse("2006-01-02 15:04:05", starTimeStr)
-	//if err != nil {
-	//
-	//}
-	//endTime, err := time.Parse("2006-01-02 15:04:05", endTimeStr)
-	//if err != nil {
-	//
-	//}
-	//var (
-	//	query = []bson.M{
-	//		{
-	//			"$match": bson.M{"kf_id": kfid, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
-	//		},
-	//		{
-	//			"$sort": bson.M{"customer_id": 1},
-	//		},
-	//		{
-	//			"$skip": 1,
-	//		},
-	//		{
-	//			"$limit": 100,
-	//		},
-	//		{
-	//			"$group": bson.M{
-	//				"_id":          "$_id",
-	//				"customer_id":        bson.M{"$first": "$customer_id"},
-	//
-	//			},
-	//		},
-	//	}
-	//
-	//	roomCollection = session.DB("customer_service_db").C("message")
-	//)
-	//var result []map[string]interface{}
-	//if err := roomCollection.Find(query).All(&result); err != nil {
-	//	log.Warn(err)
-	//}
-
-	//var message [] model.Message
-	//if err := roomCollection.Find(query).All(&result); err != nil {
-	//	log.Warn(err)
-	//}
-
-	//fmt.Println(result)
-	//onlineKefuCount, _ := roomCollection.Find(query).Count()
-
-	//println(onlineKefuCount)
-
-}
-
-func Test_MessageCount(t *testing.T) {
+func Test_Statistics(t *testing.T) {
 	defer session.Close()
 
 	//customerId := "o1NTgjoJdk49OC7pogphJzVpqz4s"
@@ -433,45 +314,78 @@ func Test_MessageCount(t *testing.T) {
 
 	}
 	var (
-		//query = []bson.M{
-		//	{
-		//		"$match":  bson.M{"kf_id": kfid, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
-		//	},
-		//	{"$lookup": bson.M{
-		//		"from":         "kefu",
-		//		"localField":   "kf_id",
-		//		"foreignField": "id",
-		//		"as":           "kf_info",
-		//	}},
-		//}
-
-		query = []bson.M{
+		queryMessage = []bson.M{
 			{
-				"$match": bson.M{"kf_id": kfid, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{"$lookup": bson.M{
 				"from":         "kefu",
 				"localField":   "kf_id",
 				"foreignField": "id",
-				"as":           "message_info",
+				"as":           "kefu",
 			}},
 			{
-				"$sort": bson.M{"create_time": 1},
+				"$unwind": bson.M{
+					"path":                       "$kefu",
+					"preserveNullAndEmptyArrays": true,
+				},
 			},
 			{
-				"$skip": (1 - 1) * 100,
+				"$sort": bson.M{"kf_id": 1},
 			},
 			{
-				"$limit": 100,
+				"$skip": (1 - 1) * 1000,
+			},
+			{
+				"$limit": 1000,
+			},
+			{
+				"$group": bson.M{
+					"_id":          "$kf_id",
+					"kfId":         bson.M{"$first": "$kf_id"},
+					"fkName":       bson.M{"$first": "$kefu.nick_name"},
+					"messageCount": bson.M{"$sum": 1},
+				},
+			},
+		}
+		queryCustomer = []bson.M{
+			{
+				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+			},
+			{
+				"$sort": bson.M{"kf_id": 1},
+			},
+			{
+				"$group": bson.M{
+					"_id":           bson.M{"kf_id": "$kf_id", "customer_id": "$customer_id"},
+					"kfId":          bson.M{"$first": "$kf_id"},
+					"customerId":    bson.M{"$first": "$customer_id"},
+					"customerCount": bson.M{"$sum": 1},
+				},
 			},
 		}
 
 		roomCollection = session.DB("customer_service_db").C("message")
 	)
-	var result []map[string]interface{}
-	if err := roomCollection.Pipe(query).All(&result); err != nil {
+	var messageByKf []map[string]interface{}
+	if err := roomCollection.Pipe(queryMessage).All(&messageByKf); err != nil {
 		log.Warn(err)
 	}
-	println(result)
 
+	var customerByKf []bson.M
+	if err := roomCollection.Pipe(queryCustomer).All(&customerByKf); err != nil {
+		log.Warn(err)
+	}
+
+	count := 0
+	for i := 0; i < len(messageByKf); i++ {
+		kfId := messageByKf[i]["kfId"].(string)
+		count = 0
+		for j := 0; j < len(customerByKf); j++ {
+			if kfId == customerByKf[j]["kfId"].(string) {
+				count++
+			}
+			messageByKf[i]["customerCount"] = count
+		}
+	}
 }
