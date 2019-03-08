@@ -53,6 +53,7 @@ func main() {
 	adminController := admin.NewHealth()
 	kfController := admin.NewKfServer()
 	dialogController := admin.NewDialog(wxContext)
+	statisticsController := admin.NewStatistics()
 	weiXinController := admin.NewWeiXin(wxContext, aiModule)
 	// OpenAPI注册控制器
 	openController := open.NewOpen()
@@ -89,6 +90,12 @@ func main() {
 			dialog.GET("/:customerId/:page/:limit", dialogController.History)
 			dialog.PUT("/ack", dialogController.Ack)
 			dialog.POST("", dialogController.SendMessage)
+		}
+
+		// 统计操作
+		statistics := adminGroup.Group("/statistics")
+		{
+			statistics.GET("/:starTime/:endTime/:page/:limit", statisticsController.Statistics)
 		}
 
 		// 客服操作
