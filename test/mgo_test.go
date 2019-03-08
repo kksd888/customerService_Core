@@ -316,7 +316,7 @@ func Test_Statistics(t *testing.T) {
 	var (
 		queryMessage = []bson.M{
 			{
-				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{"$lookup": bson.M{
 				"from":         "kefu",
@@ -333,12 +333,7 @@ func Test_Statistics(t *testing.T) {
 			{
 				"$sort": bson.M{"kf_id": 1},
 			},
-			{
-				"$skip": (1 - 1) * 1000,
-			},
-			{
-				"$limit": 1000,
-			},
+
 			{
 				"$group": bson.M{
 					"_id":          "$kf_id",
@@ -346,6 +341,12 @@ func Test_Statistics(t *testing.T) {
 					"fkName":       bson.M{"$first": "$kefu.nick_name"},
 					"messageCount": bson.M{"$sum": 1},
 				},
+			},
+			{
+				"$skip": (1 - 1) * 5,
+			},
+			{
+				"$limit": 5,
 			},
 		}
 		queryCustomer = []bson.M{
