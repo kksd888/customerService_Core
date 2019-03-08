@@ -71,7 +71,7 @@ func main() {
 	router.POST("/admin/login", kfController.LoginIn)
 
 	// 后台Admin API路由 (授权保护)
-	adminGroup := router.Group("/admin")
+	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
 	{
 		// 初始化
 		adminGroup.GET("/init", adminController.Init)
