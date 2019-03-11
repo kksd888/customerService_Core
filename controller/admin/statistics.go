@@ -48,7 +48,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 	var (
 		queryMessage = []bson.M{
 			{
-				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{"$lookup": bson.M{
 				"from":         "kefu",
@@ -66,12 +66,6 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 				"$sort": bson.M{"kf_id": 1},
 			},
 			{
-				"$skip": (page - 1) * limit,
-			},
-			{
-				"$limit": limit,
-			},
-			{
 				"$group": bson.M{
 					"_id":          "$kf_id",
 					"kfId":         bson.M{"$first": "$kf_id"},
@@ -79,10 +73,16 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 					"messageCount": bson.M{"$sum": 1},
 				},
 			},
+			{
+				"$skip": (page - 1) * limit,
+			},
+			{
+				"$limit": limit,
+			},
 		}
 		queryCustomer = []bson.M{
 			{
-				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{
 				"$sort": bson.M{"kf_id": 1},
