@@ -5,6 +5,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
 	"git.jsjit.cn/customerService/customerService_Core/model"
+	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	log "github.com/sirupsen/logrus"
@@ -388,4 +389,19 @@ func Test_Statistics(t *testing.T) {
 			messageByKf[i]["customerCount"] = count
 		}
 	}
+}
+
+func Test_Login(t *testing.T) {
+	defer session.Close()
+	redis := admin.NewKfServer()
+	context := &gin.Context{
+		Params: nil,
+	}
+	redis.LoginIn(context)
+
+	collection := session.DB("customer_service_db").C("kefu_copy1")
+	if e := collection.Update(bson.M{"job_num": "6094"}, bson.M{"$set": bson.M{"is_online": true, "group_name": "投诉组"}}); e != nil {
+		t.Fatal(e.Error())
+	}
+
 }
