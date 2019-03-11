@@ -138,6 +138,54 @@
 			"Rev": "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
 		},
 		{
+			"ImportPath": "github.com/li-keli/go-tool/util",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/util/db_util",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/util/http_util",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/cache",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/context",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/kf",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/material",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/message",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/server",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/user",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/wechatutil",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
 			"ImportPath": "github.com/magiconair/properties",
 			"Comment": "v1.8.0",
 			"Rev": "c2353362d570a7bfa228149c62842019201cfb71"
