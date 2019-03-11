@@ -29,10 +29,13 @@ func NewKfServer() *KfServerController {
 // @Success 200 {string} json ""
 // @Router /admin/kf [get]
 func (c *KfServerController) Get(context *gin.Context) {
+	session := model.DbSession.Copy()
+	defer session.Close()
+
 	var (
 		kf      model.Kf
 		kfId, _ = context.Get("KFID")
-		kfC     = model.Db.C("kefu")
+		kfC     = session.DB(common.DB_NAME).C("kefu")
 	)
 
 	if err := kfC.Find(bson.M{"id": kfId}).One(&kf); err != nil {
@@ -50,9 +53,12 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/kf/status [post]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
+	session := model.DbSession.Copy()
+	defer session.Close()
+
 	var (
 		kfId, _ = context.Get("KFID")
-		kfC     = model.Db.C("kefu")
+		kfC     = session.DB(common.DB_NAME).C("kefu")
 		reqBind = struct {
 			Status bool `bson:"status" json:"status"`
 		}{}
@@ -77,9 +83,12 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/login [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
+	session := model.DbSession.Copy()
+	defer session.Close()
+
 	var (
 		kf           = model.Kf{}
-		kfCollection = model.Db.C("kefu")
+		kfCollection = session.DB(common.DB_NAME).C("kefu")
 		loginStruct  = struct {
 			JobNum   string `json:"job_num"`
 			PassWord string `json:"pass_word"`

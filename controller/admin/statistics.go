@@ -2,11 +2,12 @@ package admin
 
 import (
 	"errors"
+	"git.jsjit.cn/customerService/customerService_Core/common"
+	"git.jsjit.cn/customerService/customerService_Core/model"
 	"net/http"
 	"strconv"
 	"time"
 
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
 	log "github.com/sirupsen/logrus"
@@ -21,6 +22,9 @@ func NewStatistics() *StatisticsController {
 
 // 统计查询
 func (c *StatisticsController) Statistics(context *gin.Context) {
+	session := model.DbSession.Copy()
+	defer session.Close()
+
 	var (
 		starTimeStr = context.Param("starTime")
 		endTimeStr  = context.Param("endTime")
@@ -96,7 +100,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 				},
 			},
 		}
-		messageCollection = model.Db.C("message")
+		messageCollection = session.DB(common.DB_NAME).C("message")
 	)
 
 	//查询每个客服回复的信息

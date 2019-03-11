@@ -26,14 +26,17 @@ func NewHealth() *AdminController {
 // @Success 200 {string} json ""
 // @Router /admin/init [get]
 func (c *AdminController) Init(context *gin.Context) {
+	session := model.DbSession.Copy()
+	defer session.Close()
+
 	// 获取访问客服信息
 	var (
 		kf             = model.Kf{}
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
 		kfId, _        = context.Get("KFID")
-		kfCollection   = model.Db.C("kefu")
-		roomCollection = model.Db.C("room")
+		kfCollection   = session.DB(common.DB_NAME).C("kefu")
+		roomCollection = session.DB(common.DB_NAME).C("room")
 	)
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)

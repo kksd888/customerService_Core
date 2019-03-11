@@ -27,6 +27,9 @@ func (c *OpenController) Health(context *gin.Context) {
 // 认证授权
 // /v1/app/access
 func (open *OpenController) Access(ctx *gin.Context) {
+	session := model.DbSession.Copy()
+	defer session.Close()
+
 	var (
 		input = struct {
 			DeviceId   string                    `json:"device_id" bson:"device_id" binding:"required"` // 设备编号
@@ -45,9 +48,9 @@ func (open *OpenController) Access(ctx *gin.Context) {
 			Authorization string `json:"authorization"` // 授权码
 		}
 
-		customerCollection = model.Db.C("customer")
-		roomCollection     = model.Db.C("room")
-		kefuCollection     = model.Db.C("kefu")
+		customerCollection = session.DB(common.DB_NAME).C("customer")
+		roomCollection     = session.DB(common.DB_NAME).C("room")
+		kefuCollection     = session.DB(common.DB_NAME).C("kefu")
 	)
 
 	// 验证并绑定到模型
@@ -104,12 +107,11 @@ func (open *OpenController) Access(ctx *gin.Context) {
 		})
 	} else {
 		var (
-			kefuColection = model.Db.C("kefu")
-			kefuModel     = model.Kf{}
-			room          = model.Room{}
+			kefuModel = model.Kf{}
+			room      = model.Room{}
 		)
 		roomCollection.Find(bson.M{"room_customer.customer_id": input.CustomerId}).One(&room)
-		kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
+		kefuCollection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
 		if kefuModel.Id != "" && kefuModel.IsOnline == false {
 			// 若接待的客服已经下线，则将用户重新放入待接入
 			roomCollection.Update(

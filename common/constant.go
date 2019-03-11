@@ -13,6 +13,8 @@ import (
 type CustomerSourceType string
 
 const (
+	DB_NAME = "customer_service_db" // 数据库存储介质名
+
 	AES_KEY = "80b11dc2dba242fd99b6bff28760c849" //AES加密的KEY
 
 	KF_REPLY      = "您好，现在时段暂无人工客服为您服务，如您有任何问题可致电24小时服务热线4008101688"
