@@ -30,7 +30,7 @@ func main() {
 	// 加载配置
 	common.NewGinConfig()
 
-	gin.SetMode(common.AppConfig.GoModel)
+	gin.SetMode(common.AppConfig.GoMode)
 	model.NewMongo(common.AppConfig.Mongodb)
 
 	router := gin.Default()

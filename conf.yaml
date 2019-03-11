@@ -1,6 +1,17 @@
-GoModel: release
-Port: 5000
-Mongodb: 172.16.2.161:28000
-Multimedia: https://kf.jsjinfo.cn/
-AiSemantic: http://172.16.7.23:20700/semantic
-AutomaticReply: false
+# 开发环境
+debug:
+  GoModel: debug
+  Port: 5000
+  Mongodb: 172.16.2.161:21000
+  Multimedia: https://kf.jsjinfo.cn/
+  AiSemantic: http://172.16.7.23:20700/semantic
+  AutomaticReply: false
+
+# 生产
+release:
+  GoModel: release
+  Port: 5000
+  Mongodb: 172.16.2.161:28000
+  Multimedia: https://kf.jsjinfo.cn/
+  AiSemantic: http://172.16.7.23:20700/semantic
+  AutomaticReply: false
