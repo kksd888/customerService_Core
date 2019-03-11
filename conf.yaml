@@ -1,6 +1,6 @@
 GoModel: release
 Port: 5000
-Mongodb: 172.16.14.52:27017
+Mongodb: 172.16.2.161:28000
 Multimedia: https://kf.jsjinfo.cn/
 AiSemantic: http://172.16.7.23:20700/semantic
 AutomaticReply: false
