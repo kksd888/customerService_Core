@@ -100,7 +100,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 				},
 			},
 		}
-		messageCollection = session.DB(common.DB_NAME).C("message")
+		messageCollection = session.DB(common.AppConfig.DbName).C("message")
 	)
 
 	//查询每个客服回复的信息

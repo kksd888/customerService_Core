@@ -14,6 +14,7 @@ type GinConfig struct {
 	GoMode         string `yaml:"GoMode"`
 	Port           string `yaml:"Port"`
 	Mongodb        string `yaml:"Mongodb"`
+	DbName         string `yaml:"DbName"`
 	Multimedia     string `yaml:"Multimedia"`
 	AiSemantic     string `yaml:"AiSemantic"`
 	AutomaticReply bool   `yaml:"AutomaticReply"`
@@ -82,6 +83,7 @@ func LoadConf(confPath string) (GinConfig, error) {
 	// App
 	conf.Port = viper.GetString(conf.GoMode + ".Port")
 	conf.Mongodb = viper.GetString(conf.GoMode + ".Mongodb")
+	conf.DbName = viper.GetString(conf.GoMode + ".DbName")
 	conf.Multimedia = viper.GetString(conf.GoMode + ".Multimedia")
 	conf.AiSemantic = viper.GetString(conf.GoMode + ".AiSemantic")
 	conf.AutomaticReply = viper.GetBool(conf.GoMode + ".AutomaticReply")

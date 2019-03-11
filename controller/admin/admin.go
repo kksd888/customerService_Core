@@ -36,8 +36,8 @@ func (c *AdminController) Init(context *gin.Context) {
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
 		kfId, _        = context.Get("KFID")
-		kfCollection   = session.DB(common.DB_NAME).C("kefu")
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		kfCollection   = session.DB(common.AppConfig.DbName).C("kefu")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)

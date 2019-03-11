@@ -37,7 +37,7 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 		dbResult      []struct {
 			RoomMessages MessageModel `bson:"room_messages"`
 		}
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	query := []bson.M{
@@ -91,7 +91,7 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 			RoomMessages MessageModel `bson:"room_messages"`
 		}
 
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	query := []bson.M{
 		{
@@ -240,7 +240,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 	defer session.Close()
 
 	var (
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 		aiDialogue     = "" // AI答复
 
 	)
@@ -262,7 +262,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 		// 此处不应该存在新接入的用户
 	} else {
 		var (
-			kefuColection = session.DB(common.DB_NAME).C("kefu")
+			kefuColection = session.DB(common.AppConfig.DbName).C("kefu")
 			kefuModel     = model.Kf{}
 		)
 		kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)

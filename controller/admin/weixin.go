@@ -92,8 +92,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
 		}
 
-		roomCollection := session.DB(common.DB_NAME).C("room")
-		customerCollection := session.DB(common.DB_NAME).C("customer")
+		roomCollection := session.DB(common.AppConfig.DbName).C("room")
+		customerCollection := session.DB(common.AppConfig.DbName).C("customer")
 		var room = model.Room{}
 		roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room)
 
@@ -140,7 +140,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			})
 		} else {
 			var (
-				kefuColection = session.DB(common.DB_NAME).C("kefu")
+				kefuColection = session.DB(common.AppConfig.DbName).C("kefu")
 				kefuModel     = model.Kf{}
 			)
 			kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)

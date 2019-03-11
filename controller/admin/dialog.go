@@ -41,7 +41,7 @@ func (c *DialogController) List(context *gin.Context) {
 	var (
 		waitCustomer   = []WaitCustomer{}
 		kfId, _        = context.Get("KFID")
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	query := []bson.M{
 		{
@@ -103,7 +103,7 @@ func (c *DialogController) Queue(context *gin.Context) {
 
 	var (
 		waitCustomer   = []WaitCustomer{}
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	query := []bson.M{
@@ -143,9 +143,9 @@ func (c *DialogController) Access(context *gin.Context) {
 		aRequest          CustomerIdsRequest
 		kfModel           model.Kf
 		kfId, _           = context.Get("KFID")
-		roomCollection    = session.DB(common.DB_NAME).C("room")
-		kfCollection      = session.DB(common.DB_NAME).C("kefu")
-		messageCollection = session.DB(common.DB_NAME).C("message")
+		roomCollection    = session.DB(common.AppConfig.DbName).C("room")
+		kfCollection      = session.DB(common.AppConfig.DbName).C("kefu")
+		messageCollection = session.DB(common.AppConfig.DbName).C("message")
 	)
 
 	if err = context.BindJSON(&aRequest); err != nil {
@@ -188,7 +188,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 	var (
 		aRequest       CustomerIdsRequest
 		kfId, _        = context.Get("KFID")
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
@@ -225,7 +225,7 @@ func (c *DialogController) History(context *gin.Context) {
 		customerId     = context.Param("customerId")
 		strPage        = context.Param("page")
 		strLimit       = context.Param("limit")
-		roomCollection = session.DB(common.DB_NAME).C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	if customerId == "" {
 		ReturnErrInfo(context, errors.New("缺少customerId"))
@@ -288,8 +288,8 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 	var (
 		sendRequest        SendMessageRequest
 		kfId, _            = context.Get("KFID")
-		roomCollection     = session.DB(common.DB_NAME).C("room")
-		customerCollection = session.DB(common.DB_NAME).C("customer")
+		roomCollection     = session.DB(common.AppConfig.DbName).C("room")
+		customerCollection = session.DB(common.AppConfig.DbName).C("customer")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)

@@ -29,7 +29,7 @@ func (k Kf) OnlineExist() bool {
 	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
-	var kefuC = session.DB(common.DB_NAME).C("kefu")
+	var kefuC = session.DB(common.AppConfig.DbName).C("kefu")
 
 	if count, err := kefuC.Find(bson.M{"id": k.Id, "is_online": true}).Count(); err != nil {
 		log.Printf("model.Kf.Exist() is err :%s", err.Error())
@@ -51,7 +51,7 @@ func (k Kf) QueryOnlines() ([]*Kf, error) {
 	var (
 		err     error
 		onlines []*Kf
-		kefuC   = session.DB(common.DB_NAME).C("kefu")
+		kefuC   = session.DB(common.AppConfig.DbName).C("kefu")
 	)
 	if err = kefuC.Find(bson.M{"is_online": true}).All(&onlines); err != nil {
 		log.Printf("model.QueryOnlines is err: %s", err.Error())
@@ -65,7 +65,7 @@ func (k Kf) ChangeStatus() (err error) {
 	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
-	kefuC := session.DB(common.DB_NAME).C("kefu")
+	kefuC := session.DB(common.AppConfig.DbName).C("kefu")
 
 	if err = kefuC.Update(bson.M{"id": k.Id}, bson.M{"$set": bson.M{"is_online": k.IsOnline, "update_time": time.Now()}}); err != nil {
 		log.Printf("model.ChangeStatus is err: %s", err.Error())

@@ -49,9 +49,9 @@ func (open *OpenController) Access(ctx *gin.Context) {
 			Authorization string `json:"authorization"` // 授权码
 		}
 
-		customerCollection = session.DB(common.DB_NAME).C("customer")
-		roomCollection     = session.DB(common.DB_NAME).C("room")
-		kefuCollection     = session.DB(common.DB_NAME).C("kefu")
+		customerCollection = session.DB(common.AppConfig.DbName).C("customer")
+		roomCollection     = session.DB(common.AppConfig.DbName).C("room")
+		kefuCollection     = session.DB(common.AppConfig.DbName).C("kefu")
 	)
 
 	// 验证并绑定到模型

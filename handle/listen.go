@@ -24,7 +24,7 @@ func Listen() {
 		session := db_util.MongoDbSession.Copy()
 		defer session.Close()
 
-		kefuC := session.DB(common.DB_NAME).C("kefu")
+		kefuC := session.DB(common.AppConfig.DbName).C("kefu")
 		for {
 			k := <-model.KfLastTimeChange
 			//log.Printf("更新客服[%s]最后活动时间，%s", k.Id, k.UpdateTime)
@@ -50,7 +50,7 @@ func Listen() {
 		session := db_util.MongoDbSession.Copy()
 		defer session.Close()
 
-		var kefuC = session.DB(common.DB_NAME).C("kefu")
+		var kefuC = session.DB(common.AppConfig.DbName).C("kefu")
 
 		for {
 			time.Sleep(time.Second * 1)

@@ -24,7 +24,7 @@ func InsertMessage(m Message) {
 	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
-	if err := session.DB(common.DB_NAME).C("message").Insert(&m); err != nil {
+	if err := session.DB(common.AppConfig.DbName).C("message").Insert(&m); err != nil {
 		log.Printf("消息存储异常：%s", err.Error())
 	}
 }
