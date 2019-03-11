@@ -8,6 +8,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"github.com/li-keli/go-tool/wechat"
 	"github.com/li-keli/go-tool/wechat/kf"
 	"github.com/li-keli/go-tool/wechat/message"
@@ -34,7 +35,7 @@ func NewDialog(wxContext *wechat.Wechat) *DialogController {
 // @Success 200 {string} json ""
 // @Router /admin/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -97,7 +98,7 @@ func (c *DialogController) List(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /admin/wait_queue [get]
 func (c *DialogController) Queue(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -134,7 +135,7 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -181,7 +182,7 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -216,7 +217,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /admin/dialog/{customerId}/{page}/{limit} [get]
 func (c *DialogController) History(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -281,7 +282,7 @@ func (c *DialogController) History(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (

@@ -4,6 +4,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"log"
 	"os"
 	"os/signal"
@@ -20,7 +21,7 @@ func Listen() {
 
 	// 跟新最后活动时间
 	go func() {
-		session := model.DbSession.Copy()
+		session := db_util.MongoDbSession.Copy()
 		defer session.Close()
 
 		kefuC := session.DB(common.DB_NAME).C("kefu")
@@ -46,7 +47,7 @@ func Listen() {
 
 	// 客服超时下线
 	go func() {
-		session := model.DbSession.Copy()
+		session := db_util.MongoDbSession.Copy()
 		defer session.Close()
 
 		var kefuC = session.DB(common.DB_NAME).C("kefu")

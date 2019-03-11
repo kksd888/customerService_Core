@@ -6,9 +6,9 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
 	"git.jsjit.cn/customerService/customerService_Core/controller/open"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/li-keli/go-tool/util/db_util"
 	"github.com/li-keli/go-tool/wechat"
 	"time"
 )
@@ -29,7 +29,7 @@ func main() {
 	// 加载配置
 	common.NewGinConfig()
 	// 数据库连接
-	model.NewMongo()
+	db_util.NewMongo(common.AppConfig.Mongodb)
 
 	gin.SetMode(common.AppConfig.GoMode)
 	router := gin.Default()

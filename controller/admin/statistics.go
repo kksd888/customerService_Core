@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
+	"github.com/li-keli/go-tool/util/db_util"
 	"net/http"
 	"strconv"
 	"time"
@@ -22,7 +22,7 @@ func NewStatistics() *StatisticsController {
 
 // 统计查询
 func (c *StatisticsController) Statistics(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (

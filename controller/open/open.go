@@ -7,6 +7,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"net/http"
 	"time"
 )
@@ -27,7 +28,7 @@ func (c *OpenController) Health(context *gin.Context) {
 // 认证授权
 // /v1/app/access
 func (open *OpenController) Access(ctx *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (

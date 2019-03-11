@@ -9,6 +9,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"github.com/pkg/errors"
 	"log"
 	"net/http"
@@ -29,7 +30,7 @@ func NewKfServer() *KfServerController {
 // @Success 200 {string} json ""
 // @Router /admin/kf [get]
 func (c *KfServerController) Get(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -53,7 +54,7 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/kf/status [post]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -83,7 +84,7 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/login [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
-	session := model.DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (

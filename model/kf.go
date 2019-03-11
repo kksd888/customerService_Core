@@ -3,6 +3,7 @@ package model
 import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"log"
 	"time"
 )
@@ -25,7 +26,7 @@ type Kf struct {
 
 // 指定在线客服是否存在
 func (k Kf) OnlineExist() bool {
-	session := DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var kefuC = session.DB(common.DB_NAME).C("kefu")
@@ -44,7 +45,7 @@ func (k Kf) OnlineExist() bool {
 
 // 获取所有在线客服
 func (k Kf) QueryOnlines() ([]*Kf, error) {
-	session := DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	var (
@@ -61,7 +62,7 @@ func (k Kf) QueryOnlines() ([]*Kf, error) {
 
 // 修改客服在线状态
 func (k Kf) ChangeStatus() (err error) {
-	session := DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	kefuC := session.DB(common.DB_NAME).C("kefu")

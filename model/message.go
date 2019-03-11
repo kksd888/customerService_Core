@@ -2,6 +2,7 @@ package model
 
 import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
+	"github.com/li-keli/go-tool/util/db_util"
 	"log"
 	"time"
 )
@@ -20,7 +21,7 @@ type Message struct {
 }
 
 func InsertMessage(m Message) {
-	session := DbSession.Copy()
+	session := db_util.MongoDbSession.Copy()
 	defer session.Close()
 
 	if err := session.DB(common.DB_NAME).C("message").Insert(&m); err != nil {
