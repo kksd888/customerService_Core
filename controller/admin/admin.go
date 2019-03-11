@@ -7,6 +7,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"log"
 	"net/http"
 )
@@ -26,14 +27,17 @@ func NewHealth() *AdminController {
 // @Success 200 {string} json ""
 // @Router /admin/init [get]
 func (c *AdminController) Init(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	// 获取访问客服信息
 	var (
 		kf             = model.Kf{}
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
 		kfId, _        = context.Get("KFID")
-		kfCollection   = model.Db.C("kefu")
-		roomCollection = model.Db.C("room")
+		kfCollection   = session.DB(common.AppConfig.DbName).C("kefu")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)

@@ -5,10 +5,11 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"git.jsjit.cn/customerService/customerService_Core/model"
-	"git.jsjit.cn/customerService/customerService_Core/wechat"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/wechat"
+	"github.com/li-keli/go-tool/wechat/message"
 	"log"
 	"strings"
 	"time"
@@ -37,6 +38,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				1. 检索已分配的房间
 				2. 存储聊天数据
 		*/
+		session := db_util.MongoDbSession.Copy()
+		defer session.Close()
+
 		var (
 			msgType    = string(msg.MsgType) // 消息类型
 			MediaUrl   = ""                  // 多媒体地址
@@ -88,8 +92,8 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			log.Printf("用户[%s]发来信息：[%s] %s \n", msg.FromUserName, msgType, msgText)
 		}
 
-		roomCollection := model.Db.C("room")
-		customerCollection := model.Db.C("customer")
+		roomCollection := session.DB(common.AppConfig.DbName).C("room")
+		customerCollection := session.DB(common.AppConfig.DbName).C("customer")
 		var room = model.Room{}
 		roomCollection.Find(bson.M{"room_customer.customer_id": msg.FromUserName}).One(&room)
 
@@ -136,7 +140,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			})
 		} else {
 			var (
-				kefuColection = model.Db.C("kefu")
+				kefuColection = session.DB(common.AppConfig.DbName).C("kefu")
 				kefuModel     = model.Kf{}
 			)
 			kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)

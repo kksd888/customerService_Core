@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
 	"git.jsjit.cn/customerService/customerService_Core/controller/open"
 	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/model"
-	"git.jsjit.cn/customerService/customerService_Core/wechat"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/wechat"
+	"time"
 )
 
 var (
@@ -29,10 +28,10 @@ func init() {
 func main() {
 	// 加载配置
 	common.NewGinConfig()
+	// 数据库连接
+	db_util.NewMongo(common.AppConfig.Mongodb)
 
-	gin.SetMode(common.AppConfig.GoModel)
-	model.NewMongo(common.AppConfig.Mongodb)
-
+	gin.SetMode(common.AppConfig.GoMode)
 	router := gin.Default()
 
 	// cors规则配置

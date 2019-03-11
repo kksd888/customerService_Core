@@ -1,8 +1,13 @@
 {
 	"ImportPath": "git.jsjit.cn/customerService/customerService_Core",
-	"GoVersion": "go1.10",
+	"GoVersion": "go1.12",
 	"GodepVersion": "v80",
 	"Deps": [
+		{
+			"ImportPath": "github.com/fsnotify/fsnotify",
+			"Comment": "v1.4.7-6-gccc981b",
+			"Rev": "ccc981bf80385c528a65fbfdd49bf2d8da22aa23"
+		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
 			"Comment": "v1.6.0-3-g569eae5",
@@ -20,27 +25,27 @@
 		},
 		{
 			"ImportPath": "github.com/gin-contrib/sse",
-			"Rev": "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+			"Rev": "5545eab6dad3bbbd6c5ae9186383c2a9d23c0dae"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin",
-			"Comment": "v1.3.0-15-g0da5b0c",
-			"Rev": "0da5b0c85ac2539e775a7e63aebf3e0b5808dab4"
+			"Comment": "v1.3.0-134-g3dc2478",
+			"Rev": "3dc247893e9772d0b95c47f4b32dad3d28feb488"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin/binding",
-			"Comment": "v1.3.0-15-g0da5b0c",
-			"Rev": "0da5b0c85ac2539e775a7e63aebf3e0b5808dab4"
+			"Comment": "v1.3.0-134-g3dc2478",
+			"Rev": "3dc247893e9772d0b95c47f4b32dad3d28feb488"
 		},
 		{
-			"ImportPath": "github.com/gin-gonic/gin/json",
-			"Comment": "v1.3.0-15-g0da5b0c",
-			"Rev": "0da5b0c85ac2539e775a7e63aebf3e0b5808dab4"
+			"ImportPath": "github.com/gin-gonic/gin/internal/json",
+			"Comment": "v1.3.0-134-g3dc2478",
+			"Rev": "3dc247893e9772d0b95c47f4b32dad3d28feb488"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin/render",
-			"Comment": "v1.3.0-15-g0da5b0c",
-			"Rev": "0da5b0c85ac2539e775a7e63aebf3e0b5808dab4"
+			"Comment": "v1.3.0-134-g3dc2478",
+			"Rev": "3dc247893e9772d0b95c47f4b32dad3d28feb488"
 		},
 		{
 			"ImportPath": "github.com/globalsign/mgo",
@@ -69,8 +74,58 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Comment": "v1.2.0-2-gb27b920",
-			"Rev": "b27b920f9e71b439b873b17bf99f56467623814a"
+			"Comment": "v1.3.0-2-gb5d812f",
+			"Rev": "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/ast",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/parser",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/printer",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/scanner",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/strconv",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/token",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/parser",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/scanner",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/token",
+			"Comment": "v1.0.0-1-g65a6292",
+			"Rev": "65a6292f0157eff210d03ed1bf6c59b190b8b906"
 		},
 		{
 			"ImportPath": "github.com/json-iterator/go",
@@ -83,9 +138,67 @@
 			"Rev": "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
 		},
 		{
+			"ImportPath": "github.com/li-keli/go-tool/util",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/util/db_util",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/util/http_util",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/cache",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/context",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/kf",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/material",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/message",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/server",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/user",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/li-keli/go-tool/wechat/wechatutil",
+			"Rev": "a26c8d2e3f7561f3a35ce570d0248afd32fecd25"
+		},
+		{
+			"ImportPath": "github.com/magiconair/properties",
+			"Comment": "v1.8.0",
+			"Rev": "c2353362d570a7bfa228149c62842019201cfb71"
+		},
+		{
 			"ImportPath": "github.com/mattn/go-isatty",
-			"Comment": "v0.0.3-7-g6ca4dbf",
-			"Rev": "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c"
+			"Comment": "v0.0.6",
+			"Rev": "369ecd8cea9851e459abb67eb171853e3986591e"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Comment": "v1.1.2",
+			"Rev": "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
 		},
 		{
 			"ImportPath": "github.com/modern-go/concurrent",
@@ -96,6 +209,11 @@
 			"ImportPath": "github.com/modern-go/reflect2",
 			"Comment": "1.0.1-2-g94122c3",
 			"Rev": "94122c33edd36123c84d5368cfb2b69df93a0ec8"
+		},
+		{
+			"ImportPath": "github.com/pelletier/go-toml",
+			"Comment": "v1.2.0-13-gaa79e12",
+			"Rev": "aa79e12a973495d00b01f2353330e5275d084731"
 		},
 		{
 			"ImportPath": "github.com/pkg/errors",
@@ -109,13 +227,43 @@
 		},
 		{
 			"ImportPath": "github.com/sirupsen/logrus",
-			"Comment": "v1.1.1-8-g680f584",
-			"Rev": "680f584d621da87ee04ea659130e149ba9d23cae"
+			"Comment": "v1.2.0-10-g29d7eb2",
+			"Rev": "29d7eb25e8ffa54207ff5a9a5c3d63e95be2cc39"
+		},
+		{
+			"ImportPath": "github.com/spf13/afero",
+			"Comment": "v1.1.2",
+			"Rev": "d40851caa0d747393da1ffb28f7f9d8b4eeffebd"
+		},
+		{
+			"ImportPath": "github.com/spf13/afero/mem",
+			"Comment": "v1.1.2",
+			"Rev": "d40851caa0d747393da1ffb28f7f9d8b4eeffebd"
+		},
+		{
+			"ImportPath": "github.com/spf13/cast",
+			"Comment": "v1.3.0",
+			"Rev": "8c9545af88b134710ab1cd196795e7f2388358d7"
+		},
+		{
+			"ImportPath": "github.com/spf13/jwalterweatherman",
+			"Comment": "v1.0.0-2-g94f6ae3",
+			"Rev": "94f6ae3ed3bceceafa716478c5fbf8d29ca601a1"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Comment": "v1.0.3-6-gaea12ed",
+			"Rev": "aea12ed6721610dc6ed40141676d7ab0a1dac9e9"
+		},
+		{
+			"ImportPath": "github.com/spf13/viper",
+			"Comment": "v1.2.1-13-gae103d7",
+			"Rev": "ae103d7e593e371c69e832d5eb3347e2b80cbbc9"
 		},
 		{
 			"ImportPath": "github.com/ugorji/go/codec",
-			"Comment": "v1.1.1-16-g00b869d",
-			"Rev": "00b869d2f4a5e27445c2d916fa106fc72c106d4c"
+			"Comment": "v1.1.2-2-ge444a50",
+			"Rev": "e444a5086c436778cf9281a7059a3d58b9e17935"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh/terminal",
@@ -130,14 +278,24 @@
 			"Rev": "d0be0721c37eeb5299f245a996a483160fc36940"
 		},
 		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Comment": "v0.3.0-60-g6e3c4e7",
+			"Rev": "6e3c4e7365ddcc329f090f96e4348398f6310088"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Comment": "v0.3.0-60-g6e3c4e7",
+			"Rev": "6e3c4e7365ddcc329f090f96e4348398f6310088"
+		},
+		{
 			"ImportPath": "gopkg.in/go-playground/validator.v8",
 			"Comment": "v8.18.2",
 			"Rev": "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Comment": "v2.2.1",
-			"Rev": "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+			"Comment": "v2.2.2",
+			"Rev": "51d6538a90f86fe93ac480b35f37b2be17fef232"
 		}
 	]
 }

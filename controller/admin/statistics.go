@@ -2,11 +2,12 @@ package admin
 
 import (
 	"errors"
+	"git.jsjit.cn/customerService/customerService_Core/common"
+	"github.com/li-keli/go-tool/util/db_util"
 	"net/http"
 	"strconv"
 	"time"
 
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
 	log "github.com/sirupsen/logrus"
@@ -21,6 +22,9 @@ func NewStatistics() *StatisticsController {
 
 // 统计查询
 func (c *StatisticsController) Statistics(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		starTimeStr = context.Param("starTime")
 		endTimeStr  = context.Param("endTime")
@@ -48,7 +52,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 	var (
 		queryMessage = []bson.M{
 			{
-				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{"$lookup": bson.M{
 				"from":         "kefu",
@@ -66,12 +70,6 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 				"$sort": bson.M{"kf_id": 1},
 			},
 			{
-				"$skip": (page - 1) * limit,
-			},
-			{
-				"$limit": limit,
-			},
-			{
 				"$group": bson.M{
 					"_id":          "$kf_id",
 					"kfId":         bson.M{"$first": "$kf_id"},
@@ -79,10 +77,16 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 					"messageCount": bson.M{"$sum": 1},
 				},
 			},
+			{
+				"$skip": (page - 1) * limit,
+			},
+			{
+				"$limit": limit,
+			},
 		}
 		queryCustomer = []bson.M{
 			{
-				"$match": bson.M{"create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{
 				"$sort": bson.M{"kf_id": 1},
@@ -96,7 +100,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 				},
 			},
 		}
-		messageCollection = model.Db.C("message")
+		messageCollection = session.DB(common.AppConfig.DbName).C("message")
 	)
 
 	//查询每个客服回复的信息

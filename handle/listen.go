@@ -1,8 +1,10 @@
 package handle
 
 import (
+	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"log"
 	"os"
 	"os/signal"
@@ -19,7 +21,10 @@ func Listen() {
 
 	// 跟新最后活动时间
 	go func() {
-		kefuC := model.Db.C("kefu")
+		session := db_util.MongoDbSession.Copy()
+		defer session.Close()
+
+		kefuC := session.DB(common.AppConfig.DbName).C("kefu")
 		for {
 			k := <-model.KfLastTimeChange
 			//log.Printf("更新客服[%s]最后活动时间，%s", k.Id, k.UpdateTime)
@@ -42,7 +47,10 @@ func Listen() {
 
 	// 客服超时下线
 	go func() {
-		var kefuC = model.Db.C("kefu")
+		session := db_util.MongoDbSession.Copy()
+		defer session.Close()
+
+		var kefuC = session.DB(common.AppConfig.DbName).C("kefu")
 
 		for {
 			time.Sleep(time.Second * 1)

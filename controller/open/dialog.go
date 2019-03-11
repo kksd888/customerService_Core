@@ -8,6 +8,7 @@ import (
 	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -27,13 +28,16 @@ func NewDialog(aiModule *handle.AiSemantic) *DialogController {
 // 获取历史记录
 // /v1/app/dialog/history
 func (dialog *DialogController) History(ctx *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		customerId, _ = ctx.Get("CID")
 		output        []MessageModel
 		dbResult      []struct {
 			RoomMessages MessageModel `bson:"room_messages"`
 		}
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	query := []bson.M{
@@ -77,6 +81,9 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 // 获取新消息
 // /v1/app/dialog
 func (dialog *DialogController) Get(ctx *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		customerId, _ = ctx.Get("CID")
 		output        []MessageModel
@@ -84,7 +91,7 @@ func (dialog *DialogController) Get(ctx *gin.Context) {
 			RoomMessages MessageModel `bson:"room_messages"`
 		}
 
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	query := []bson.M{
 		{
@@ -229,8 +236,11 @@ type SendModel struct {
 
 // 监听移动模块发送过来的消息
 func (dialog *DialogController) send(msg SendModel) string {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 		aiDialogue     = "" // AI答复
 
 	)
@@ -252,7 +262,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 		// 此处不应该存在新接入的用户
 	} else {
 		var (
-			kefuColection = model.Db.C("kefu")
+			kefuColection = session.DB(common.AppConfig.DbName).C("kefu")
 			kefuModel     = model.Kf{}
 		)
 		kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)

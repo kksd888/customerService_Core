@@ -6,11 +6,12 @@ import (
 	"errors"
 	"git.jsjit.cn/customerService/customerService_Core/common"
 	"git.jsjit.cn/customerService/customerService_Core/model"
-	"git.jsjit.cn/customerService/customerService_Core/wechat"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
 	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/wechat"
+	"github.com/li-keli/go-tool/wechat/kf"
+	"github.com/li-keli/go-tool/wechat/message"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -34,10 +35,13 @@ func NewDialog(wxContext *wechat.Wechat) *DialogController {
 // @Success 200 {string} json ""
 // @Router /admin/dialog [get]
 func (c *DialogController) List(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		waitCustomer   = []WaitCustomer{}
 		kfId, _        = context.Get("KFID")
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	query := []bson.M{
 		{
@@ -94,9 +98,12 @@ func (c *DialogController) List(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /admin/wait_queue [get]
 func (c *DialogController) Queue(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		waitCustomer   = []WaitCustomer{}
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	query := []bson.M{
@@ -128,14 +135,17 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		err               error
 		aRequest          CustomerIdsRequest
 		kfModel           model.Kf
 		kfId, _           = context.Get("KFID")
-		roomCollection    = model.Db.C("room")
-		kfCollection      = model.Db.C("kefu")
-		messageCollection = model.Db.C("message")
+		roomCollection    = session.DB(common.AppConfig.DbName).C("room")
+		kfCollection      = session.DB(common.AppConfig.DbName).C("kefu")
+		messageCollection = session.DB(common.AppConfig.DbName).C("message")
 	)
 
 	if err = context.BindJSON(&aRequest); err != nil {
@@ -172,10 +182,13 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		aRequest       CustomerIdsRequest
 		kfId, _        = context.Get("KFID")
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
@@ -204,12 +217,15 @@ func (c *DialogController) Ack(context *gin.Context) {
 // @Success 200 {string} json ""
 // @Router /admin/dialog/{customerId}/{page}/{limit} [get]
 func (c *DialogController) History(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		roomHistory    RoomHistory
 		customerId     = context.Param("customerId")
 		strPage        = context.Param("page")
 		strLimit       = context.Param("limit")
-		roomCollection = model.Db.C("room")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	if customerId == "" {
 		ReturnErrInfo(context, errors.New("缺少customerId"))
@@ -266,11 +282,14 @@ func (c *DialogController) History(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
+	session := db_util.MongoDbSession.Copy()
+	defer session.Close()
+
 	var (
 		sendRequest        SendMessageRequest
 		kfId, _            = context.Get("KFID")
-		roomCollection     = model.Db.C("room")
-		customerCollection = model.Db.C("customer")
+		roomCollection     = session.DB(common.AppConfig.DbName).C("room")
+		customerCollection = session.DB(common.AppConfig.DbName).C("customer")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
