@@ -1,7 +1,7 @@
 package handle
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/wechat/util"
+	"github.com/li-keli/go-tool/util"
 	"log"
 )
 
