@@ -29,10 +29,10 @@ func init() {
 func main() {
 	// 加载配置
 	common.NewGinConfig()
+	// 数据库连接
+	model.NewMongo()
 
 	gin.SetMode(common.AppConfig.GoMode)
-	model.NewMongo(common.AppConfig.Mongodb)
-
 	router := gin.Default()
 
 	// cors规则配置

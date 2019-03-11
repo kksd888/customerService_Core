@@ -23,8 +23,8 @@ var AppConfig GinConfig
 
 // 读取配置
 func NewGinConfig() {
-
-	AppConfig, err := LoadConf("conf.yaml")
+	var err error
+	AppConfig, err = LoadConf("conf.yaml")
 	if err != nil {
 		logrus.Fatalln("未找到配置文件conf.yaml ", err)
 	}
