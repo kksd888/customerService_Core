@@ -401,8 +401,45 @@ func Test_Login(t *testing.T) {
 	redis.LoginIn(context)
 
 	collection := session.DB("customer_service_db").C("kefu_copy1")
-	if e := collection.Update(bson.M{"job_num": "6094"}, bson.M{"$set": bson.M{"is_online": true, "group_name": "投诉组"}}); e != nil {
-		t.Fatal(e.Error())
+
+	//collection.Insert(&model.Kf{
+	//	Id:         "6666",
+	//	JobNum:     "kangyong",
+	//	NickName:   "康勇",
+	//	IsOnline:   true,
+	//	CreateTime: time.Now(),
+	//	UpdateTime: time.Now(),
+	//	Type:       1,
+	//	GroupName:  "投诉组",
+	//})
+
+	var kf model.Kf
+	if err := collection.Find(bson.M{
+		"job_num": "kangyong",
+	}).One(&kf); err != nil {
+		println(1)
+	} else {
+		println(2)
 	}
+
+	if err := collection.Find(bson.M{
+		"job_num": "kangyong1",
+	}).One(&kf); err != nil {
+		if e := collection.Update(bson.M{"job_num": "6094"}, bson.M{"$set": bson.M{"is_online": true, "group_name": "投诉组"}}); e != nil {
+			t.Fatal(e.Error())
+		}
+	} else {
+		//collection.Insert(&model.Kf{
+		//	Id:         "6666",
+		//	JobNum:     "kangyong",
+		//	NickName:   "康勇",
+		//	IsOnline:   true,
+		//	CreateTime: time.Now(),
+		//	UpdateTime: time.Now(),
+		//	Type:       1,
+		//	GroupName:  "技术组",
+		//})
+	}
+	println(kf.GroupName)
 
 }

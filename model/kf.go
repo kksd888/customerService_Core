@@ -22,6 +22,7 @@ type Kf struct {
 	IsOnline   bool      `json:"is_online" bson:"is_online"`
 	CreateTime time.Time `json:"create_time" bson:"create_time"`
 	UpdateTime time.Time `json:"update_time" bson:"update_time"`
+	GroupName  string    `json:"update_time" bson:"group_name"`
 }
 
 // 指定在线客服是否存在
