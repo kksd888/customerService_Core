@@ -1,0 +1,7 @@
+version: 1
+services:
+  kf_core:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - 20700:5000
