@@ -43,9 +43,6 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 		ReturnErrInfo(context, "切换客服参数错误")
 	}
 
-	changeKfSruct.GroupName = "投诉组"
-	changeKfSruct.RoomId = "33adcd0fd8a54f40a3e832146ef1ec81"
-
 	kfOnline := []model.Kf{}
 
 	if err := kfCollection.Find(bson.M{
