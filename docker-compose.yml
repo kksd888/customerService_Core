@@ -1,7 +1,10 @@
 version: '2'
 services:
   kf_core:
-    build:
-      dockerfile: Dockerfile
+    build: .
+    image: maven.jsjit.cn:9911/kefu/kefu-online:latest
     ports:
       - 20700:5000
+    volumes:
+      - /opt/www:/www
+      - /opt/upload:/upload

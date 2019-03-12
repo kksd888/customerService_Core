@@ -15,7 +15,6 @@ deploy-test-kefu:
   environment:
     name: testing
   script:
-    - docker-compose stop
     - docker-compose up -d --build
 
 # ******************************************************************************************************
