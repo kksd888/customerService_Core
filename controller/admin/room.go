@@ -32,7 +32,7 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 		}{}
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		kfId, _      = context.Get("KFID")
-		//kfId = "90a43c5cdbd34e90ae0f23af90698d86"
+		changeKfId   = ""
 	)
 
 	if err := context.Bind(&changeKfSruct); err != nil {
@@ -54,9 +54,9 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 	} else {
 		if len(kfOnline) > 0 {
 			seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-			kfId := kfOnline[seed.Intn(len(kfOnline))].Id
+			changeKfId = kfOnline[seed.Intn(len(kfOnline))].Id
 			mesCollection := session.DB(common.AppConfig.DbName).C("message")
-			if e := mesCollection.Update(bson.M{"id": changeKfSruct.RoomId}, bson.M{"$set": bson.M{"kf_id": kfId}}); e != nil {
+			if e := mesCollection.Update(bson.M{"id": changeKfSruct.RoomId}, bson.M{"$set": bson.M{"kf_id": changeKfId}}); e != nil {
 				ReturnErrInfo(context, err)
 			}
 		} else {
@@ -65,7 +65,7 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 
 	}
 	context.JSON(http.StatusOK, LoginInResponse{
-		Authentication: kfId,
+		Authentication: changeKfId,
 	})
 
 }
