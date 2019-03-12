@@ -22,7 +22,7 @@ func NewOpen() *OpenController {
 // 健康检查
 // /health
 func (c *OpenController) Health(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{"code": 101})
+	context.JSON(http.StatusOK, gin.H{"code": 100})
 }
 
 // 认证授权
