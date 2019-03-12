@@ -1,15 +1,15 @@
 package admin
 
 import (
+	"customerService_Core/common"
+	"customerService_Core/handle"
+	"customerService_Core/model"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
 	"github.com/li-keli/go-tool/util/db_util"
 	"github.com/li-keli/go-tool/wechat"
 	"github.com/li-keli/go-tool/wechat/message"
+	"github.com/li-keli/mgo/bson"
 	"log"
 	"strings"
 	"time"

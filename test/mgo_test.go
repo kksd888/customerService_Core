@@ -1,13 +1,13 @@
 package test
 
 import (
+	"customerService_Core/common"
+	"customerService_Core/controller/admin"
+	"customerService_Core/model"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/mgo"
+	"github.com/li-keli/mgo/bson"
 	log "github.com/sirupsen/logrus"
 	"testing"
 	"time"

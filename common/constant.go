@@ -96,6 +96,5 @@ func ReturnErrCode(ctx *gin.Context, errCode int, err interface{}) {
 
 // 生成UUID
 func GetNewUUID() string {
-	uuids, _ := uuid.NewV4()
-	return strings.Replace(uuids.String(), "-", "", -1)
+	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
 }

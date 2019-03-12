@@ -1,7 +1,7 @@
 package model
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/common"
+	"customerService_Core/common"
 	"github.com/li-keli/go-tool/util/db_util"
 	"log"
 	"time"

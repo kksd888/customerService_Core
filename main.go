@@ -1,11 +1,11 @@
 package main
 
 import (
+	"customerService_Core/common"
+	"customerService_Core/controller/admin"
+	"customerService_Core/controller/open"
+	"customerService_Core/handle"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/controller/admin"
-	"git.jsjit.cn/customerService/customerService_Core/controller/open"
-	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/li-keli/go-tool/util/db_util"

@@ -1,15 +1,15 @@
 package admin
 
 import (
+	"customerService_Core/common"
 	"errors"
-	"git.jsjit.cn/customerService/customerService_Core/common"
 	"github.com/li-keli/go-tool/util/db_util"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/mgo/bson"
 	log "github.com/sirupsen/logrus"
 )
 

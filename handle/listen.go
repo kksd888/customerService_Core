@@ -1,10 +1,10 @@
 package handle
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
-	"github.com/globalsign/mgo/bson"
+	"customerService_Core/common"
+	"customerService_Core/model"
 	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/mgo/bson"
 	"log"
 	"os"
 	"os/signal"

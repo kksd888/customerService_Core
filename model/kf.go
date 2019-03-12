@@ -1,9 +1,9 @@
 package model
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"github.com/globalsign/mgo/bson"
+	"customerService_Core/common"
 	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/mgo/bson"
 	"log"
 	"time"
 )

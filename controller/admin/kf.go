@@ -4,14 +4,14 @@ package admin
 
 import (
 	"bytes"
+	"customerService_Core/common"
+	"customerService_Core/model"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
 	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/mgo/bson"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"

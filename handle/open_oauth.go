@@ -1,8 +1,8 @@
 package handle
 
 import (
+	"customerService_Core/common"
 	"encoding/base64"
-	"git.jsjit.cn/customerService/customerService_Core/common"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"

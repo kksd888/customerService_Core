@@ -1,10 +1,10 @@
 package handle
 
 import (
+	"customerService_Core/common"
+	"customerService_Core/model"
 	"encoding/base64"
 	"errors"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
