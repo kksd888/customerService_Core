@@ -443,3 +443,38 @@ func Test_Login(t *testing.T) {
 	println(kf.GroupName)
 
 }
+
+func Test_ChangeKf(t *testing.T) {
+	defer session.Close()
+
+	redis := admin.NewRoom()
+	context := &gin.Context{
+		Params: nil,
+	}
+	redis.ChangeKf(context)
+
+	//kfCollection := session.DB("customer_service_db").C("kefu")
+	//
+	//kfOnline := []model.Kf{}
+	//
+	//if err := kfCollection.Find(bson.M{
+	//	"group_name": "投诉组",
+	//	"is_online":  false,
+	//	"id":         bson.M{"$ne": "f4340e42fbd6e2fd9e6164033daf3194"},
+	//}).All(&kfOnline); err != nil {
+	//
+	//} else {
+	//	if len(kfOnline) > 0 {
+	//		seed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	//		kfId := kfOnline[seed.Intn(len(kfOnline)-1)].Id
+	//		mesCollection := session.DB("customer_service_db").C("message_copy1")
+	//		if e := mesCollection.Update(bson.M{"id": "33adcd0fd8a54f40a3e832146ef1ec81"}, bson.M{"$set": bson.M{"kf_id": kfId}}); e != nil {
+	//			println(e)
+	//		}
+	//	} else {
+	//		println(len(kfOnline))
+	//	}
+	//
+	//}
+
+}

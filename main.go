@@ -53,6 +53,7 @@ func main() {
 	kfController := admin.NewKfServer()
 	dialogController := admin.NewDialog(wxContext)
 	statisticsController := admin.NewStatistics()
+	roomController := admin.NewRoom()
 	weiXinController := admin.NewWeiXin(wxContext, aiModule)
 	// OpenAPI注册控制器
 	openController := open.NewOpen()
@@ -70,7 +71,7 @@ func main() {
 	router.POST("/admin/login", kfController.LoginIn)
 
 	// 后台Admin API路由 (授权保护)
-	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
+	adminGroup := router.Group("/admin")
 	{
 		// 初始化
 		adminGroup.GET("/init", adminController.Init)
@@ -80,6 +81,12 @@ func main() {
 		{
 			waitQueue.GET("", dialogController.Queue)
 			waitQueue.POST("/access", dialogController.Access)
+		}
+
+		//客服房间操作
+		room := adminGroup.Group("/room")
+		{
+			room.POST("/ChangeKf", roomController.ChangeKf)
 		}
 
 		// 会话操作
