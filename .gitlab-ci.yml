@@ -11,6 +11,7 @@ deploy-test-kefu:
   environment:
     name: testing
   script:
+    - export PRODUCTION=false
     - docker-compose stop
     - docker-compose up -d --build
 
@@ -27,5 +28,6 @@ deploy-prod-kefu:
   environment:
     name: production
   script:
+    - export PRODUCTION=false
     - docker-compose stop
     - docker-compose up -d --build
