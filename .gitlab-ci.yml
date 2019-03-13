@@ -5,7 +5,7 @@
 deploy-test-kefu:
   stage: deploy
   tags:
-    - build
+    - test
   only:
     - develop
   environment:
