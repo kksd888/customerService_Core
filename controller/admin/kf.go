@@ -116,7 +116,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	}
 
 	//请求会员登录接口
-	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, openId)
+	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, openId.(string))
 	if output.BaseResponse.IsSuccess {
 		if err := kfCollection.Find(bson.M{
 			"job_num": loginStruct.JobNum,
