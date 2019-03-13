@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -29,7 +29,7 @@ func NewDialog(aiModule *handle.AiSemantic) *DialogController {
 // 获取历史记录
 // /v1/app/dialog/history
 func (dialog *DialogController) History(ctx *gin.Context) {
-	session := db_util.MongoDbSession.Copy()
+	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
 	var (
@@ -82,7 +82,7 @@ func (dialog *DialogController) History(ctx *gin.Context) {
 // 获取新消息
 // /v1/app/dialog
 func (dialog *DialogController) Get(ctx *gin.Context) {
-	session := db_util.MongoDbSession.Copy()
+	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
 	var (
@@ -237,7 +237,7 @@ type SendModel struct {
 
 // 监听移动模块发送过来的消息
 func (dialog *DialogController) send(msg SendModel) string {
-	session := db_util.MongoDbSession.Copy()
+	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
 	var (

@@ -6,7 +6,7 @@ import (
 	"customerService_Core/model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/go-tool/wechat"
 	"github.com/li-keli/go-tool/wechat/message"
 	"github.com/li-keli/mgo/bson"
@@ -38,7 +38,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 				1. 检索已分配的房间
 				2. 存储聊天数据
 		*/
-		session := db_util.MongoDbSession.Copy()
+		session := mongo_util.GetMongoSession()
 		defer session.Close()
 
 		var (

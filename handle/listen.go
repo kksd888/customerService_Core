@@ -3,7 +3,7 @@ package handle
 import (
 	"customerService_Core/common"
 	"customerService_Core/model"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
 	"log"
 	"os"
@@ -21,7 +21,7 @@ func Listen() {
 
 	// 跟新最后活动时间
 	go func() {
-		session := db_util.MongoDbSession.Copy()
+		session := mongo_util.GetMongoSession()
 		defer session.Close()
 
 		kefuC := session.DB(common.AppConfig.DbName).C("kefu")
@@ -47,7 +47,7 @@ func Listen() {
 
 	// 客服超时下线
 	go func() {
-		session := db_util.MongoDbSession.Copy()
+		session := mongo_util.GetMongoSession()
 		defer session.Close()
 
 		var kefuC = session.DB(common.AppConfig.DbName).C("kefu")

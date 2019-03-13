@@ -6,7 +6,7 @@ import (
 	"customerService_Core/common"
 	"customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
 	"log"
 	"net/http"
@@ -27,7 +27,7 @@ func NewHealth() *AdminController {
 // @Success 200 {string} json ""
 // @Router /admin/init [get]
 func (c *AdminController) Init(context *gin.Context) {
-	session := db_util.MongoDbSession.Copy()
+	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
 	// 获取访问客服信息

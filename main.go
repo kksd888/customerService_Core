@@ -1,16 +1,17 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"customerService_Core/common"
 	"customerService_Core/controller/admin"
 	"customerService_Core/controller/open"
 	"customerService_Core/handle"
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/go-tool/wechat"
-	"time"
 )
 
 var (
@@ -18,7 +19,9 @@ var (
 )
 
 func init() {
-	wxContext = wechat.NewWechat(&wechat.Config{})
+	wxContext = wechat.NewWechat(&wechat.Config{
+		SelfFuncAccessToken: handle.GetQyAccessTokenFromJsj,
+	})
 }
 
 // @title 在线客服API文档
@@ -29,7 +32,7 @@ func main() {
 	// 加载配置
 	common.NewGinConfig()
 	// 数据库连接
-	db_util.NewMongo(common.AppConfig.Mongodb)
+	mongo_util.NewMongo(common.AppConfig.Mongodb)
 
 	gin.SetMode(common.AppConfig.GoMode)
 	router := gin.Default()
@@ -131,11 +134,3 @@ func main() {
 	// GO GO GO!!!
 	router.Run(fmt.Sprintf(":%s", common.AppConfig.Port))
 }
-
-// 统计数据
-// 时间区间内，客服回复的信息总量
-// db.getCollection('message').find({'oper_code':2003, 'create_time':{ "$gte" : ISODate("2018-10-01T00:00:00Z"), "$lt" : ISODate("2018-10-31T00:00:00Z")}}).count()
-// 时间区间内，接待的客户数量
-// db.getCollection('message').distinct('customer_id',{'oper_code':2003, 'create_time':{ "$gte" : ISODate("2018-10-01T00:00:00Z"), "$lt" : ISODate("2018-10-31T00:00:00Z")}})
-// 员工登录的线上API文档
-// http://memberapi.jsjinfo.cn/hosts/Jmember.aspx?help&m1=Member.API.API.JUser.LoginEmployee&rsdll=Member.API.dll&rqdll=Member.API.dll

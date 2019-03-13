@@ -6,7 +6,7 @@ import (
 	"customerService_Core/model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
 	"net/http"
 	"time"
@@ -28,7 +28,7 @@ func (c *OpenController) Health(context *gin.Context) {
 // 认证授权
 // /v1/app/access
 func (open *OpenController) Access(ctx *gin.Context) {
-	session := db_util.MongoDbSession.Copy()
+	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
 	var (

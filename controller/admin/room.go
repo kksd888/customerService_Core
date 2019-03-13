@@ -5,7 +5,7 @@ import (
 	"customerService_Core/model"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/li-keli/go-tool/util/db_util"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
 	"github.com/pkg/errors"
 	"math/rand"
@@ -22,7 +22,7 @@ func NewRoom() *RoomController {
 
 // 房间客服变更
 func (c *RoomController) ChangeKf(context *gin.Context) {
-	session := db_util.MongoDbSession.Copy()
+	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
 	var (
