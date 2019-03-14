@@ -52,7 +52,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 	var (
 		queryMessage = []bson.M{
 			{
-				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "oper_code": 2003, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{"$lookup": bson.M{
 				"from":         "kefu",
@@ -86,7 +86,7 @@ func (c *StatisticsController) Statistics(context *gin.Context) {
 		}
 		queryCustomer = []bson.M{
 			{
-				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
+				"$match": bson.M{"kf_id": bson.M{"$ne": ""}, "oper_code": 2003, "create_time": bson.M{"$gte": starTime, "$lt": endTime}},
 			},
 			{
 				"$sort": bson.M{"kf_id": 1},

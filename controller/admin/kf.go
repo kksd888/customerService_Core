@@ -98,6 +98,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}
 		output       = LoginEmployeeResponse{}
+		openId, _    = context.Get("OpenID")
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		loginStruct  = struct {
 			JobNum    string `json:"job_num"`
@@ -113,8 +114,9 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	if loginStruct.JobNum == "" || loginStruct.PassWord == "" {
 		ReturnErrInfo(context, "登录参数错误")
 	}
+
 	//请求会员登录接口
-	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord)
+	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, openId.(string))
 	if output.BaseResponse.IsSuccess {
 		if err := kfCollection.Find(bson.M{
 			"job_num": loginStruct.JobNum,
@@ -160,7 +162,7 @@ func Make2Auth(kfId string) (string, error) {
 	return base64.StdEncoding.EncodeToString(byteInfo), err
 }
 
-func GetEmployeeInfo(employeeAlias string, password string) LoginEmployeeResponse {
+func GetEmployeeInfo(employeeAlias string, password string, openId string) LoginEmployeeResponse {
 	var (
 		output = LoginEmployeeResponse{}
 	)
@@ -174,7 +176,7 @@ func GetEmployeeInfo(employeeAlias string, password string) LoginEmployeeRespons
 		MethodName:    LoginEmployeeMonth,
 		EmployeeAlias: employeeAlias,
 		Password:      password,
-		LoginDeviceID: "862258037809663",
+		LoginDeviceID: openId,
 	}
 	marshal, _ := json.Marshal(input)
 
