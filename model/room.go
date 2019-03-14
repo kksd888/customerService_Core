@@ -33,6 +33,7 @@ type RoomMessage struct {
 	Ack        bool      `json:"ack" bson:"ack"`
 	OperCode   int       `json:"oper_code" bson:"oper_code"`
 	CreateTime time.Time `json:"create_time" bson:"create_time"`
+	KfId       string    `json:"kf_id" bson:"kf_id"`
 }
 
 func (r *Room) FormatterTimeLocation() {

@@ -308,6 +308,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 				Msg:        sendRequest.Msg,
 				OperCode:   common.MessageFromKf,
 				CreateTime: time.Now(),
+				KfId:       kfId.(string),
 			},
 		},
 			"$slice": -100}},
@@ -325,6 +326,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		Msg:        sendRequest.Msg,
 		OperCode:   common.MessageFromKf,
 		CreateTime: time.Now(),
+		KfId:       kfId.(string),
 	})
 
 	customer := model.Customer{}

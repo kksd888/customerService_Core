@@ -443,6 +443,15 @@ func Test_Login(t *testing.T) {
 	println(kf.GroupName)
 
 }
+func Test_dialog(t *testing.T) {
+	defer session.Close()
+
+	redis := admin.NewDialog(nil)
+	context := &gin.Context{
+		Params: nil,
+	}
+	redis.SendMessage(context)
+}
 
 func Test_ChangeKf(t *testing.T) {
 	defer session.Close()

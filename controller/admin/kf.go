@@ -98,7 +98,6 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	var (
 		kf           = model.Kf{}
 		output       = LoginEmployeeResponse{}
-		openId, _    = context.Get("OpenID")
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		loginStruct  = struct {
 			JobNum    string `json:"job_num"`
@@ -116,7 +115,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	}
 
 	//请求会员登录接口
-	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, openId.(string))
+	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, "wechar_kf")
 	if output.BaseResponse.IsSuccess {
 		if err := kfCollection.Find(bson.M{
 			"job_num": loginStruct.JobNum,
@@ -135,14 +134,12 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 			})
 		} else {
 			// 更新在线客服列表
-			changeKfModel := model.Kf{Id: kf.Id, IsOnline: true}
-			err := changeKfModel.ChangeStatus()
-			if err != nil {
+			if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum}, bson.M{"$set": bson.M{"is_online": true, "group_name": loginStruct.GroupName}}); err != nil {
 				ReturnErrInfo(context, err)
 			}
 		}
 	} else {
-		ReturnErrInfo(context, "用户名呼和密码错误")
+		ReturnErrInfo(context, "用户名或密码错误")
 	}
 
 	s, _ := Make2Auth(kf.Id)

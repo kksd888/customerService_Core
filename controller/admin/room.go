@@ -27,8 +27,8 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 
 	var (
 		changeKfSruct = struct {
-			GroupName string `json:"group_name"`
-			RoomId    string `json:"room_id"`
+			GroupName  string `json:"group_name"`
+			CustomerId string `json:"customer_id"`
 		}{}
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		kfId, _      = context.Get("KFID")
@@ -39,7 +39,7 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 		ReturnErrInfo(context, errors.New(fmt.Sprintf("切换客服参数错误：%s", err.Error())))
 	}
 
-	if changeKfSruct.RoomId == "" || changeKfSruct.GroupName == "" {
+	if changeKfSruct.CustomerId == "" || changeKfSruct.GroupName == "" {
 		ReturnErrInfo(context, "切换客服参数错误")
 	}
 
@@ -54,9 +54,10 @@ func (c *RoomController) ChangeKf(context *gin.Context) {
 	} else {
 		if len(kfOnline) > 0 {
 			seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-			changeKfId = kfOnline[seed.Intn(len(kfOnline))].Id
-			mesCollection := session.DB(common.AppConfig.DbName).C("message")
-			if e := mesCollection.Update(bson.M{"id": changeKfSruct.RoomId}, bson.M{"$set": bson.M{"kf_id": changeKfId}}); e != nil {
+			rangNo := seed.Intn(len(kfOnline))
+			changeKfId = kfOnline[rangNo].Id
+			mesCollection := session.DB(common.AppConfig.DbName).C("room")
+			if e := mesCollection.Update(bson.M{"room_customer.customer_id": changeKfSruct.CustomerId}, bson.M{"$set": bson.M{"room_kf.kf_id": changeKfId, "room_kf.kf_name": kfOnline[rangNo].NickName, "room_kf.kf_head_img_url": kfOnline[rangNo].HeadImgUrl, "room_kf.kf_status": kfOnline[rangNo].IsOnline}}); e != nil {
 				ReturnErrInfo(context, err)
 			}
 		} else {
