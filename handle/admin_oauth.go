@@ -28,7 +28,7 @@ func AdminOauthMiddleWare() gin.HandlerFunc {
 			return
 		}
 
-		if kfId, err = adminAuthToken2Model(c); err != nil {
+		if kfId, err = AdminAuthToken2Model(c.Request.Header.Get("authentication")); err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code": http.StatusUnauthorized,
 				"msg":  err.Error(),
@@ -58,10 +58,9 @@ func AdminOauthMiddleWare() gin.HandlerFunc {
 }
 
 // 鉴权Token解码为模型
-func adminAuthToken2Model(c *gin.Context) (kfId string, err error) {
+func AdminAuthToken2Model(token string) (kfId string, err error) {
 	var (
-		token = c.Request.Header.Get("authentication")
-		aes   = common.AesEncrypt{}
+		aes = common.AesEncrypt{}
 	)
 
 	decodeBytes, err := base64.StdEncoding.DecodeString(token)

@@ -65,13 +65,15 @@ func main() {
 	// 健康检查
 	router.GET("/health", openController.Health)
 	// 静态文件
-	router.Static("/static", "./www")
+	router.Static("/www", "./www")
 	// 静态多媒体文件
 	router.Static("/upload", "./upload")
 	// 微信通信地址
 	router.Any("/listen", weiXinController.Listen)
 	// 客服登录操作
 	router.POST("/admin/login", kfController.LoginIn)
+	// 后台WebSocket
+	router.GET("/admin/ws", admin.WsHandler)
 
 	// 后台Admin API路由 (授权保护)
 	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())

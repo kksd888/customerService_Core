@@ -1,0 +1,79 @@
+package admin
+
+import (
+	"customerService_Core/common"
+	"customerService_Core/handle"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/li-keli/go-tool/util/mongo_util"
+	"github.com/li-keli/mgo/bson"
+	"github.com/sirupsen/logrus"
+	"net/http"
+	"time"
+)
+
+var wsupgrader = websocket.Upgrader{
+	ReadBufferSize:   1024,
+	WriteBufferSize:  1024,
+	HandshakeTimeout: 5 * time.Second,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func WsHandler(ctx *gin.Context) {
+	var (
+		token = ctx.DefaultQuery("token", "")
+		kfId  string
+		err   error
+	)
+
+	if kfId, err = handle.AdminAuthToken2Model(token); err != nil {
+		ctx.JSON(http.StatusUnauthorized, nil)
+		return
+	}
+
+	logrus.Infoln(token, kfId)
+	wsConn(ctx.Writer, ctx.Request, kfId)
+}
+
+func wsConn(w http.ResponseWriter, r *http.Request, kfId string) {
+	var (
+		conn *websocket.Conn
+		err  error
+	)
+
+	// 握手连接
+	if conn, err = wsupgrader.Upgrade(w, r, nil); err != nil {
+		logrus.Error(err)
+		return
+	}
+
+	go func(c *websocket.Conn, id string) {
+		for {
+			messageType, p, err := c.ReadMessage()
+			if err != nil {
+				logrus.WithField("info", "websocket conn 异常").Error(err)
+				kfLoginOut(id)
+				return
+			}
+
+			if string(p) == "+" {
+				if err := c.WriteMessage(messageType, []byte("-")); err != nil {
+					logrus.Error(err)
+					return
+				}
+			}
+		}
+	}(conn, kfId)
+}
+
+// 客服下线
+func kfLoginOut(kfId string) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
+	_ = session.DB(common.AppConfig.DbName).C("kefu").
+		Update(bson.M{"id": kfId}, bson.M{"$set": bson.M{"is_online": false, "update_time": time.Now()}})
+	logrus.Infoln("客服下线 => " + kfId)
+}
