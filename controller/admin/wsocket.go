@@ -33,11 +33,13 @@ func WsHandler(ctx *gin.Context) {
 		return
 	}
 
-	logrus.Infoln(token, kfId)
 	wsConn(ctx.Writer, ctx.Request, kfId)
 }
 
 func wsConn(w http.ResponseWriter, r *http.Request, kfId string) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		conn *websocket.Conn
 		err  error
@@ -66,6 +68,10 @@ func wsConn(w http.ResponseWriter, r *http.Request, kfId string) {
 			}
 		}
 	}(conn, kfId)
+
+	// 确认登录状态
+	_ = session.DB(common.AppConfig.DbName).C("kefu").
+		Update(bson.M{"id": kfId}, bson.M{"$set": bson.M{"is_online": true, "update_time": time.Now()}})
 }
 
 // 客服下线
