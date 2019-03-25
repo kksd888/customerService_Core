@@ -97,7 +97,7 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	defer session.Close()
 	var (
 		kf           = model.Kf{}
-		output       = LoginEmployeeResponse{}
+		memberOutApi = LoginEmployeeResponse{}
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		loginStruct  = struct {
 			JobNum    string `json:"job_num"`
@@ -115,26 +115,28 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	}
 
 	//请求会员登录接口
-	output = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, "wechar_kf")
-	if output.BaseResponse.IsSuccess {
-		if err := kfCollection.Find(bson.M{
-			"job_num": loginStruct.JobNum,
-		}).One(&kf); err != nil {
+	if memberOutApi = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, "wechar_kf"); memberOutApi.BaseResponse.IsSuccess {
+		if err := kfCollection.Find(bson.M{"job_num": loginStruct.JobNum}).One(&kf); err != nil {
 			//添加用户
 			kf.Id = common.ToMd5(loginStruct.JobNum + loginStruct.GroupName)
 			kfCollection.Insert(&model.Kf{
 				Id:         kf.Id,
 				JobNum:     loginStruct.JobNum,
-				NickName:   loginStruct.JobNum,
+				NickName:   memberOutApi.EmployeeName,
 				IsOnline:   true,
-				CreateTime: time.Now(),
-				UpdateTime: time.Now(),
 				Type:       1,
 				GroupName:  loginStruct.GroupName,
+				CreateTime: time.Now(),
+				UpdateTime: time.Now(),
 			})
 		} else {
 			// 更新在线客服列表
-			if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum}, bson.M{"$set": bson.M{"is_online": true, "group_name": loginStruct.GroupName}}); err != nil {
+			if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum},
+				bson.M{"$set": bson.M{
+					"is_online":  true,
+					"nick_name":  memberOutApi.EmployeeName,
+					"group_name": loginStruct.GroupName,
+				}}); err != nil {
 				ReturnErrInfo(context, err)
 			}
 		}
@@ -146,6 +148,9 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 
 	context.JSON(http.StatusOK, LoginInResponse{
 		Authentication: s,
+		NickName:       memberOutApi.EmployeeName,
+		JobNum:         loginStruct.JobNum,
+		GroupName:      loginStruct.GroupName,
 	})
 }
 
@@ -231,5 +236,8 @@ type LoginEmployeeResponse struct {
 }
 
 type LoginInResponse struct {
-	Authentication string
+	Authentication string `json:"Authentication"`
+	JobNum         string `json:"JobNum"`
+	NickName       string `json:"NickName"`
+	GroupName      string `json:"GroupName"`
 }
