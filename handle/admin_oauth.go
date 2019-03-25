@@ -37,20 +37,6 @@ func AdminOauthMiddleWare() gin.HandlerFunc {
 			c.Set("KFID", kfId)
 		}
 
-		// 更新在线客服列表时间
-		//contrastKf := model.Kf{Id: kfId, UpdateTime: time.Now()}
-		//isExist := contrastKf.OnlineExist()
-		//if isExist {
-		//	model.KfLastTimeChange <- &contrastKf
-		//} else {
-		//	c.JSON(http.StatusUnauthorized, gin.H{
-		//		"code": http.StatusUnauthorized,
-		//		"msg":  "授权过期，请重新登录",
-		//	})
-		//	c.Abort()
-		//	return
-		//}
-
 		c.Next()
 	}
 }

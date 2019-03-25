@@ -4,6 +4,7 @@ import (
 	"customerService_Core/common"
 	"customerService_Core/controller/admin"
 	"customerService_Core/model"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/li-keli/mgo"
@@ -16,7 +17,9 @@ import (
 var session *mgo.Session
 
 func init() {
-	session, _ = mgo.Dial("172.16.14.52:27017") // 测试数据库，此处永远不准改成线上数据库
+	s, _ := mgo.Dial("172.16.2.161:21000")
+	s.SetMode(mgo.Monotonic, true)
+	session = s
 }
 
 type User struct {
@@ -443,6 +446,7 @@ func Test_Login(t *testing.T) {
 	println(kf.GroupName)
 
 }
+
 func Test_dialog(t *testing.T) {
 	defer session.Close()
 
@@ -460,7 +464,7 @@ func Test_ChangeKf(t *testing.T) {
 	context := &gin.Context{
 		Params: nil,
 	}
-	redis.ChangeKf(context)
+	redis.Transfer(context)
 
 	//kfCollection := session.DB("customer_service_db").C("kefu")
 	//
@@ -486,4 +490,37 @@ func Test_ChangeKf(t *testing.T) {
 	//
 	//}
 
+}
+
+func Test_KfOnline(t *testing.T) {
+	defer session.Close()
+	var (
+		kfModels     []bson.M
+		kfCollection = session.DB("customer_service_db").C("kefu")
+	)
+
+	query := []bson.M{
+		{
+			"$match": bson.M{"is_online": true},
+		},
+		{
+			"$group": bson.M{
+				"_id":     "$group_name",
+				"label":   bson.M{"$first": "$group_name"},
+				"options": bson.M{"$push": bson.M{"value": "$id", "label": "$nick_name"}},
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id": 0,
+			},
+		},
+	}
+
+	if err := kfCollection.Pipe(query).All(&kfModels); err != nil {
+		log.Error(err)
+	}
+
+	b, _ := json.Marshal(kfModels)
+	fmt.Println(string(b))
 }

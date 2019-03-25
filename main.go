@@ -91,7 +91,7 @@ func main() {
 		//客服房间操作
 		room := adminGroup.Group("/room")
 		{
-			room.POST("/ChangeKf", roomController.ChangeKf)
+			room.POST("/transfer", roomController.Transfer)
 		}
 
 		// 会话操作
@@ -113,6 +113,7 @@ func main() {
 		kf := adminGroup.Group("/kf")
 		{
 			kf.GET("", kfController.Get)
+			kf.GET("/online", kfController.OnLines)
 			kf.PUT("/status", kfController.ChangeStatus)
 		}
 	}

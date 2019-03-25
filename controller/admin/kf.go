@@ -154,6 +154,38 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	})
 }
 
+// 在线客服列表
+func (c *KfServerController) OnLines(ctx *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
+	var (
+		kfModels     []bson.M
+		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
+	)
+
+	query := []bson.M{
+		{
+			"$match": bson.M{"is_online": true},
+		},
+		{
+			"$group": bson.M{
+				"_id":     "$group_name",
+				"label":   bson.M{"$first": "$group_name"},
+				"options": bson.M{"$push": bson.M{"value": "$id", "label": "$nick_name"}},
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id": 0,
+			},
+		},
+	}
+	_ = kfCollection.Pipe(query).All(&kfModels)
+
+	ctx.JSON(http.StatusOK, kfModels)
+}
+
 func Make2Auth(kfId string) (string, error) {
 	encrypt := common.AesEncrypt{}
 	byteInfo, err := encrypt.Encrypt([]byte(kfId))
