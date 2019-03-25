@@ -43,9 +43,23 @@ func (c *AdminController) Init(context *gin.Context) {
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
 
 	// 获取聊天列表 (最多输出100条)
-	roomCollection.Pipe([]bson.M{
+	_ = roomCollection.Pipe([]bson.M{
 		{
-			"$match": bson.M{"room_kf.kf_id": kfId},
+			"$match": bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false},
+		},
+		{
+			"$project": bson.M{
+				"room_customer": 1,
+				"room_messages": bson.M{
+					"$filter": bson.M{
+						"input": "$room_messages",
+						"as":    "room_message",
+						"cond": bson.M{
+							"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromCustomer},
+						},
+					},
+				},
+			},
 		},
 		{
 			"$project": bson.M{
@@ -54,7 +68,7 @@ func (c *AdminController) Init(context *gin.Context) {
 			},
 		},
 		{
-			"$sort": bson.M{"room_messages.create_time": -1},
+			"$sort": bson.M{"room_messages.ack": 1},
 		},
 		{
 			"$limit": 100,
@@ -67,7 +81,7 @@ func (c *AdminController) Init(context *gin.Context) {
 	}
 
 	// 获取排队列表
-	roomCollection.Pipe([]bson.M{
+	_ = roomCollection.Pipe([]bson.M{
 		{
 			"$match": bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer},
 		},

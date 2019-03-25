@@ -117,7 +117,7 @@ func (c *DialogController) Queue(context *gin.Context) {
 			},
 		},
 	}
-	roomCollection.Pipe(query).All(&waitCustomer)
+	_ = roomCollection.Pipe(query).All(&waitCustomer)
 	for _, v := range waitCustomer {
 		for _, mv := range v.RoomMessages {
 			mv.CreateTime = mv.CreateTime.In(common.LocalLocation)
