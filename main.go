@@ -105,7 +105,7 @@ func main() {
 		// 统计操作
 		statistics := adminGroup.Group("/statistics")
 		{
-			statistics.GET("/:starTime/:endTime/:page/:limit", statisticsController.Statistics)
+			statistics.POST("/", statisticsController.Statistics)
 		}
 
 		// 客服操作
