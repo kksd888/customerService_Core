@@ -89,6 +89,7 @@ func main() {
 		//客服房间操作
 		room := adminGroup.Group("/room")
 		{
+			room.GET("/:id", roomController.Get)
 			room.POST("/transfer", roomController.Transfer)
 		}
 

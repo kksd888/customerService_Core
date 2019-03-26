@@ -142,7 +142,7 @@ func (c *DialogController) Access(context *gin.Context) {
 		err               error
 		aRequest          CustomerIdsRequest
 		kfModel           model.Kf
-		kfId, _           = context.Get("KFID")
+		kfId              = context.GetString("KFID")
 		roomCollection    = session.DB(common.AppConfig.DbName).C("room")
 		kfCollection      = session.DB(common.AppConfig.DbName).C("kefu")
 		messageCollection = session.DB(common.AppConfig.DbName).C("message")
@@ -171,6 +171,11 @@ func (c *DialogController) Access(context *gin.Context) {
 		}
 	}
 
+	// websocket 通知给客服
+	for _, v := range aRequest.CustomerIds {
+		SendMsgToOnlineKf(kfId, v)
+	}
+
 	ReturnSuccessInfo(context)
 }
 
@@ -187,7 +192,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 
 	var (
 		aRequest       CustomerIdsRequest
-		kfId, _        = context.Get("KFID")
+		kfId           = context.GetString("KFID")
 		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
@@ -203,6 +208,7 @@ func (c *DialogController) Ack(context *gin.Context) {
 			log.Warn(updateErr)
 		}
 	}
+
 	ReturnSuccessInfo(context)
 }
 

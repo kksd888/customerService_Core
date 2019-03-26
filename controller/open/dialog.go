@@ -2,6 +2,7 @@ package open
 
 import (
 	"customerService_Core/common"
+	"customerService_Core/controller/admin"
 	"customerService_Core/handle"
 	"customerService_Core/model"
 	"encoding/base64"
@@ -320,6 +321,9 @@ func (dialog *DialogController) send(msg SendModel) string {
 		OperCode:   common.MessageFromCustomer,
 		CreateTime: time.Now(),
 	})
+
+	// websocket 通知给客服
+	admin.SendMsgToOnlineKf(room.RoomKf.KfId, msg.FromUserName)
 
 	online, _ := model.Kf{}.QueryOnlines()
 	if len(online) == 0 {

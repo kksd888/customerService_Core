@@ -146,7 +146,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
 			if kefuModel.Id != "" && kefuModel.IsOnline == false {
 				// 若接待的客服已经下线，则将用户重新放入待接入
-				roomCollection.Update(
+				_ = roomCollection.Update(
 					bson.M{"room_customer.customer_id": msg.FromUserName},
 					bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
 			}
@@ -186,6 +186,9 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 			OperCode:   common.MessageFromCustomer,
 			CreateTime: time.Now(),
 		})
+
+		// websocket 通知给客服
+		SendMsgToOnlineKf(room.RoomKf.KfId, msg.FromUserName)
 
 		onlines, _ := model.Kf{}.QueryOnlines()
 		if len(onlines) == 0 {

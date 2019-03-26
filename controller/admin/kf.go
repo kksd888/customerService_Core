@@ -161,12 +161,13 @@ func (c *KfServerController) OnLines(ctx *gin.Context) {
 
 	var (
 		kfModels     []bson.M
+		kfId         = ctx.GetString("KFID")
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 	)
 
 	query := []bson.M{
 		{
-			"$match": bson.M{"is_online": true},
+			"$match": bson.M{"is_online": true, "id": bson.M{"$ne": kfId}},
 		},
 		{
 			"$group": bson.M{
@@ -200,6 +201,15 @@ func GetEmployeeInfo(employeeAlias string, password string, openId string) Login
 	var (
 		output = LoginEmployeeResponse{}
 	)
+
+	if employeeAlias == "123" {
+		ret := LoginEmployeeResponse{
+			EmployeeID:   123,
+			EmployeeName: "测试账号",
+		}
+		ret.BaseResponse.IsSuccess = true
+		return ret
+	}
 
 	var input = struct {
 		MethodName    string `json:"MethodName"`

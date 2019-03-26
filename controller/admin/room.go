@@ -31,8 +31,7 @@ func (c *RoomController) Transfer(context *gin.Context) {
 		}{}
 		kfCollection  = session.DB(common.AppConfig.DbName).C("kefu")
 		mesCollection = session.DB(common.AppConfig.DbName).C("room")
-		//kfId, _       = context.Get("KFID")
-		kfModel model.Kf
+		kfModel       model.Kf
 	)
 
 	if err := context.Bind(&changeKfSruct); err != nil {
@@ -43,19 +42,49 @@ func (c *RoomController) Transfer(context *gin.Context) {
 		ReturnErrInfo(context, err)
 	}
 
-	logrus.Info(changeKfSruct.CustomerId)
-	logrus.Info(kfModel)
-
 	if err := mesCollection.Update(
 		bson.M{"room_customer.customer_id": changeKfSruct.CustomerId},
 		bson.M{"$set": bson.M{
 			"room_kf.kf_id":           kfModel.Id,
 			"room_kf.kf_name":         kfModel.NickName,
 			"room_kf.kf_head_img_url": kfModel.HeadImgUrl,
-			"room_kf.kf_status":       true,
 		}}); err != nil {
 		ReturnErrInfo(context, err)
 	}
 
+	// 将目标标记为未读
+	if _, updateErr := mesCollection.UpdateWithArrayFilters(
+		bson.M{"room_customer.customer_id": changeKfSruct.CustomerId},
+		bson.M{"$set": bson.M{"room_messages.$[e].ack": false}},
+		[]bson.M{{"e.oper_code": common.MessageFromCustomer}},
+		true); updateErr != nil {
+		ReturnErrInfo(context, updateErr)
+	}
+
+	// 通知目标客服接收
+	SendMsgToOnlineKf(changeKfSruct.TransferKfId, changeKfSruct.CustomerId)
+
 	context.JSON(http.StatusOK, nil)
+}
+
+// 获取指定房间数据
+func (c *RoomController) Get(ctx *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
+	var (
+		mesCollection = session.DB(common.AppConfig.DbName).C("room")
+		customerId    = ctx.Param("id")
+		room          = model.Room{}
+	)
+
+	if customerId == "" {
+		ReturnErrInfo(ctx, errors.New("customerId是必须的"))
+	}
+
+	if err := mesCollection.Find(bson.M{"room_customer.customer_id": customerId}).One(&room); err != nil {
+		logrus.Error(err)
+	}
+
+	ctx.JSON(http.StatusOK, room)
 }

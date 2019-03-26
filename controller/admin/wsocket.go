@@ -4,7 +4,6 @@ import (
 	"customerService_Core/common"
 	"customerService_Core/handle"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/json"
 	"github.com/gorilla/websocket"
 	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
@@ -91,18 +90,12 @@ func kfLoginOut(kfId string) {
 }
 
 // 通过websocket给在线客服发送消息
-func SendMsgToOnlineKf(kfId string, msg interface{}) {
-	var (
-		bMsg []byte
-		err  error
-	)
+func SendMsgToOnlineKf(kfId, msg string) {
 
-	if bMsg, err = json.Marshal(msg); err != nil {
-		logrus.Error(err)
-		return
-	}
+	logrus.Info("WebSocket发送消息 ", kfId, " ", msg)
+
 	if conn, exist := onLineKfs[kfId]; exist {
-		if err = conn.WriteMessage(1, bMsg); err != nil {
+		if err := conn.WriteMessage(1, []byte(msg)); err != nil {
 			logrus.Error(err)
 			return
 		}
