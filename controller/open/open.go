@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
-	"net/http"
 	"time"
 )
 
@@ -17,12 +16,6 @@ type OpenController struct {
 
 func NewOpen() *OpenController {
 	return &OpenController{}
-}
-
-// 健康检查
-// /health
-func (c *OpenController) Health(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{"code": 100})
 }
 
 // 认证授权

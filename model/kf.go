@@ -8,9 +8,6 @@ import (
 	"time"
 )
 
-// 客服活动时间
-var KfLastTimeChange = make(chan *Kf, 10)
-
 // 客服模型
 type Kf struct {
 	Id         string    `json:"id" bson:"id"`

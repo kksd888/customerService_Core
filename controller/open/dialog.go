@@ -269,7 +269,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 		kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
 		if kefuModel.Id != "" && kefuModel.IsOnline == false {
 			// 若接待的客服已经下线，则将用户重新放入待接入
-			roomCollection.Update(
+			_ = roomCollection.Update(
 				bson.M{"room_customer.customer_id": msg.FromUserName},
 				bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
 		}

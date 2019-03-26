@@ -15,7 +15,7 @@ import (
 type AdminController struct {
 }
 
-func NewHealth() *AdminController {
+func NewAdmin() *AdminController {
 	return &AdminController{}
 }
 
@@ -35,7 +35,7 @@ func (c *AdminController) Init(context *gin.Context) {
 		kf             = model.Kf{}
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
-		kfId, _        = context.Get("KFID")
+		kfId           = context.GetString("KFID")
 		kfCollection   = session.DB(common.AppConfig.DbName).C("kefu")
 		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)

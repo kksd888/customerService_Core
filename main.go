@@ -52,7 +52,7 @@ func main() {
 	aiModule := handle.NewAiSemantic(common.AppConfig.AiSemantic)
 
 	// Admin 注册控制器
-	adminController := admin.NewHealth()
+	adminController := admin.NewAdmin()
 	kfController := admin.NewKfServer()
 	dialogController := admin.NewDialog(wxContext)
 	statisticsController := admin.NewStatistics()
@@ -62,8 +62,6 @@ func main() {
 	openController := open.NewOpen()
 	openDialogController := open.NewDialog(aiModule)
 
-	// 健康检查
-	router.GET("/health", openController.Health)
 	// 静态文件
 	router.Static("/www", "./www")
 	// 静态多媒体文件

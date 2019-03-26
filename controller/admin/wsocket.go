@@ -4,6 +4,7 @@ import (
 	"customerService_Core/common"
 	"customerService_Core/handle"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/json"
 	"github.com/gorilla/websocket"
 	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
@@ -12,14 +13,17 @@ import (
 	"time"
 )
 
-var wsupgrader = websocket.Upgrader{
-	ReadBufferSize:   1024,
-	WriteBufferSize:  1024,
-	HandshakeTimeout: 5 * time.Second,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+var (
+	onLineKfs  = make(map[string]*websocket.Conn, 5)
+	wsupgrader = websocket.Upgrader{
+		ReadBufferSize:   1024,
+		WriteBufferSize:  1024,
+		HandshakeTimeout: 5 * time.Second,
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+)
 
 func WsHandler(ctx *gin.Context) {
 	var (
@@ -52,6 +56,7 @@ func wsConn(w http.ResponseWriter, r *http.Request, kfId string) {
 	}
 
 	go func(c *websocket.Conn, id string) {
+		onLineKfs[id] = c
 		for {
 			messageType, p, err := c.ReadMessage()
 			if err != nil {
@@ -79,7 +84,27 @@ func kfLoginOut(kfId string) {
 	session := mongo_util.GetMongoSession()
 	defer session.Close()
 
+	delete(onLineKfs, kfId)
 	_ = session.DB(common.AppConfig.DbName).C("kefu").
 		Update(bson.M{"id": kfId}, bson.M{"$set": bson.M{"is_online": false, "update_time": time.Now()}})
 	logrus.Infoln("客服下线 => " + kfId)
+}
+
+// 通过websocket给在线客服发送消息
+func SendMsgToOnlineKf(kfId string, msg interface{}) {
+	var (
+		bMsg []byte
+		err  error
+	)
+
+	if bMsg, err = json.Marshal(msg); err != nil {
+		logrus.Error(err)
+		return
+	}
+	if conn, exist := onLineKfs[kfId]; exist {
+		if err = conn.WriteMessage(1, bMsg); err != nil {
+			logrus.Error(err)
+			return
+		}
+	}
 }
