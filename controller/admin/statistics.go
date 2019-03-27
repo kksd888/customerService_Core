@@ -3,7 +3,6 @@ package admin
 import (
 	"customerService_Core/common"
 	"github.com/li-keli/go-tool/util/mongo_util"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -41,11 +40,9 @@ func (c *StatisticsController) Statistics(ctx *gin.Context) {
 	_ = kfCollection.Find(bson.M{}).All(&allKf)
 
 	for k, v := range allKf {
-		var result = []bson.M{}
+		var result []string
 		_ = messageCollection.Find(bson.M{"kf_id": v.Id, "create_time": bson.M{"$gte": input.StartTime, "$lt": input.EndTime}}).Distinct("customer_id", &result)
 		cc, _ := messageCollection.Find(bson.M{"kf_id": v.Id, "create_time": bson.M{"$gte": input.StartTime, "$lt": input.EndTime}}).Count()
-
-		logrus.Info("distinctMsg: ", result)
 
 		allKf[k].SendCount = cc
 		allKf[k].ReceptionCount = len(result)
