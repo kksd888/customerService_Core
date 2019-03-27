@@ -323,7 +323,7 @@ func (dialog *DialogController) send(msg SendModel) string {
 	})
 
 	// websocket 通知给客服
-	admin.SendMsgToOnlineKf(room.RoomKf.KfId, msg.FromUserName)
+	admin.SendMsgToOnlineKf(room.RoomKf.KfId, admin.WebSocketConnModel{Type: 1, Body: msg.FromUserName})
 
 	online, _ := model.Kf{}.QueryOnlines()
 	if len(online) == 0 {

@@ -82,7 +82,6 @@ func main() {
 		// 待接入列表
 		waitQueue := adminGroup.Group("/wait_queue")
 		{
-			waitQueue.GET("", dialogController.Queue)
 			waitQueue.POST("/access", dialogController.Access)
 		}
 
@@ -96,8 +95,6 @@ func main() {
 		// 会话操作
 		dialog := adminGroup.Group("/dialog")
 		{
-			dialog.GET("", dialogController.List)
-			dialog.GET("/:customerId/:page/:limit", dialogController.History)
 			dialog.PUT("/ack", dialogController.Ack)
 			dialog.POST("", dialogController.SendMessage)
 		}

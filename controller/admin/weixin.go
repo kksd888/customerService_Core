@@ -188,7 +188,7 @@ func (c *WeiXinController) Listen(context *gin.Context) {
 		})
 
 		// websocket 通知给客服
-		SendMsgToOnlineKf(room.RoomKf.KfId, msg.FromUserName)
+		SendMsgToOnlineKf(room.RoomKf.KfId, WebSocketConnModel{Type: 1, Body: msg.FromUserName})
 
 		onlines, _ := model.Kf{}.QueryOnlines()
 		if len(onlines) == 0 {

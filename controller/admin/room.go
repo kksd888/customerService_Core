@@ -62,7 +62,7 @@ func (c *RoomController) Transfer(context *gin.Context) {
 	}
 
 	// 通知目标客服接收
-	SendMsgToOnlineKf(changeKfSruct.TransferKfId, changeKfSruct.CustomerId)
+	SendMsgToOnlineKf(changeKfSruct.TransferKfId, WebSocketConnModel{Type: 1, Body: changeKfSruct.CustomerId})
 
 	context.JSON(http.StatusOK, nil)
 }

@@ -4,6 +4,7 @@ import (
 	"customerService_Core/common"
 	"customerService_Core/handle"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/json"
 	"github.com/gorilla/websocket"
 	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
@@ -65,7 +66,8 @@ func wsConn(w http.ResponseWriter, r *http.Request, kfId string) {
 			}
 
 			if string(p) == "+" {
-				if err := c.WriteMessage(messageType, []byte("-")); err != nil {
+				b, _ := json.Marshal(WebSocketConnModel{Type: 0, Body: "-"})
+				if err := c.WriteMessage(messageType, b); err != nil {
 					logrus.Error(err)
 					return
 				}
@@ -90,14 +92,36 @@ func kfLoginOut(kfId string) {
 }
 
 // 通过websocket给在线客服发送消息
-func SendMsgToOnlineKf(kfId, msg string) {
+func SendMsgToOnlineKf(kfId string, body WebSocketConnModel) {
 
-	logrus.Info("WebSocket发送消息 ", kfId, " ", msg)
+	logrus.Info("WebSocket发送消息 ", kfId, body)
 
+	b, _ := json.Marshal(body)
 	if conn, exist := onLineKfs[kfId]; exist {
-		if err := conn.WriteMessage(1, []byte(msg)); err != nil {
+		if err := conn.WriteMessage(1, b); err != nil {
 			logrus.Error(err)
 			return
 		}
+	} else {
+		// 不存在的连接，则广播发待接入
+		SendMsgRadio(body)
 	}
+}
+
+// 通过WebSocket给所有客服广播
+func SendMsgRadio(body WebSocketConnModel) {
+	logrus.Info("WebSocket广播 ", body)
+
+	b, _ := json.Marshal(body)
+	for _, c := range onLineKfs {
+		if err := c.WriteMessage(1, b); err != nil {
+			logrus.Error(err)
+		}
+	}
+}
+
+// WebSocket通信模型
+type WebSocketConnModel struct {
+	Type int    `json:"Type"`
+	Body string `json:"Body"`
 }

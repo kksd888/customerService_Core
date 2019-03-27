@@ -13,8 +13,6 @@ import (
 	"github.com/li-keli/go-tool/wechat/message"
 	"github.com/li-keli/mgo/bson"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -25,106 +23,6 @@ type DialogController struct {
 
 func NewDialog(wxContext *wechat.Wechat) *DialogController {
 	return &DialogController{wxContext: wxContext}
-}
-
-// @Summary 获取待回复消息列表 (5s轮询一次)
-// @Description 获取待回复消息列表 (5s轮询一次)
-// @Tags Dialog
-// @Accept  json
-// @Produce  json
-// @Success 200 {string} json ""
-// @Router /admin/dialog [get]
-func (c *DialogController) List(context *gin.Context) {
-	session := mongo_util.GetMongoSession()
-	defer session.Close()
-
-	var (
-		waitCustomer   = []WaitCustomer{}
-		kfId, _        = context.Get("KFID")
-		roomCollection = session.DB(common.AppConfig.DbName).C("room")
-	)
-	query := []bson.M{
-		{
-			"$match": bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false},
-		},
-		{
-			"$project": bson.M{
-				"room_customer": 1,
-				"room_messages": bson.M{
-					"$filter": bson.M{
-						"input": "$room_messages",
-						"as":    "room_message",
-						"cond": bson.M{
-							"$and": []bson.M{
-								{"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromCustomer}},
-								{"$eq": []interface{}{"$$room_message.ack", false}},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	err := roomCollection.Pipe(query).All(&waitCustomer)
-	returnwaitCustomer := waitCustomer[:0]
-	for _, waitC := range waitCustomer {
-		if len(waitC.RoomMessages) > 0 {
-			for _, v := range waitC.RoomMessages {
-				v.CreateTime = v.CreateTime.In(common.LocalLocation)
-			}
-			returnwaitCustomer = append(returnwaitCustomer, waitC)
-		}
-	}
-	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer}).Count()
-	if err != nil {
-		ReturnErrInfo(context, err)
-	}
-
-	context.JSON(http.StatusOK, struct {
-		WaitReplyLists []WaitCustomer `json:"wait_reply_lists"`
-		WaitQueueCount int            `json:"wait_queue_count"`
-	}{
-		WaitReplyLists: returnwaitCustomer,
-		WaitQueueCount: count,
-	})
-}
-
-// @Summary 待接入列表
-// @Description 待接入列表
-// @Tags WaitQueue
-// @Accept  json
-// @Produce  json
-// @Success 200 {string} json ""
-// @Router /admin/wait_queue [get]
-func (c *DialogController) Queue(context *gin.Context) {
-	session := mongo_util.GetMongoSession()
-	defer session.Close()
-
-	var (
-		waitCustomer   = []WaitCustomer{}
-		roomCollection = session.DB(common.AppConfig.DbName).C("room")
-	)
-
-	query := []bson.M{
-		{
-			"$match": bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer},
-		},
-		{
-			"$project": bson.M{
-				"room_customer": 1,
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 2}},
-			},
-		},
-	}
-	_ = roomCollection.Pipe(query).All(&waitCustomer)
-	for _, v := range waitCustomer {
-		for _, mv := range v.RoomMessages {
-			mv.CreateTime = mv.CreateTime.In(common.LocalLocation)
-		}
-	}
-
-	context.JSON(http.StatusOK, waitCustomer)
 }
 
 // @Summary 会话确认应答
@@ -171,9 +69,10 @@ func (c *DialogController) Access(context *gin.Context) {
 		}
 	}
 
-	// websocket 通知给客服
-	for _, v := range aRequest.CustomerIds {
-		SendMsgToOnlineKf(kfId, v)
+	// websocket 通知给客服，同时广播此用户已被接入
+	for _, customerId := range aRequest.CustomerIds {
+		SendMsgToOnlineKf(kfId, WebSocketConnModel{Type: 1, Body: customerId})
+		SendMsgRadio(WebSocketConnModel{Type: 2, Body: customerId})
 	}
 
 	ReturnSuccessInfo(context)
@@ -210,74 +109,6 @@ func (c *DialogController) Ack(context *gin.Context) {
 	}
 
 	ReturnSuccessInfo(context)
-}
-
-// @Summary 获取聊天记录
-// @Description 获取聊天记录
-// @Tags Dialog
-// @Accept  json
-// @Produce  json
-// @Param customerId path int true "客户 ID"
-// @page customerId path int true "第几页"
-// @limit customerId path int true "页容量"
-// @Success 200 {string} json ""
-// @Router /admin/dialog/{customerId}/{page}/{limit} [get]
-func (c *DialogController) History(context *gin.Context) {
-	session := mongo_util.GetMongoSession()
-	defer session.Close()
-
-	var (
-		roomHistory    RoomHistory
-		customerId     = context.Param("customerId")
-		strPage        = context.Param("page")
-		strLimit       = context.Param("limit")
-		roomCollection = session.DB(common.AppConfig.DbName).C("room")
-	)
-	if customerId == "" {
-		ReturnErrInfo(context, errors.New("缺少customerId"))
-	}
-
-	page, err := strconv.Atoi(strPage)
-	if err != nil {
-		ReturnErrInfo(context, errors.New("缺少page"))
-	}
-	limit, err := strconv.Atoi(strLimit)
-	if err != nil {
-		ReturnErrInfo(context, errors.New("缺少limit"))
-	}
-
-	query := []bson.M{
-		{
-			"$match": bson.M{"room_customer.customer_id": customerId},
-		},
-		{
-			"$unwind": "$room_messages",
-		},
-		{
-			"$sort": bson.M{"room_messages.create_time": 1},
-		},
-		{
-			"$skip": (page - 1) * limit,
-		},
-		{
-			"$limit": limit,
-		},
-		{
-			"$group": bson.M{
-				"_id":           "$_id",
-				"room_messages": bson.M{"$push": "$room_messages"},
-			},
-		},
-	}
-	if err := roomCollection.Pipe(query).One(&roomHistory); err != nil {
-		log.Warn(err)
-	}
-
-	for _, v := range roomHistory.RoomMessages {
-		v.FormatterTimeLocation()
-	}
-
-	context.JSON(http.StatusOK, roomHistory)
 }
 
 // @Summary 发送消息
