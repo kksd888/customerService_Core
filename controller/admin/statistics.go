@@ -30,14 +30,14 @@ func (c *StatisticsController) Statistics(ctx *gin.Context) {
 		messageCollection = session.DB(common.AppConfig.DbName).C("message")
 		kfCollection      = session.DB(common.AppConfig.DbName).C("kefu")
 
-		allKf = []StatisticsKf{}
+		allKf []StatisticsKf
 	)
 
 	if err := ctx.BindJSON(&input); err != nil {
 		ReturnErrInfo(ctx, err)
 	}
 
-	_ = kfCollection.Find(bson.M{}).All(&allKf)
+	_ = kfCollection.Find(nil).All(&allKf)
 
 	for k, v := range allKf {
 		var result []string
