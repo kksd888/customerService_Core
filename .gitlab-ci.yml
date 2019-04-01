@@ -28,6 +28,6 @@ deploy-prod-kefu:
   environment:
     name: production
   script:
-    - export PRODUCTION=false
+    - export PRODUCTION=true
     - docker-compose stop
     - docker-compose up -d --build
