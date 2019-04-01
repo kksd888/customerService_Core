@@ -5,7 +5,7 @@
 deploy-test-kefu:
   stage: deploy
   tags:
-    - test
+    - build
   only:
     - develop
   environment:
@@ -22,9 +22,9 @@ deploy-test-kefu:
 deploy-prod-kefu:
   stage: deploy
   tags:
-  - build
+  - release
   only:
-  - master
+  - release/2.0
   environment:
     name: production
   script:
