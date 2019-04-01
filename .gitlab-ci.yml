@@ -24,7 +24,7 @@ deploy-prod-kefu:
   tags:
   - release
   only:
-  - release/2.0
+  - master
   environment:
     name: production
   script:
