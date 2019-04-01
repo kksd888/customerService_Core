@@ -1,6 +1,8 @@
 package model
 
 import (
+	"customerService_Core/common"
+	"github.com/li-keli/go-tool/util/mongo_util"
 	"log"
 	"time"
 )
@@ -19,7 +21,10 @@ type Message struct {
 }
 
 func InsertMessage(m Message) {
-	if err := Db.C("message").Insert(&m); err != nil {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
+	if err := session.DB(common.AppConfig.DbName).C("message").Insert(&m); err != nil {
 		log.Printf("消息存储异常：%s", err.Error())
 	}
 }

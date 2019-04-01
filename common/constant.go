@@ -18,9 +18,6 @@ const (
 	KF_REPLY      = "您好，现在时段暂无人工客服为您服务，如您有任何问题可致电24小时服务热线4008101688"
 	WELCOME_REPLY = "您好，请发送您要咨询的问题"
 	LINE_UP_REPLY = "正有%d人排队，请先发送您要咨询的问题"
-	//KF_REPLY      = "您好，AI客服小金为您服务，若您需要人工服务可致电24小时服务热线4008101688"
-	//WELCOME_REPLY = "您好，AI客服小金为您服务，若您需要人工服务可致电24小时服务热线4008101688"
-	//LINE_UP_REPLY = "您好，AI客服小金为您服务，若您需要人工服务可致电24小时服务热线4008101688"
 
 	_              = iota // 客户类型
 	NormalCustomer        // 普通客户
@@ -99,6 +96,5 @@ func ReturnErrCode(ctx *gin.Context, errCode int, err interface{}) {
 
 // 生成UUID
 func GetNewUUID() string {
-	uuids, _ := uuid.NewV4()
-	return strings.Replace(uuids.String(), "-", "", -1)
+	return strings.Replace(uuid.NewV4().String(), "-", "", -1)
 }

@@ -3,17 +3,16 @@
 package admin
 
 import (
+	"customerService_Core/common"
+	"customerService_Core/model"
 	"errors"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
-	"git.jsjit.cn/customerService/customerService_Core/wechat"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/kf"
-	"git.jsjit.cn/customerService/customerService_Core/wechat/message"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/mongo_util"
+	"github.com/li-keli/go-tool/wechat"
+	"github.com/li-keli/go-tool/wechat/kf"
+	"github.com/li-keli/go-tool/wechat/message"
+	"github.com/li-keli/mgo/bson"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -26,100 +25,6 @@ func NewDialog(wxContext *wechat.Wechat) *DialogController {
 	return &DialogController{wxContext: wxContext}
 }
 
-// @Summary 获取待回复消息列表 (5s轮询一次)
-// @Description 获取待回复消息列表 (5s轮询一次)
-// @Tags Dialog
-// @Accept  json
-// @Produce  json
-// @Success 200 {string} json ""
-// @Router /admin/dialog [get]
-func (c *DialogController) List(context *gin.Context) {
-	var (
-		waitCustomer   = []WaitCustomer{}
-		kfId, _        = context.Get("KFID")
-		roomCollection = model.Db.C("room")
-	)
-	query := []bson.M{
-		{
-			"$match": bson.M{"room_kf.kf_id": kfId, "room_messages.ack": false},
-		},
-		{
-			"$project": bson.M{
-				"room_customer": 1,
-				"room_messages": bson.M{
-					"$filter": bson.M{
-						"input": "$room_messages",
-						"as":    "room_message",
-						"cond": bson.M{
-							"$and": []bson.M{
-								{"$eq": []interface{}{"$$room_message.oper_code", common.MessageFromCustomer}},
-								{"$eq": []interface{}{"$$room_message.ack", false}},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	err := roomCollection.Pipe(query).All(&waitCustomer)
-	returnwaitCustomer := waitCustomer[:0]
-	for _, waitC := range waitCustomer {
-		if len(waitC.RoomMessages) > 0 {
-			for _, v := range waitC.RoomMessages {
-				v.CreateTime = v.CreateTime.In(common.LocalLocation)
-			}
-			returnwaitCustomer = append(returnwaitCustomer, waitC)
-		}
-	}
-	count, _ := roomCollection.Find(bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer}).Count()
-	if err != nil {
-		ReturnErrInfo(context, err)
-	}
-
-	context.JSON(http.StatusOK, struct {
-		WaitReplyLists []WaitCustomer `json:"wait_reply_lists"`
-		WaitQueueCount int            `json:"wait_queue_count"`
-	}{
-		WaitReplyLists: returnwaitCustomer,
-		WaitQueueCount: count,
-	})
-}
-
-// @Summary 待接入列表
-// @Description 待接入列表
-// @Tags WaitQueue
-// @Accept  json
-// @Produce  json
-// @Success 200 {string} json ""
-// @Router /admin/wait_queue [get]
-func (c *DialogController) Queue(context *gin.Context) {
-	var (
-		waitCustomer   = []WaitCustomer{}
-		roomCollection = model.Db.C("room")
-	)
-
-	query := []bson.M{
-		{
-			"$match": bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer},
-		},
-		{
-			"$project": bson.M{
-				"room_customer": 1,
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", 0, 2}},
-			},
-		},
-	}
-	roomCollection.Pipe(query).All(&waitCustomer)
-	for _, v := range waitCustomer {
-		for _, mv := range v.RoomMessages {
-			mv.CreateTime = mv.CreateTime.In(common.LocalLocation)
-		}
-	}
-
-	context.JSON(http.StatusOK, waitCustomer)
-}
-
 // @Summary 会话确认应答
 // @Description 会话确认应答
 // @Tags WaitQueue
@@ -128,14 +33,17 @@ func (c *DialogController) Queue(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/wait_queue/access [post]
 func (c *DialogController) Access(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		err               error
 		aRequest          CustomerIdsRequest
 		kfModel           model.Kf
-		kfId, _           = context.Get("KFID")
-		roomCollection    = model.Db.C("room")
-		kfCollection      = model.Db.C("kefu")
-		messageCollection = model.Db.C("message")
+		kfId              = context.GetString("KFID")
+		roomCollection    = session.DB(common.AppConfig.DbName).C("room")
+		kfCollection      = session.DB(common.AppConfig.DbName).C("kefu")
+		messageCollection = session.DB(common.AppConfig.DbName).C("message")
 	)
 
 	if err = context.BindJSON(&aRequest); err != nil {
@@ -161,6 +69,12 @@ func (c *DialogController) Access(context *gin.Context) {
 		}
 	}
 
+	// websocket 通知给客服，同时广播此用户已被接入
+	for _, customerId := range aRequest.CustomerIds {
+		SendMsgToOnlineKf(kfId, WebSocketConnModel{Type: 1, Body: customerId})
+		SendMsgRadio(WebSocketConnModel{Type: 2, Body: customerId})
+	}
+
 	ReturnSuccessInfo(context)
 }
 
@@ -172,10 +86,13 @@ func (c *DialogController) Access(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/dialog/ack [put]
 func (c *DialogController) Ack(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		aRequest       CustomerIdsRequest
-		kfId, _        = context.Get("KFID")
-		roomCollection = model.Db.C("room")
+		kfId           = context.GetString("KFID")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 	if bindErr := context.BindJSON(&aRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
@@ -190,72 +107,8 @@ func (c *DialogController) Ack(context *gin.Context) {
 			log.Warn(updateErr)
 		}
 	}
+
 	ReturnSuccessInfo(context)
-}
-
-// @Summary 获取聊天记录
-// @Description 获取聊天记录
-// @Tags Dialog
-// @Accept  json
-// @Produce  json
-// @Param customerId path int true "客户 ID"
-// @page customerId path int true "第几页"
-// @limit customerId path int true "页容量"
-// @Success 200 {string} json ""
-// @Router /admin/dialog/{customerId}/{page}/{limit} [get]
-func (c *DialogController) History(context *gin.Context) {
-	var (
-		roomHistory    RoomHistory
-		customerId     = context.Param("customerId")
-		strPage        = context.Param("page")
-		strLimit       = context.Param("limit")
-		roomCollection = model.Db.C("room")
-	)
-	if customerId == "" {
-		ReturnErrInfo(context, errors.New("缺少customerId"))
-	}
-
-	page, err := strconv.Atoi(strPage)
-	if err != nil {
-		ReturnErrInfo(context, errors.New("缺少page"))
-	}
-	limit, err := strconv.Atoi(strLimit)
-	if err != nil {
-		ReturnErrInfo(context, errors.New("缺少limit"))
-	}
-
-	query := []bson.M{
-		{
-			"$match": bson.M{"room_customer.customer_id": customerId},
-		},
-		{
-			"$unwind": "$room_messages",
-		},
-		{
-			"$sort": bson.M{"room_messages.create_time": 1},
-		},
-		{
-			"$skip": (page - 1) * limit,
-		},
-		{
-			"$limit": limit,
-		},
-		{
-			"$group": bson.M{
-				"_id":           "$_id",
-				"room_messages": bson.M{"$push": "$room_messages"},
-			},
-		},
-	}
-	if err := roomCollection.Pipe(query).One(&roomHistory); err != nil {
-		log.Warn(err)
-	}
-
-	for _, v := range roomHistory.RoomMessages {
-		v.FormatterTimeLocation()
-	}
-
-	context.JSON(http.StatusOK, roomHistory)
 }
 
 // @Summary 发送消息
@@ -266,11 +119,14 @@ func (c *DialogController) History(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/dialog [post]
 func (c *DialogController) SendMessage(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		sendRequest        SendMessageRequest
 		kfId, _            = context.Get("KFID")
-		roomCollection     = model.Db.C("room")
-		customerCollection = model.Db.C("customer")
+		roomCollection     = session.DB(common.AppConfig.DbName).C("room")
+		customerCollection = session.DB(common.AppConfig.DbName).C("customer")
 	)
 	if bindErr := context.Bind(&sendRequest); bindErr != nil {
 		ReturnErrInfo(context, bindErr)
@@ -289,6 +145,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 				Msg:        sendRequest.Msg,
 				OperCode:   common.MessageFromKf,
 				CreateTime: time.Now(),
+				KfId:       kfId.(string),
 			},
 		},
 			"$slice": -100}},
@@ -306,6 +163,7 @@ func (c *DialogController) SendMessage(context *gin.Context) {
 		Msg:        sendRequest.Msg,
 		OperCode:   common.MessageFromKf,
 		CreateTime: time.Now(),
+		KfId:       kfId.(string),
 	})
 
 	customer := model.Customer{}

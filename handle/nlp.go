@@ -1,7 +1,7 @@
 package handle
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/wechat/util"
+	"github.com/li-keli/go-tool/util/http_util"
 	"log"
 )
 
@@ -15,7 +15,7 @@ func NewAiSemantic(aiHost string) *AiSemantic {
 }
 
 func (ai *AiSemantic) Dialogue(msg, token string) string {
-	bytes, err := util.PostJSON(ai.hostUrl, struct {
+	bytes, err := http_util.PostJSON(ai.hostUrl, struct {
 		Msg   string `json:"msg"`
 		Token string `json:"token"`
 	}{msg, token})

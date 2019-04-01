@@ -1,8 +1,8 @@
 package test
 
 import (
+	"customerService_Core/handle"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/handle"
 	"log"
 	"testing"
 	"time"

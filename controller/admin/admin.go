@@ -3,10 +3,11 @@
 package admin
 
 import (
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
+	"customerService_Core/common"
+	"customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/mongo_util"
+	"github.com/li-keli/mgo/bson"
 	"log"
 	"net/http"
 )
@@ -14,7 +15,7 @@ import (
 type AdminController struct {
 }
 
-func NewHealth() *AdminController {
+func NewAdmin() *AdminController {
 	return &AdminController{}
 }
 
@@ -26,34 +27,31 @@ func NewHealth() *AdminController {
 // @Success 200 {string} json ""
 // @Router /admin/init [get]
 func (c *AdminController) Init(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	// 获取访问客服信息
 	var (
 		kf             = model.Kf{}
 		waitCustomer   = []WaitCustomer{}
 		onlineCustomer = []OnlineCustomer{}
-		kfId, _        = context.Get("KFID")
-		kfCollection   = model.Db.C("kefu")
-		roomCollection = model.Db.C("room")
+		kfId           = context.GetString("KFID")
+		kfCollection   = session.DB(common.AppConfig.DbName).C("kefu")
+		roomCollection = session.DB(common.AppConfig.DbName).C("room")
 	)
 
 	kfCollection.Find(bson.M{"id": kfId}).One(&kf)
 
-	// 获取聊天列表 (最多输出100条)
-	roomCollection.Pipe([]bson.M{
+	// 获取聊天列表 (最多输出200条)
+	_ = roomCollection.Pipe([]bson.M{
 		{
 			"$match": bson.M{"room_kf.kf_id": kfId},
-		},
-		{
-			"$project": bson.M{
-				"room_customer": 1,
-				"room_messages": bson.M{"$slice": []interface{}{"$room_messages", -1}},
-			},
 		},
 		{
 			"$sort": bson.M{"room_messages.create_time": -1},
 		},
 		{
-			"$limit": 100,
+			"$limit": 200,
 		},
 	}).All(&onlineCustomer)
 	for _, v := range onlineCustomer {
@@ -63,7 +61,7 @@ func (c *AdminController) Init(context *gin.Context) {
 	}
 
 	// 获取排队列表
-	roomCollection.Pipe([]bson.M{
+	_ = roomCollection.Pipe([]bson.M{
 		{
 			"$match": bson.M{"room_kf.kf_id": "", "room_messages.oper_code": common.MessageFromCustomer},
 		},

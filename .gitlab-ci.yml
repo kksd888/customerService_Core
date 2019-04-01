@@ -1,7 +1,3 @@
-before_script:
-  - echo " CI is running... "
-  - docker_image_version=latest
-
 # ******************************************************************************************************
 # ************************************** 生产环境配置 ****************************************************
 # ******************************************************************************************************
@@ -9,15 +5,29 @@ before_script:
 deploy-test-kefu:
   stage: deploy
   tags:
-  - build
+    - build
   only:
-  - master
+    - develop
   environment:
     name: testing
   script:
-  - name="kefu-online"
-  - server_port=20700
-  - docker build --rm -t maven.jsjit.cn:9911/kefu/$name:$docker_image_version . && docker push maven.jsjit.cn:9911/kefu/$name:$docker_image_version
-  - if [ $(docker ps -q -f "name=$name" | wc -l) -eq 1 ] ; then docker stop $(docker ps -a -q -f "name=$name"); fi
-  - if [ $(docker images -q maven.jsjit.cn:9911/kefu/$name | wc -l) -eq 1 ] ; then docker rmi $(docker images -q maven.jsjit.cn:9911/kefu/$name); fi
-  - docker run -d --rm -p $server_port:5000 -v /opt/www:/www -v /opt/upload:/upload --name $name maven.jsjit.cn:9911/kefu/$name:$docker_image_version
+    - export PRODUCTION=false
+    - docker-compose stop
+    - docker-compose up -d --build
+
+# ******************************************************************************************************
+# ************************************** 生产环境配置 ****************************************************
+# ******************************************************************************************************
+
+deploy-prod-kefu:
+  stage: deploy
+  tags:
+  - release
+  only:
+  - release/2.0
+  environment:
+    name: production
+  script:
+    - export PRODUCTION=false
+    - docker-compose stop
+    - docker-compose up -d --build

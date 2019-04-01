@@ -1,22 +1,25 @@
-FROM golang:1.10.3 as build
+FROM golang:1.12 as build
 
-WORKDIR /go/src/git.jsjit.cn/customerService/customerService_Core
+ENV GOPROXY https://go.likeli.top
+ENV GO111MODULE on
 
-ADD ./godep /usr/local/bin/
+WORKDIR /go/cache
+
+ADD go.mod .
+ADD go.sum .
+RUN go mod download
+
+WORKDIR /go/member-tour
 
 ADD . .
 
-RUN CGO_ENABLED=0 GOOS=linux godep go build -a -installsuffix cgo -o app .
-
-FROM maven.jsjit.cn:9911/alpine-cert:1.0 as certs
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o app main.go
 
 FROM scratch as prod
 
-COPY --from=certs /etc/localtime /etc/localtime
-COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=build /go/src/git.jsjit.cn/customerService/customerService_Core/app .
-COPY --from=build /go/src/git.jsjit.cn/customerService/customerService_Core/conf.yaml .
-
-EXPOSE 5000/tcp
+COPY --from=build /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=build /go/member-tour/app /
+COPY --from=build /go/member-tour/conf.yaml /
 
 CMD ["/app"]

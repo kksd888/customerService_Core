@@ -3,19 +3,29 @@
 package admin
 
 import (
+	"bytes"
+	"customerService_Core/common"
+	"customerService_Core/model"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
+	"github.com/li-keli/go-tool/util/mongo_util"
+	"github.com/li-keli/mgo/bson"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type KfServerController struct {
 }
+
+var (
+	LoginEmployeeMonth = "LoginEmployee"
+)
 
 func NewKfServer() *KfServerController {
 	return &KfServerController{}
@@ -29,10 +39,13 @@ func NewKfServer() *KfServerController {
 // @Success 200 {string} json ""
 // @Router /admin/kf [get]
 func (c *KfServerController) Get(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		kf      model.Kf
 		kfId, _ = context.Get("KFID")
-		kfC     = model.Db.C("kefu")
+		kfC     = session.DB(common.AppConfig.DbName).C("kefu")
 	)
 
 	if err := kfC.Find(bson.M{"id": kfId}).One(&kf); err != nil {
@@ -50,9 +63,12 @@ func (c *KfServerController) Get(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/kf/status [post]
 func (c *KfServerController) ChangeStatus(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		kfId, _ = context.Get("KFID")
-		kfC     = model.Db.C("kefu")
+		kfC     = session.DB(common.AppConfig.DbName).C("kefu")
 		reqBind = struct {
 			Status bool `bson:"status" json:"status"`
 		}{}
@@ -77,12 +93,16 @@ func (c *KfServerController) ChangeStatus(context *gin.Context) {
 // @Success 200 {string} json "{"code":0,"msg":"ok"}"
 // @Router /admin/login [post]
 func (c *KfServerController) LoginIn(context *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
 	var (
 		kf           = model.Kf{}
-		kfCollection = model.Db.C("kefu")
+		memberOutApi = LoginEmployeeResponse{}
+		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		loginStruct  = struct {
-			JobNum   string `json:"job_num"`
-			PassWord string `json:"pass_word"`
+			JobNum    string `json:"job_num"`
+			PassWord  string `json:"pass_word"`
+			GroupName string `json:"group_name"`
 		}{}
 	)
 
@@ -94,25 +114,77 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 		ReturnErrInfo(context, "登录参数错误")
 	}
 
-	if err := kfCollection.Find(bson.M{
-		"job_num":   loginStruct.JobNum,
-		"pass_word": common.ToMd5(loginStruct.PassWord),
-	}).One(&kf); err != nil {
-		ReturnErrInfo(context, "客服登录授权失败")
+	//请求会员登录接口
+	if memberOutApi = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, "wechar_kf"); memberOutApi.BaseResponse.IsSuccess {
+		if err := kfCollection.Find(bson.M{"job_num": loginStruct.JobNum}).One(&kf); err != nil {
+			//添加用户
+			kf.Id = common.ToMd5(loginStruct.JobNum + loginStruct.GroupName)
+			kfCollection.Insert(&model.Kf{
+				Id:         kf.Id,
+				JobNum:     loginStruct.JobNum,
+				NickName:   memberOutApi.EmployeeName,
+				IsOnline:   true,
+				Type:       1,
+				GroupName:  loginStruct.GroupName,
+				CreateTime: time.Now(),
+				UpdateTime: time.Now(),
+			})
+		} else {
+			// 更新在线客服列表
+			if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum},
+				bson.M{"$set": bson.M{
+					"is_online":  true,
+					"nick_name":  memberOutApi.EmployeeName,
+					"group_name": loginStruct.GroupName,
+				}}); err != nil {
+				ReturnErrInfo(context, err)
+			}
+		}
+	} else {
+		ReturnErrInfo(context, "用户名或密码错误")
 	}
 
 	s, _ := Make2Auth(kf.Id)
 
-	// 更新在线客服列表
-	changeKfModel := model.Kf{Id: kf.Id, IsOnline: true}
-	err := changeKfModel.ChangeStatus()
-	if err != nil {
-		ReturnErrInfo(context, err)
-	}
-
 	context.JSON(http.StatusOK, LoginInResponse{
 		Authentication: s,
+		NickName:       memberOutApi.EmployeeName,
+		JobNum:         loginStruct.JobNum,
+		GroupName:      loginStruct.GroupName,
 	})
+}
+
+// 在线客服列表
+func (c *KfServerController) OnLines(ctx *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
+	var (
+		kfModels     []bson.M
+		kfId         = ctx.GetString("KFID")
+		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
+	)
+
+	query := []bson.M{
+		{
+			"$match": bson.M{"is_online": true, "id": bson.M{"$ne": kfId}},
+		},
+		{
+			"$group": bson.M{
+				"_id":     "$group_name",
+				"label":   bson.M{"$first": "$group_name"},
+				"options": bson.M{"$push": bson.M{"value": "$id", "label": "$nick_name"}},
+			},
+		},
+		{
+			"$project": bson.M{
+				"_id": 0,
+			},
+		},
+	}
+	_ = kfCollection.Pipe(query).All(&kfModels)
+
+	ctx.JSON(http.StatusOK, kfModels)
 }
 
 func Make2Auth(kfId string) (string, error) {
@@ -125,6 +197,89 @@ func Make2Auth(kfId string) (string, error) {
 	return base64.StdEncoding.EncodeToString(byteInfo), err
 }
 
+func GetEmployeeInfo(employeeAlias string, password string, openId string) LoginEmployeeResponse {
+	var (
+		output = LoginEmployeeResponse{}
+	)
+
+	if employeeAlias == "123" {
+		ret := LoginEmployeeResponse{
+			EmployeeID:   123,
+			EmployeeName: "测试账号",
+		}
+		ret.BaseResponse.IsSuccess = true
+		return ret
+	}
+
+	var input = struct {
+		MethodName    string `json:"MethodName"`
+		EmployeeAlias string `json:"EmployeeAlias"`
+		Password      string `json:"Password"`
+		LoginDeviceID string `json:"LoginDeviceID"`
+	}{
+		MethodName:    LoginEmployeeMonth,
+		EmployeeAlias: employeeAlias,
+		Password:      password,
+		LoginDeviceID: openId,
+	}
+	marshal, _ := json.Marshal(input)
+
+	req, err := http.NewRequest("POST", "http://memberapi.jsjinfo.cn/Hosts/JIUser.aspx", bytes.NewBuffer(marshal))
+	req.Header.Set("MethodName", LoginEmployeeMonth)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+
+	if err != nil {
+		panic(err)
+	}
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	if err := json.Unmarshal(body, &output); err != nil {
+		logrus.Error(err)
+	}
+
+	if !output.BaseResponse.IsSuccess {
+		logrus.Error(output.BaseResponse.ErrorMessage)
+	}
+
+	return output
+}
+
+type LoginEmployeeResponse struct {
+	BaseResponse struct {
+		IsSuccess    bool   `json:"IsSuccess"`
+		ErrorMessage string `json:"ErrorMessage"`
+		ErrorCode    string `json:"ErrorCode"`
+	}
+	EmployeeName     string `json:"EmployeeName"`
+	PositionID       int    `json:"PositionID"`
+	DeptID           int    `json:"DeptID"`
+	EmployeeID       int    `json:"EmployeeID"`
+	IDNumber         string `json:"IDNumber"`
+	Birthday         string `json:"Birthday"`
+	NativePlace      string `json:"NativePlace"`
+	Sex              int    `json:"Sex"`
+	MobilePhone      string `json:"MobilePhone"`
+	CompanyTel       string `json:"CompanyTel"`
+	Memo             string `json:"Memo"`
+	IsAdmin          int    `json:"IsAdmin"`
+	PhoneSkill       string `json:"PhoneSkill"`
+	DataCommission   int    `json:"DataCommission"`
+	CallCenterNumber int    `json:"CallCenterNumber"`
+	LastDeviceID     string `json:"LastDeviceID"`
+	AvatarUrl        string `json:"AvatarUrl"`
+	CompanyID        int    `json:"CompanyID"`
+	Token            string `json:"token"`
+	DeptName         string `json:"DeptName"`
+	IsVIPManager     bool   `json:"IsVIPManager"`
+}
+
 type LoginInResponse struct {
-	Authentication string
+	Authentication string `json:"Authentication"`
+	JobNum         string `json:"JobNum"`
+	NickName       string `json:"NickName"`
+	GroupName      string `json:"GroupName"`
 }

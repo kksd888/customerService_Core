@@ -1,13 +1,13 @@
 package open
 
 import (
+	"customerService_Core/common"
+	"customerService_Core/handle"
+	"customerService_Core/model"
 	"fmt"
-	"git.jsjit.cn/customerService/customerService_Core/common"
-	"git.jsjit.cn/customerService/customerService_Core/handle"
-	"git.jsjit.cn/customerService/customerService_Core/model"
 	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo/bson"
-	"net/http"
+	"github.com/li-keli/go-tool/util/mongo_util"
+	"github.com/li-keli/mgo/bson"
 	"time"
 )
 
@@ -18,15 +18,12 @@ func NewOpen() *OpenController {
 	return &OpenController{}
 }
 
-// 健康检查
-// /health
-func (c *OpenController) Health(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{"code": 100})
-}
-
 // 认证授权
 // /v1/app/access
 func (open *OpenController) Access(ctx *gin.Context) {
+	session := mongo_util.GetMongoSession()
+	defer session.Close()
+
 	var (
 		input = struct {
 			DeviceId   string                    `json:"device_id" bson:"device_id" binding:"required"` // 设备编号
@@ -45,9 +42,9 @@ func (open *OpenController) Access(ctx *gin.Context) {
 			Authorization string `json:"authorization"` // 授权码
 		}
 
-		customerCollection = model.Db.C("customer")
-		roomCollection     = model.Db.C("room")
-		kefuCollection     = model.Db.C("kefu")
+		customerCollection = session.DB(common.AppConfig.DbName).C("customer")
+		roomCollection     = session.DB(common.AppConfig.DbName).C("room")
+		kefuCollection     = session.DB(common.AppConfig.DbName).C("kefu")
 	)
 
 	// 验证并绑定到模型
@@ -104,15 +101,14 @@ func (open *OpenController) Access(ctx *gin.Context) {
 		})
 	} else {
 		var (
-			kefuColection = model.Db.C("kefu")
-			kefuModel     = model.Kf{}
-			room          = model.Room{}
+			kefuModel = model.Kf{}
+			room      = model.Room{}
 		)
 		roomCollection.Find(bson.M{"room_customer.customer_id": input.CustomerId}).One(&room)
-		kefuColection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
+		kefuCollection.Find(bson.M{"id": room.RoomKf.KfId}).One(&kefuModel)
 		if kefuModel.Id != "" && kefuModel.IsOnline == false {
 			// 若接待的客服已经下线，则将用户重新放入待接入
-			roomCollection.Update(
+			_ = roomCollection.Update(
 				bson.M{"room_customer.customer_id": input.CustomerId},
 				bson.M{"$set": bson.M{"room_kf": &model.RoomKf{}}})
 
@@ -133,7 +129,7 @@ func (open *OpenController) Access(ctx *gin.Context) {
 				},
 					"$slice": -100}},
 			}
-			roomCollection.Update(query, changes)
+			_ = roomCollection.Update(query, changes)
 		}
 		if kefuModel.Id == "" {
 			// 更新默认欢迎消息
@@ -153,7 +149,7 @@ func (open *OpenController) Access(ctx *gin.Context) {
 				},
 					"$slice": -100}},
 			}
-			roomCollection.Update(query, changes)
+			_ = roomCollection.Update(query, changes)
 		}
 	}
 

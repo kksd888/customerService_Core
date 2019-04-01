@@ -1,0 +1,12 @@
+version: '2'
+services:
+  kf_core:
+    build: .
+    image: maven.jsjit.cn:9911/kefu/kefu-online:latest
+    ports:
+      - 20700:5000
+    environment:
+      PRODUCTION: ${PRODUCTION}
+    volumes:
+      - /opt/www:/www
+      - /opt/upload:/upload
