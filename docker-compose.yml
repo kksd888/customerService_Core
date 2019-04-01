@@ -8,4 +8,5 @@ services:
     environment:
       PRODUCTION: ${PRODUCTION}
     volumes:
+      - /opt/www:/www
       - /opt/upload:/upload
