@@ -1,12 +1,24 @@
-version: '2'
+version: '3.7'
 services:
+  ai:
+    image: docker.jsjit.cn/ai/nlp:1.6
+    ports:
+      - 5000:5000
+    networks:
+      - customer_service
   kf_core:
     build: .
-    image: maven.jsjit.cn:9911/kefu/kefu-online:latest
+    image: docker.jsjit.cn/kefu/kefu-online:latest
     ports:
-      - 20700:5000
+      - 20701:5000
+    networks:
+      - customer_service
     environment:
       PRODUCTION: ${PRODUCTION}
+    depends_on:
+      - ai
     volumes:
       - /opt/www:/www
       - /opt/upload:/upload
+networks:
+  customer_service

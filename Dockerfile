@@ -1,6 +1,6 @@
-FROM golang:1.12 as build
+FROM docker.jsjit.cn/golang:1.12 as build
 
-ENV GOPROXY https://go.likeli.top
+ENV GOPROXY https://goproxy.cn
 ENV GO111MODULE on
 
 WORKDIR /go/cache

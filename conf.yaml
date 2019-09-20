@@ -5,7 +5,7 @@ debug:
   Mongodb: 172.16.2.161:21000
   DbName: customer_service_db
   Multimedia: https://kf.jsjinfo.cn/
-  AiSemantic: http://172.16.7.23:20700/semantic
+  AiSemantic: http://172.16.14.52:5000/semantic
   AutomaticReply: false
 
 # 生产
@@ -15,5 +15,5 @@ release:
   Mongodb: 172.16.2.161:28000
   DbName: customer_service_db
   Multimedia: https://kf.jsjinfo.cn/
-  AiSemantic: http://172.16.7.23:20700/semantic
+  AiSemantic: http://172.16.14.52:5000/semantic
   AutomaticReply: false
