@@ -20,5 +20,6 @@ services:
     volumes:
       - /opt/www:/www
       - /opt/upload:/upload
+
 networks:
-  customer_service
+  customer_service:
