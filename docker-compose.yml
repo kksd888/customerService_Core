@@ -10,7 +10,7 @@ services:
     build: .
     image: docker.jsjit.cn/kefu/kefu-online:latest
     ports:
-      - 20701:5000
+      - 20700:5000
     networks:
       - customer_service
     environment:
