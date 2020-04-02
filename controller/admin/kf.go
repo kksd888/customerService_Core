@@ -17,7 +17,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 )
 
 type KfServerController struct {
@@ -96,8 +95,8 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 	session := mongo_util.GetMongoSession()
 	defer session.Close()
 	var (
-		kf           = model.Kf{}
-		memberOutApi = LoginEmployeeResponse{}
+		kf = model.Kf{}
+		//memberOutApi = LoginEmployeeResponse{}
 		kfCollection = session.DB(common.AppConfig.DbName).C("kefu")
 		loginStruct  = struct {
 			JobNum    string `json:"job_num"`
@@ -114,41 +113,58 @@ func (c *KfServerController) LoginIn(context *gin.Context) {
 		ReturnErrInfo(context, "登录参数错误")
 	}
 
-	//请求会员登录接口
-	if memberOutApi = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, "wechar_kf"); memberOutApi.BaseResponse.IsSuccess {
-		if err := kfCollection.Find(bson.M{"job_num": loginStruct.JobNum}).One(&kf); err != nil {
-			//添加用户
-			kf.Id = common.ToMd5(loginStruct.JobNum + loginStruct.GroupName)
-			kfCollection.Insert(&model.Kf{
-				Id:         kf.Id,
-				JobNum:     loginStruct.JobNum,
-				NickName:   memberOutApi.EmployeeName,
-				IsOnline:   true,
-				Type:       1,
-				GroupName:  loginStruct.GroupName,
-				CreateTime: time.Now(),
-				UpdateTime: time.Now(),
-			})
-		} else {
-			// 更新在线客服列表
-			if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum},
-				bson.M{"$set": bson.M{
-					"is_online":  true,
-					"nick_name":  memberOutApi.EmployeeName,
-					"group_name": loginStruct.GroupName,
-				}}); err != nil {
-				ReturnErrInfo(context, err)
-			}
-		}
+	if err := kfCollection.Find(bson.M{
+		"job_num":   loginStruct.JobNum,
+		"pass_word": common.ToMd5(loginStruct.PassWord),
+	}).One(&kf); err != nil {
+		ReturnErrInfo(context, "客服登录授权失败")
 	} else {
-		ReturnErrInfo(context, "用户名或密码错误")
+		// 更新在线客服列表
+		if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum},
+			bson.M{"$set": bson.M{
+				"is_online":  true,
+				"nick_name":  kf.NickName,
+				"group_name": loginStruct.GroupName,
+			}}); err != nil {
+			ReturnErrInfo(context, err)
+		}
 	}
+
+	////请求会员登录接口
+	//if memberOutApi = GetEmployeeInfo(loginStruct.JobNum, loginStruct.PassWord, "wechar_kf"); memberOutApi.BaseResponse.IsSuccess {
+	//	if err := kfCollection.Find(bson.M{"job_num": loginStruct.JobNum}).One(&kf); err != nil {
+	//		//添加用户
+	//		kf.Id = common.ToMd5(loginStruct.JobNum + loginStruct.GroupName)
+	//		kfCollection.Insert(&model.Kf{
+	//			Id:         kf.Id,
+	//			JobNum:     loginStruct.JobNum,
+	//			NickName:   memberOutApi.EmployeeName,
+	//			IsOnline:   true,
+	//			Type:       1,
+	//			GroupName:  loginStruct.GroupName,
+	//			CreateTime: time.Now(),
+	//			UpdateTime: time.Now(),
+	//		})
+	//	} else {
+	//		// 更新在线客服列表
+	//		if err := kfCollection.Update(bson.M{"job_num": loginStruct.JobNum},
+	//			bson.M{"$set": bson.M{
+	//				"is_online":  true,
+	//				"nick_name":  memberOutApi.EmployeeName,
+	//				"group_name": loginStruct.GroupName,
+	//			}}); err != nil {
+	//			ReturnErrInfo(context, err)
+	//		}
+	//	}
+	//} else {
+	//	ReturnErrInfo(context, "用户名或密码错误")
+	//}
 
 	s, _ := Make2Auth(kf.Id)
 
 	context.JSON(http.StatusOK, LoginInResponse{
 		Authentication: s,
-		NickName:       memberOutApi.EmployeeName,
+		NickName:       kf.NickName,
 		JobNum:         loginStruct.JobNum,
 		GroupName:      loginStruct.GroupName,
 	})
