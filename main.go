@@ -63,7 +63,7 @@ func main() {
 	openDialogController := open.NewDialog(aiModule)
 
 	// 静态文件
-	router.Static("/www", "./www")
+	router.Static("/static", "./www")
 	// 静态多媒体文件
 	router.Static("/upload", "./upload")
 	// 微信通信地址
