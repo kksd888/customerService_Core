@@ -8,7 +8,7 @@ services:
       - customer_service
   kf_core:
     build: .
-    image: docker.jsjit.cn/kefu/kefu-online:latest
+    image: docker.jsjit.cn/kefu/kefu-online:newUI
     ports:
       - 20700:5000
     networks:
