@@ -6,6 +6,7 @@ import (
 )
 
 // AI语义处理
+// 此处的NLP处理，是在另一个Python项目中实现，此处通过HTTP调用
 type AiSemantic struct {
 	hostUrl string
 }

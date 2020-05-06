@@ -17,7 +17,7 @@ import (
 var session *mgo.Session
 
 func init() {
-	s, _ := mgo.Dial("172.16.2.161:21000")
+	s, _ := mgo.Dial("127.0.0.1:21000")
 	s.SetMode(mgo.Monotonic, true)
 	session = s
 }

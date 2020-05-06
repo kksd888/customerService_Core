@@ -1,14 +1,14 @@
 version: '3'
 services:
   ai:
-    image: docker.jsjit.cn/ai/nlp:1.6
+    image: 你的域名/ai/nlp:1.6
     ports:
       - 5000:5000
     networks:
       - customer_service
   kf_core:
     build: .
-    image: docker.jsjit.cn/kefu/kefu-online:newUI
+    image: 你的仓库/kefu/kefu-online:newUI
     ports:
       - 20700:5000
     networks:

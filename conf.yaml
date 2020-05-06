@@ -2,18 +2,11 @@
 debug:
   GoModel: debug
   Port: 5000
-  Mongodb: 172.16.2.161:21000
+  Mongodb: 127.0.0.1:21000
   DbName: customer_service_db
-  Multimedia: https://kf.jsjinfo.cn/
-  AiSemantic: http://ai:5000/semantic
+  Multimedia: https://kf
+  AiSemantic: http://ai/semantic
   AutomaticReply: false
 
-# 生产
-release:
-  GoModel: release
-  Port: 5000
-  Mongodb: 172.16.2.161:28000
-  DbName: customer_service_db
-  Multimedia: https://kf.jsjinfo.cn/
-  AiSemantic: http://ai:5000/semantic
-  AutomaticReply: false
+# 生产环境
+# ...

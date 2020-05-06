@@ -20,12 +20,12 @@ var (
 
 func init() {
 	wxContext = wechat.NewWechat(&wechat.Config{
-		SelfFuncAccessToken: handle.GetQyAccessTokenFromJsj,
+		SelfFuncAccessToken: handle.GetQyAccessToken,
 	})
 }
 
 // @title 在线客服API文档
-// @version 0.0.1
+// @version 2.0
 // @description  在线客服API文档的文档，接管了微信公众号聊天
 // @BasePath /
 func main() {
@@ -73,7 +73,7 @@ func main() {
 	// 后台WebSocket
 	router.GET("/admin/ws", admin.WsHandler)
 
-	// 后台Admin API路由 (授权保护)
+	// 后台Admin API路由
 	adminGroup := router.Group("/admin", handle.AdminOauthMiddleWare())
 	{
 		// 初始化

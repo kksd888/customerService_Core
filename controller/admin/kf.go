@@ -3,18 +3,14 @@
 package admin
 
 import (
-	"bytes"
 	"customerService_Core/common"
 	"customerService_Core/model"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/li-keli/go-tool/util/mongo_util"
 	"github.com/li-keli/mgo/bson"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -211,57 +207,6 @@ func Make2Auth(kfId string) (string, error) {
 	}
 
 	return base64.StdEncoding.EncodeToString(byteInfo), err
-}
-
-func GetEmployeeInfo(employeeAlias string, password string, openId string) LoginEmployeeResponse {
-	var (
-		output = LoginEmployeeResponse{}
-	)
-
-	if employeeAlias == "123" {
-		ret := LoginEmployeeResponse{
-			EmployeeID:   123,
-			EmployeeName: "测试账号",
-		}
-		ret.BaseResponse.IsSuccess = true
-		return ret
-	}
-
-	var input = struct {
-		MethodName    string `json:"MethodName"`
-		EmployeeAlias string `json:"EmployeeAlias"`
-		Password      string `json:"Password"`
-		LoginDeviceID string `json:"LoginDeviceID"`
-	}{
-		MethodName:    LoginEmployeeMonth,
-		EmployeeAlias: employeeAlias,
-		Password:      password,
-		LoginDeviceID: openId,
-	}
-	marshal, _ := json.Marshal(input)
-
-	req, err := http.NewRequest("POST", "http://memberapi.jsjinfo.cn/Hosts/JIUser.aspx", bytes.NewBuffer(marshal))
-	req.Header.Set("MethodName", LoginEmployeeMonth)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	defer resp.Body.Close()
-
-	if err != nil {
-		panic(err)
-	}
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, &output); err != nil {
-		logrus.Error(err)
-	}
-
-	if !output.BaseResponse.IsSuccess {
-		logrus.Error(output.BaseResponse.ErrorMessage)
-	}
-
-	return output
 }
 
 type LoginEmployeeResponse struct {
