@@ -14,9 +14,11 @@
 
 ## 预览
 
-<img src="doc/图片3.png" width="400" alt="图片"/><br/>
-<img src="doc/图片2.png" width="400" alt="图片"/><br/>
-<img src="doc/图片1.png" width="400" alt="图片"/><br/>
-<img src="doc/图片6.png" width="400" alt="图片"/><br/>
-<img src="doc/图片5.png" width="400" alt="图片"/><br/>
-<img src="doc/图片4.png" width="400" alt="图片"/>
+<div style="text-align: center">
+<img src="doc/图片3.png" width="600" alt="图片"/><br/>
+<img src="doc/图片2.png" width="600" alt="图片"/><br/>
+<img src="doc/图片1.png" width="600" alt="图片"/><br/>
+<img src="doc/图片6.png" width="600" alt="图片"/><br/>
+<img src="doc/图片5.png" width="600" alt="图片"/><br/>
+<img src="doc/图片4.png" width="600" alt="图片"/>
+</div>
